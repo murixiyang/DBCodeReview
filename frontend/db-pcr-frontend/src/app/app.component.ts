@@ -22,24 +22,18 @@ export class AppComponent implements OnInit {
   constructor(private gerritService: GerritService) {}
 
   ngOnInit() {
-    this.gerritService.getCommitList().subscribe((data: CommitInfo[]) => {
-      this.commitList = data;
-    });
-
-    this.gerritService
-      .getAnonymousCommitList()
-      .subscribe((data: CommitInfo[]) => {
-        this.anonymousCommitList = data;
-      });
-  }
-
-  async getProjectList() {
-    this.projectList = [];
-
     this.gerritService
       .getProjectList()
       .subscribe((data: ProjectInfoModel[]) => {
         this.projectList = data;
+      });
+  }
+
+  getCommits(projectId: string) {
+    this.gerritService
+      .getCommitList(projectId)
+      .subscribe((data: CommitInfo[]) => {
+        this.commitList = data;
       });
   }
 }

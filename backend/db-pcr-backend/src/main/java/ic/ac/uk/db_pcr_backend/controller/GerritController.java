@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import ic.ac.uk.db_pcr_backend.model.CommitInfo;
+import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 
@@ -24,14 +24,19 @@ public class GerritController {
         return gerritService.getProjectList();
     }
 
-    @GetMapping("/get-commit-list")
-    public List<CommitInfo> getCommitList() {
-        return gerritService.getOriginalCommitList();
+    @GetMapping("/get-changes")
+    public List<ChangeInfoModel> getChanges() {
+        return gerritService.getChanges();
     }
 
-    @GetMapping("/get-anonymous-commit-list")
-    public List<CommitInfo> getAnonymousCommitList() {
-        return gerritService.getAnonymousCommitList();
-    }
+    // @GetMapping("/get-commit-list")
+    // public List<ChangeInfoModel> getCommitList() {
+    // return gerritService.getOriginalCommitList();
+    // }
+
+    // @GetMapping("/get-anonymous-commit-list")
+    // public List<ChangeInfoModel> getAnonymousCommitList() {
+    // return gerritService.getAnonymousCommitList();
+    // }
 
 }

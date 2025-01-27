@@ -14,13 +14,12 @@ export class GerritService {
   constructor(private http: HttpClient) {}
 
   getProjectList(): Observable<ProjectInfoModel[]> {
-    console.log('getProjectList');
     return this.http.get<ProjectInfoModel[]>(
       `${this.baseUrl}/get-project-list`
     );
   }
 
-  getCommitList(): Observable<CommitInfo[]> {
+  getCommitList(projectId: string): Observable<CommitInfo[]> {
     return this.http.get<CommitInfo[]>(`${this.baseUrl}/get-commit-list`);
   }
 
