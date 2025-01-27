@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { SPRING_URL } from '../constant.service';
-import { CommitInfo } from '../interface/commit-info';
+import { SPRING_URL } from '../service/constant.service';
+import { ChangeInfo } from '../interface/change-info';
 import { ProjectInfoModel } from '../interface/project-info';
 
 @Injectable({
@@ -19,13 +19,15 @@ export class GerritService {
     );
   }
 
-  getCommitList(projectId: string): Observable<CommitInfo[]> {
-    return this.http.get<CommitInfo[]>(`${this.baseUrl}/get-commit-list`);
-  }
-
-  getAnonymousCommitList(): Observable<CommitInfo[]> {
-    return this.http.get<CommitInfo[]>(
-      `${this.baseUrl}/get-anonymous-commit-list`
+  getChangesOfProject(projectId: string): Observable<ChangeInfo[]> {
+    return this.http.get<ChangeInfo[]>(
+      `${this.baseUrl}/get-changes?q=project:${projectId}`
     );
   }
+
+  // getAnonymousCommitList(): Observable<ChangeInfo[]> {
+  //   return this.http.get<ChangeInfo[]>(
+  //     `${this.baseUrl}/get-anonymous-commit-list`
+  //   );
+  // }
 }

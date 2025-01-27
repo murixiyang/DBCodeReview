@@ -2,21 +2,14 @@
 
 <div *ngFor="let project of projectList">
   {{ project.id }}
-  <button (click)="getCommits(project.id)">Get Commits</button>
+  <button (click)="onSelectProject(project.id)">Get Commits</button>
 </div>
 
-<!-- <h1>Commits</h1>
-<ul>
-  <li *ngFor="let commit of commitList">
-    id: {{ commit.id }} by {{ commit.owner.name }} - {{ commit.owner.email
+<div *ngIf="selectedProject != ''">
+  <div *ngIf="changeList.length == 0">No changes found</div>
+  <div *ngFor="let change of changeList">
+    id: {{ change.id }} by {{ change.owner._account_id }} at {{ change.updated
     }}<br />
-  </li>
-</ul>
-
-<h1>Anonymous Version Commits</h1>
-<ul>
-  <li *ngFor="let commit of anonymousCommitList">
-    id: {{ commit.id }} by {{ commit.owner.name }} - {{ commit.owner.email
-    }}<br />
-  </li>
-</ul> -->
+    {{ change.subject }} <br /><br />
+  </div>
+</div>

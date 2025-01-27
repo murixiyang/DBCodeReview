@@ -61,11 +61,11 @@ public class GerritService {
         }
     }
 
-    public List<ChangeInfoModel> getChanges() {
+    public List<ChangeInfoModel> getChangesWithQuery(String query) {
         try {
 
-            // String url = Constant.GERRIT_BASE_URL + "/changes/?q=" + query;
-            String url = Constant.GERRIT_BASE_URL + "/changes";
+            String url = Constant.GERRIT_BASE_URL + "/changes?q=" + query;
+
             ResponseEntity<String> response = restTemplate.getForEntity(url,
                     String.class);
 
