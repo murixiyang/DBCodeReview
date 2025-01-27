@@ -19,8 +19,6 @@ export class AppComponent implements OnInit {
   constructor(private gerritService: GerritService) {}
 
   ngOnInit() {
-    console.log('AppComponent.ngOnInit');
-
     this.gerritService.getCommitList().subscribe((data: CommitInfo[]) => {
       this.commitList = data;
     });

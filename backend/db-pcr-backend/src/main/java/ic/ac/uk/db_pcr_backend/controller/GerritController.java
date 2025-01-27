@@ -26,4 +26,5 @@ public class GerritController {
     public List<CommitInfo> getAnonymousCommitList() {
         return gerritService.getAnonymousCommitList();
     }
+
 }

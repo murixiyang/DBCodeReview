@@ -11,9 +11,6 @@ import ic.ac.uk.db_pcr_backend.model.CommitInfo.Owner;
 @Service
 public class GerritService {
 
-
-
-
     public List<CommitInfo> getOriginalCommitList() {
         // 1. Use a simple HTTP client (like Spring's RestTemplate or OkHttp)
         // 2. Call Gerrit's REST endpoint, e.g. GET /changes/?q=status:open
@@ -24,7 +21,7 @@ public class GerritService {
         // Return a example Info for illustration
         CommitInfo exampleCommit = new CommitInfo();
         exampleCommit.id = "123";
-        Owner examplOwner = new Owner(); 
+        Owner examplOwner = new Owner();
         examplOwner.name = "Bob";
         examplOwner.email = "Bob@puppy.com";
         exampleCommit.owner = examplOwner;
@@ -34,10 +31,10 @@ public class GerritService {
         return commits;
 
         // return masked or unmasked data as needed
-        
+
     }
 
-    public List<CommitInfo> getAnonymousCommitList(){
+    public List<CommitInfo> getAnonymousCommitList() {
         // 1. Use a simple HTTP client (like Spring's RestTemplate or OkHttp)
         // 2. Call Gerrit's REST endpoint, e.g. GET /changes/?q=status:open
         // 3. Parse JSON into a List<ChangeInfo> (use Jackson or GSON)
