@@ -2,7 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NgFor } from '@angular/common';
 import { CommitInfo } from './interface/commit-info';
-import { GerritService } from './gerrit.service';
+import { GerritService } from './http/gerrit.service';
+import { ProjectInfoModel } from './interface/project-info';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,8 @@ import { GerritService } from './gerrit.service';
 })
 export class AppComponent implements OnInit {
   title = 'db-cpr-frontend';
+
+  projectList: ProjectInfoModel[] = [];
 
   commitList: CommitInfo[] = [];
   anonymousCommitList: CommitInfo[] = [];
@@ -27,6 +30,16 @@ export class AppComponent implements OnInit {
       .getAnonymousCommitList()
       .subscribe((data: CommitInfo[]) => {
         this.anonymousCommitList = data;
+      });
+  }
+
+  async getProjectList() {
+    this.projectList = [];
+
+    this.gerritService
+      .getProjectList()
+      .subscribe((data: ProjectInfoModel[]) => {
+        this.projectList = data;
       });
   }
 }

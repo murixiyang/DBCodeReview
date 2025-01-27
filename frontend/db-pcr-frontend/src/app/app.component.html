@@ -1,6 +1,15 @@
 Hello!
 
-<h1>Commits</h1>
+<button (click)="getProjectList()">Get Projects</button>
+
+<h1>Projects</h1>
+<ul>
+  <li *ngFor="let project of projectList">
+    id: {{ project.id }} - Status: {{ project.state }}<br />
+  </li>
+</ul>
+
+<!-- <h1>Commits</h1>
 <ul>
   <li *ngFor="let commit of commitList">
     id: {{ commit.id }} by {{ commit.owner.name }} - {{ commit.owner.email
@@ -14,4 +23,4 @@ Hello!
     id: {{ commit.id }} by {{ commit.owner.name }} - {{ commit.owner.email
     }}<br />
   </li>
-</ul>
+</ul> -->
