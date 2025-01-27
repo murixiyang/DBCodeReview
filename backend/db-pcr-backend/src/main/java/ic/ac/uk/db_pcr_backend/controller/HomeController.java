@@ -1,4 +1,4 @@
-package ic.ac.uk.db_pcr_backend;
+package ic.ac.uk.db_pcr_backend.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
