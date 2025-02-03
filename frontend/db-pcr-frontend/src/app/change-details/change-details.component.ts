@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
-import { KeyValuePipe, NgFor } from '@angular/common';
-import { DiffInfo } from '../interface/diff-info';
+import { KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
+import { DiffContent, DiffInfo } from '../interface/diff-info';
 
 @Component({
   selector: 'app-change-details',
-  imports: [NgFor, KeyValuePipe],
+  imports: [NgIf, NgFor, KeyValuePipe, NgClass],
   templateUrl: './change-details.component.html',
   styleUrl: './change-details.component.css',
 })
@@ -18,7 +18,8 @@ export class ChangeDetailsComponent implements OnInit {
 
   modiFileMap: Map<string, ModiFileInfo> = new Map<string, ModiFileInfo>();
 
-  diffContent: DiffInfo | null = null;
+  selectedFile: string = '';
+  diffContent: DiffContent[] | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -43,10 +44,13 @@ export class ChangeDetailsComponent implements OnInit {
   }
 
   getFileDiff(filePath: string) {
+    this.selectedFile = filePath;
+    this.diffContent = null;
+
     this.gerritService
       .getFileDiff(this.changeId, this.revisionId, filePath)
       .subscribe((diff: DiffInfo) => {
-        this.diffContent = diff;
+        this.diffContent = diff.content;
       });
   }
 }
