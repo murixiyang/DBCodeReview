@@ -14,8 +14,8 @@ export class GerritService {
 
   constructor(private http: HttpClient) {}
 
-  getProjectList(): Observable<ProjectInfoModel[]> {
-    return this.http.get<ProjectInfoModel[]>(
+  getProjectList(): Observable<Map<string, ProjectInfoModel>> {
+    return this.http.get<Map<string, ProjectInfoModel>>(
       `${this.baseUrl}/get-project-list`
     );
   }
@@ -29,9 +29,9 @@ export class GerritService {
   getModifiedFileInChange(
     changeId: string,
     revisionId: string
-  ): Observable<ModiFileInfo[]> {
-    return this.http.get<ModiFileInfo[]>(
-      `${this.baseUrl}/get-modified-file-list?changeId=${changeId}revisionId=${revisionId}`
+  ): Observable<Map<string, ModiFileInfo>> {
+    return this.http.get<Map<string, ModiFileInfo>>(
+      `${this.baseUrl}/get-modified-file-list?changeId=${changeId}&revisionId=${revisionId}`
     );
   }
 }

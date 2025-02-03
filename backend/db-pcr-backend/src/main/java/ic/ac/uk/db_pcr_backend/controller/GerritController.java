@@ -1,6 +1,7 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +22,7 @@ public class GerritController {
     private GerritService gerritService;
 
     @GetMapping("/get-project-list")
-    public List<ProjectInfoModel> getProjectList() {
+    public Map<String, ProjectInfoModel> getProjectList() {
         return gerritService.getProjectList();
     }
 
@@ -31,7 +32,7 @@ public class GerritController {
     }
 
     @GetMapping("/get-modified-file-list")
-    public List<ModiFileInfoModel> getModifiedFiles(@RequestParam("changeId") String changeId,
+    public Map<String, ModiFileInfoModel> getModifiedFiles(@RequestParam("changeId") String changeId,
             @RequestParam("revisionId") String revisionId) {
 
         // TODO: Currently suppose only 1 revision, with revisionId = 1

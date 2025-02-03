@@ -1,8 +1,8 @@
 <h1>Projects</h1>
 
-<div *ngFor="let project of projectList">
-  {{ project.id }}
-  <button (click)="onSelectProject(project.id)">Get Commits</button>
+<div *ngFor="let item of projectMap | keyvalue">
+  {{ item.key }}
+  <button (click)="onSelectProject(item.key)">Get Commits</button>
 </div>
 
 <div *ngIf="selectedProject != ''">

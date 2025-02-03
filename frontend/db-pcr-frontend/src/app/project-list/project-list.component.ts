@@ -4,29 +4,30 @@ import { ChangeInfo } from '../interface/change-info';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
 import { Router } from '@angular/router';
-import { NgFor, NgIf } from '@angular/common';
+import { KeyValuePipe, NgFor, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-project-list',
-  imports: [NgIf, NgFor],
+  imports: [NgIf, NgFor, KeyValuePipe],
   templateUrl: './project-list.component.html',
   styleUrl: './project-list.component.css',
 })
 export class ProjectListComponent implements OnInit {
-  projectList: ProjectInfoModel[] = [];
+  projectMap: Map<string, ProjectInfoModel> = new Map<
+    string,
+    ProjectInfoModel
+  >();
   selectedProject: string = '';
 
   changeList: ChangeInfo[] = [];
-
-  modiFileList: ModiFileInfo[] = [];
 
   constructor(private gerritService: GerritService, private router: Router) {}
 
   ngOnInit() {
     this.gerritService
       .getProjectList()
-      .subscribe((data: ProjectInfoModel[]) => {
-        this.projectList = data;
+      .subscribe((dataMap: Map<string, ProjectInfoModel>) => {
+        this.projectMap = dataMap;
       });
   }
 
@@ -43,16 +44,7 @@ export class ProjectListComponent implements OnInit {
       });
   }
 
-  getModiFileList(changeId: string, revisionId: string) {
-    this.gerritService
-      .getModifiedFileInChange(changeId, revisionId)
-      .subscribe((data: ModiFileInfo[]) => {
-        this.modiFileList = data;
-      });
-  }
-
   navigateToChangeDetails(changeId: string) {
-    console.log('changeId', changeId);
     this.router.navigate(['/change-detail', changeId]);
   }
 }

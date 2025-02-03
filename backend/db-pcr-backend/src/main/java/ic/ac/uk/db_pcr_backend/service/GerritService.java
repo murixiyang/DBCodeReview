@@ -28,7 +28,7 @@ public class GerritService {
         restTemplate = new RestTemplate();
     }
 
-    public List<ProjectInfoModel> getProjectList() {
+    public Map<String, ProjectInfoModel> getProjectList() {
         String endPoint = "/projects";
 
         return fetchGerritMapData(endPoint, ProjectInfoModel[].class);
@@ -40,7 +40,7 @@ public class GerritService {
         return fetchGerritListData(endPoint, ChangeInfoModel[].class);
     }
 
-    public List<ModiFileInfoModel> getModifiedFileInChange(String changeId, String revisionId) {
+    public Map<String, ModiFileInfoModel> getModifiedFileInChange(String changeId, String revisionId) {
         String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files";
 
         return fetchGerritMapData(endPoint, ModiFileInfoModel[].class);
@@ -67,13 +67,13 @@ public class GerritService {
         }
     }
 
-    private <T> List<T> fetchGerritMapData(String endpoint, Class<T[]> dataClass) {
+    private <T> Map<String, T> fetchGerritMapData(String endpoint, Class<T[]> dataClass) {
         try {
             String url = Constant.GERRIT_BASE_URL + endpoint;
 
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             if (response.getBody() == null) {
-                return Collections.emptyList();
+                return Collections.emptyMap();
             }
 
             String json = CommonFunctionService.trimJson(response.getBody());
@@ -82,11 +82,11 @@ public class GerritService {
             Map<String, T> dataMap = mapper.readValue(json, new TypeReference<Map<String, T>>() {
             });
 
-            return new ArrayList<>(dataMap.values());
+            return dataMap;
         } catch (IOException e) {
             System.err.println("ERROR: Failed to fetch data from Gerrit at endpoint: " + endpoint);
             e.printStackTrace();
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
     }
 
