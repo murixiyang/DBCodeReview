@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
 import { KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
-import { DiffContent, DiffInfo, FrontDiffConent } from '../interface/diff-info';
+import { FrontDiffContent, DiffInfo } from '../interface/diff-info';
 
 @Component({
   selector: 'app-change-details',
@@ -19,7 +19,7 @@ export class ChangeDetailsComponent implements OnInit {
   modiFileMap: Map<string, ModiFileInfo> = new Map<string, ModiFileInfo>();
 
   selectedFile: string = '';
-  diffContent: FrontDiffConent[] = [];
+  diffContent: FrontDiffContent[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -53,7 +53,7 @@ export class ChangeDetailsComponent implements OnInit {
         // Convert into FrontDiffContent
         for (let i = 0; i < diff.content.length; i++) {
           let diffContent = diff.content[i];
-          let frontDiffContent: FrontDiffConent = {
+          let frontDiffContent: FrontDiffContent = {
             type: 'a',
             content: [],
           };
