@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ic.ac.uk.db_pcr_backend.Constant;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
+import ic.ac.uk.db_pcr_backend.model.DiffInfoModel;
 import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
 
 @Service
@@ -43,6 +44,34 @@ public class GerritService {
         String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files";
 
         return fetchGerritMapData(endPoint, FileInfoModel[].class);
+    }
+
+    public DiffInfoModel getDiffInFile(String changeId, String revisionId, String filePath) {
+        String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files/" + filePath + "/diff";
+
+        return fetchGerritData(endPoint, DiffInfoModel.class);
+    }
+
+    private <T> T fetchGerritData(String endpoint, Class<T> dataClass) {
+        try {
+            String url = Constant.GERRIT_BASE_URL + endpoint;
+
+            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            if (response.getBody() == null) {
+                return null;
+            }
+
+            String json = CommonFunctionService.trimJson(response.getBody());
+
+            System.out.println("json: " + json);
+
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(json, dataClass);
+        } catch (IOException e) {
+            System.err.println("ERROR: Failed to fetch data from Gerrit at endpoint: " + endpoint);
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private <T> List<T> fetchGerritListData(String endpoint, Class<T[]> dataClass) {

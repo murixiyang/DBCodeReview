@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
+import ic.ac.uk.db_pcr_backend.model.DiffInfoModel;
 import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
@@ -37,8 +38,16 @@ public class GerritController {
 
         // TODO: Currently suppose only 1 revision, with revisionId = 1
 
-        return gerritService.getModifiedFileInChange(changeId, "1");
+        return gerritService.getModifiedFileInChange(changeId, revisionId);
     }
 
+    @GetMapping("/get-file-diff")
+    public DiffInfoModel getDiff(@RequestParam("changeId") String changeId,
+            @RequestParam("revisionId") String revisionId,
+            @RequestParam("filePath") String filePath) {
+
+        // TODO: Currently suppose only 1 revision, with revisionId = 1
+        return gerritService.getDiffInFile(changeId, revisionId, filePath);
+    }
 
 }

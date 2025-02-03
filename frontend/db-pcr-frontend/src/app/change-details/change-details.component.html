@@ -4,5 +4,6 @@
   <h2>Modified Files:</h2>
   <div *ngFor="let modiFile of modiFileMap | keyvalue">
     <h3>{{ modiFile.key }}</h3>
+    <button (click)="getFileDiff(modiFile.key)">Get File Content</button>
   </div>
 </div>
