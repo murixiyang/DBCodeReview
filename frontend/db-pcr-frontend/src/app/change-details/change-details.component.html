@@ -10,21 +10,13 @@
       <div *ngFor="let line of diffContent">
         <div
           [ngClass]="{
-            'red-line': line.a && line.a.length > 0,
-            'green-line': line.b && line.b.length > 0,
-            'black-line': line.ab && line.ab.length > 0
+            'red-line': line.type === 'a',
+            'green-line': line.type === 'b',
+            'black-line': line.type === 'ab'
           }"
-          style="white-space: pre-line"
+          class="white-space-preserve"
         >
-          <ng-container *ngIf="line.a && line.a.length > 0">
-            {{ line.a.join("\n") }}
-          </ng-container>
-          <ng-container *ngIf="line.b && line.b.length > 0">
-            {{ line.b.join("\n") }}
-          </ng-container>
-          <ng-container *ngIf="line.ab && line.ab.length > 0">
-            {{ line.ab.join("\n") }}
-          </ng-container>
+          {{ line.content.join("\n") }}
         </div>
       </div>
     </div>

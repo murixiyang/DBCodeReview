@@ -5,6 +5,11 @@
   width: 100%;
 }
 
+.white-space-preserve {
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
 .red-line {
   color: red;
 }

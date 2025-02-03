@@ -18,3 +18,8 @@ export interface DiffContent {
   b: string[];
   ab: string[];
 }
+
+export interface FrontDiffConent {
+  type: 'a' | 'b' | 'ab';
+  content: string[];
+}

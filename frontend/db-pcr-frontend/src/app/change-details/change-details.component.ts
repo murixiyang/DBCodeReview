@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
 import { KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
-import { DiffContent, DiffInfo } from '../interface/diff-info';
+import { DiffContent, DiffInfo, FrontDiffConent } from '../interface/diff-info';
 
 @Component({
   selector: 'app-change-details',
@@ -19,7 +19,7 @@ export class ChangeDetailsComponent implements OnInit {
   modiFileMap: Map<string, ModiFileInfo> = new Map<string, ModiFileInfo>();
 
   selectedFile: string = '';
-  diffContent: DiffContent[] | null = null;
+  diffContent: FrontDiffConent[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -45,12 +45,31 @@ export class ChangeDetailsComponent implements OnInit {
 
   getFileDiff(filePath: string) {
     this.selectedFile = filePath;
-    this.diffContent = null;
+    this.diffContent = [];
 
     this.gerritService
       .getFileDiff(this.changeId, this.revisionId, filePath)
       .subscribe((diff: DiffInfo) => {
-        this.diffContent = diff.content;
+        // Convert into FrontDiffContent
+        for (let i = 0; i < diff.content.length; i++) {
+          let diffContent = diff.content[i];
+          let frontDiffContent: FrontDiffConent = {
+            type: 'a',
+            content: [],
+          };
+
+          if (diffContent.a) {
+            frontDiffContent.content = diffContent.a;
+          } else if (diffContent.b) {
+            frontDiffContent.type = 'b';
+            frontDiffContent.content = diffContent.b;
+          } else {
+            frontDiffContent.type = 'ab';
+            frontDiffContent.content = diffContent.ab;
+          }
+
+          this.diffContent.push(frontDiffContent);
+        }
       });
   }
 }
