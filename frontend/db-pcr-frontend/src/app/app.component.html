@@ -8,8 +8,8 @@
 <div *ngIf="selectedProject != ''">
   <div *ngIf="changeList.length == 0">No changes found</div>
   <div *ngFor="let change of changeList">
-    id: {{ change.id }} by {{ change.owner._account_id }} at {{ change.updated
-    }}<br />
-    {{ change.subject }} <br /><br />
+    changeID: {{ change.change_id }} by {{ change.owner._account_id }} at
+    {{ change.updated }}<br />
+    Message: {{ change.subject }} <br /><br />
   </div>
 </div>
