@@ -32,7 +32,10 @@ export class ChangeDetailsComponent implements OnInit {
     this.gerritService
       .getModifiedFileInChange(changeId, revisionId)
       .subscribe((dataMap: Map<string, ModiFileInfo>) => {
-        this.modiFileMap = dataMap;
+        this.modiFileMap = new Map(Object.entries(dataMap));
+
+        // Filter out commit message
+        this.modiFileMap.delete('/COMMIT_MSG');
       });
   }
 }

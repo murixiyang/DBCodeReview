@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
-import ic.ac.uk.db_pcr_backend.model.ModiFileInfoModel;
+import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 
@@ -32,7 +32,7 @@ public class GerritController {
     }
 
     @GetMapping("/get-modified-file-list")
-    public Map<String, ModiFileInfoModel> getModifiedFiles(@RequestParam("changeId") String changeId,
+    public Map<String, FileInfoModel> getModifiedFiles(@RequestParam("changeId") String changeId,
             @RequestParam("revisionId") String revisionId) {
 
         // TODO: Currently suppose only 1 revision, with revisionId = 1
@@ -40,14 +40,5 @@ public class GerritController {
         return gerritService.getModifiedFileInChange(changeId, "1");
     }
 
-    // @GetMapping("/get-commit-list")
-    // public List<ChangeInfoModel> getCommitList() {
-    // return gerritService.getOriginalCommitList();
-    // }
-
-    // @GetMapping("/get-anonymous-commit-list")
-    // public List<ChangeInfoModel> getAnonymousCommitList() {
-    // return gerritService.getAnonymousCommitList();
-    // }
 
 }

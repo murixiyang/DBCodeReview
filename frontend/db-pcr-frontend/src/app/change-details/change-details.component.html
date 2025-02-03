@@ -1,7 +1,8 @@
-<h1>ChangeId: {{ changeId }}</h1>
+<div class="page-container">
+  <h1>ChangeId: {{ changeId }}</h1>
 
-<h2>Modified Files:</h2>
-<div *ngFor="let modiFile of modiFileMap | keyvalue">
-  <h3>{{ modiFile.key }}</h3>
-  size: {{ modiFile.value.size }}<br />
+  <h2>Modified Files:</h2>
+  <div *ngFor="let modiFile of modiFileMap | keyvalue">
+    <h3>{{ modiFile.key }}</h3>
+  </div>
 </div>

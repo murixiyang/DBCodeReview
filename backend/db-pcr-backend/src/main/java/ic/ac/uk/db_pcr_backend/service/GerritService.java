@@ -10,7 +10,6 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ic.ac.uk.db_pcr_backend.Constant;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
-import ic.ac.uk.db_pcr_backend.model.ModiFileInfoModel;
+import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
 
 @Service
 public class GerritService {
@@ -40,10 +39,10 @@ public class GerritService {
         return fetchGerritListData(endPoint, ChangeInfoModel[].class);
     }
 
-    public Map<String, ModiFileInfoModel> getModifiedFileInChange(String changeId, String revisionId) {
+    public Map<String, FileInfoModel> getModifiedFileInChange(String changeId, String revisionId) {
         String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files";
 
-        return fetchGerritMapData(endPoint, ModiFileInfoModel[].class);
+        return fetchGerritMapData(endPoint, FileInfoModel[].class);
     }
 
     private <T> List<T> fetchGerritListData(String endpoint, Class<T[]> dataClass) {
