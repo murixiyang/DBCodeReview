@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ic.ac.uk.db_pcr_backend.Constant;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
-import ic.ac.uk.db_pcr_backend.model.DiffFileModel;
+import ic.ac.uk.db_pcr_backend.model.ModiFileInfoModel;
 
 @Service
 public class GerritService {
@@ -40,10 +40,10 @@ public class GerritService {
         return fetchGerritListData(endPoint, ChangeInfoModel[].class);
     }
 
-    public List<DiffFileModel> getModifiedFileInChange(String changeId, String revisionId) {
+    public List<ModiFileInfoModel> getModifiedFileInChange(String changeId, String revisionId) {
         String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files";
 
-        return fetchGerritMapData(endPoint, DiffFileModel[].class);
+        return fetchGerritMapData(endPoint, ModiFileInfoModel[].class);
     }
 
     private <T> List<T> fetchGerritListData(String endpoint, Class<T[]> dataClass) {

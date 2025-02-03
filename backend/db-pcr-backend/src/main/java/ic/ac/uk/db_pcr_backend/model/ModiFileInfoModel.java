@@ -1,6 +1,6 @@
 package ic.ac.uk.db_pcr_backend.model;
 
-public class DiffFileModel {
+public class ModiFileInfoModel {
     private String status;
     private int lines_inserted;
     private int size_delta;

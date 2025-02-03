@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
 import { ChangeInfo } from './interface/change-info';
 import { GerritService } from './http/gerrit.service';
 import { ProjectInfoModel } from './interface/project-info';
+import { ModiFileInfo } from './interface/modi-file-info';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NgFor, NgIf],
+  imports: [NgFor, NgIf],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -18,9 +19,10 @@ export class AppComponent implements OnInit {
   selectedProject: string = '';
 
   changeList: ChangeInfo[] = [];
-  anonymousCommitList: ChangeInfo[] = [];
 
-  constructor(private gerritService: GerritService) {}
+  modiFileList: ModiFileInfo[] = [];
+
+  constructor(private gerritService: GerritService, private router: Router) {}
 
   ngOnInit() {
     this.gerritService
@@ -39,8 +41,20 @@ export class AppComponent implements OnInit {
     this.gerritService
       .getChangesOfProject(projectName)
       .subscribe((data: ChangeInfo[]) => {
-        console.log('data', data);
         this.changeList = data;
       });
+  }
+
+  getModiFileList(changeId: string, revisionId: string) {
+    this.gerritService
+      .getModifiedFileInChange(changeId, revisionId)
+      .subscribe((data: ModiFileInfo[]) => {
+        this.modiFileList = data;
+      });
+  }
+
+  navigateToChangeDetails(changeId: string) {
+    console.log('changeId', changeId);
+    this.router.navigate(['/change-detail', changeId]);
   }
 }

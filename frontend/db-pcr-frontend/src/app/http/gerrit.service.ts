@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { SPRING_URL } from '../service/constant.service';
 import { ChangeInfo } from '../interface/change-info';
 import { ProjectInfoModel } from '../interface/project-info';
+import { ModiFileInfo } from '../interface/modi-file-info';
 
 @Injectable({
   providedIn: 'root',
@@ -25,9 +26,12 @@ export class GerritService {
     );
   }
 
-  // getAnonymousCommitList(): Observable<ChangeInfo[]> {
-  //   return this.http.get<ChangeInfo[]>(
-  //     `${this.baseUrl}/get-anonymous-commit-list`
-  //   );
-  // }
+  getModifiedFileInChange(
+    changeId: string,
+    revisionId: string
+  ): Observable<ModiFileInfo[]> {
+    return this.http.get<ModiFileInfo[]>(
+      `${this.baseUrl}/get-modified-file-list?changeId=${changeId}revisionId=${revisionId}`
+    );
+  }
 }

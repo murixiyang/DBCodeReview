@@ -1,0 +1,10 @@
+.change-link {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.change-link:hover {
+  color: darkblue;
+}
