@@ -18,30 +18,56 @@
     <div class="comment-area">
       <div *ngFor="let diffLine of diffContentList" class="diff-row">
         <!-- Left Column: Original Content -->
-        <div class="diff-column left">
+        <div class="diff-column left" (click)="onLineClick(diffLine, 'PARENT')">
           <div class="line-number">
-            {{ diffLine.originalLineNumber || "" }}
+            {{ diffLine.original_line_num || "" }}
           </div>
+
           <div
             class="line-content white-space-preserve"
             [ngClass]="getDiffClass(diffLine, 'left')"
           >
-            {{ diffLine.originalContent }}
+            {{ diffLine.original_content }}
+          </div>
+
+          <!-- Comment Box for Left Column -->
+          <div *ngIf="selectedLine === diffLine && selectedSide === 'PARENT'">
+            <app-comment-box
+              [selectedFile]="selectedFile"
+              [selectedSide]="'PARENT'"
+              [selectedLineNum]="diffLine.original_line_num"
+            ></app-comment-box>
           </div>
         </div>
 
         <!-- Right Column: Changed Content -->
-        <div class="diff-column right">
-          <div class="line-number">
-            {{ diffLine.changedLineNumber || "" }}
+        <div
+          class="diff-column right"
+          (click)="onLineClick(diffLine, 'REVISION')"
+        >
+          <div class="diff-line-container">
+            <div class="line-number">
+              {{ diffLine.changed_line_num || "" }}
+            </div>
+            <div
+              class="line-content white-space-preserve"
+              [ngClass]="getDiffClass(diffLine, 'right')"
+            >
+              {{ diffLine.changed_content }}
+            </div>
           </div>
-          <div
-            class="line-content white-space-preserve"
-            [ngClass]="getDiffClass(diffLine, 'right')"
-          >
-            {{ diffLine.changedContent }}
+
+          <!-- Comment Box for Right Column -->
+          <div *ngIf="selectedLine === diffLine && selectedSide === 'REVISION'">
+            <app-comment-box
+              [selectedFile]="selectedFile"
+              [selectedSide]="'REVISION'"
+              [selectedLineNum]="diffLine.changed_line_num"
+            ></app-comment-box>
           </div>
         </div>
+
+        <!-- Show Existing Comments -->
       </div>
     </div>
   </div>

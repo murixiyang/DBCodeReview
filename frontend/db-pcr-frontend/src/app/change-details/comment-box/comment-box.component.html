@@ -1,0 +1,9 @@
+<!-- Comment Box -->
+<div class="comment-box">
+  <textarea
+    [(ngModel)]="commentMsg"
+    placeholder="Write a comment..."
+  ></textarea>
+  <button>Cancel</button>
+  <button (click)="makeDraftComment(commentMsg)">Add Comment</button>
+</div>

@@ -36,20 +36,23 @@
 
   .diff-row {
     display: flex;
-    border-bottom: 1px solid #ddd;
+    /* border-bottom: 1px solid #ddd; */
+    position: relative;
   }
 
-  /* Make each diff-column a flex container */
   .diff-column {
     flex: 1;
-    overflow-x: auto;
     display: flex;
-    flex-wrap: nowrap;
+    /* flex-direction: column; */
   }
 
   /* Left column gets a right border for visual separation */
   .diff-column.left {
     border-right: 1px solid #ddd;
+  }
+
+  .diff-line-container {
+    display: flex;
   }
 
   .line-number {
@@ -71,6 +74,7 @@
     color: white;
     position: relative;
     z-index: 2;
+    cursor: pointer;
   }
 
   /* Preserve whitespace if needed */

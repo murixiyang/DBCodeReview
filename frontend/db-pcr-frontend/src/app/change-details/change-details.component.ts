@@ -1,13 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, NgModule, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
-import { KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
+import {
+  CommonModule,
+  KeyValuePipe,
+  NgClass,
+  NgFor,
+  NgIf,
+} from '@angular/common';
 import { DiffInfo, DiffContent, FrontDiffLine } from '../interface/diff-info';
+import { CommentInput, CommentRange } from '../interface/comment-input';
+import { FormsModule } from '@angular/forms';
+import { CommentBoxComponent } from './comment-box/comment-box.component';
 
 @Component({
   selector: 'app-change-details',
-  imports: [NgIf, NgFor, KeyValuePipe, NgClass],
+  imports: [
+    NgIf,
+    NgFor,
+    KeyValuePipe,
+    NgClass,
+    FormsModule,
+    CommentBoxComponent,
+  ],
   templateUrl: './change-details.component.html',
   styleUrl: './change-details.component.css',
 })
@@ -19,8 +35,11 @@ export class ChangeDetailsComponent implements OnInit {
   modiFileMap: Map<string, ModiFileInfo> = new Map<string, ModiFileInfo>();
 
   selectedFile: string = '';
+  selectedSide: 'PARENT' | 'REVISION' | null = null;
+  selectedLine: FrontDiffLine | null = null;
 
   diffContentList: FrontDiffLine[] = [];
+  draftCommentList: CommentInput[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -53,6 +72,17 @@ export class ChangeDetailsComponent implements OnInit {
         // Convert into FrontDiffContent
         this.convertDiffContentToTwoPart(diff.content);
       });
+  }
+
+  // When a line is clicked, open comment box below it
+  onLineClick(line: FrontDiffLine, column: 'PARENT' | 'REVISION') {
+    this.selectedLine = line;
+    this.selectedSide = column;
+  }
+
+  onCommentCancel() {
+    this.selectedLine = null;
+    this.selectedSide = null;
   }
 
   private convertDiffContentToTwoPart(diffContent: DiffContent[]) {
@@ -109,12 +139,12 @@ export class ChangeDetailsComponent implements OnInit {
   ) {
     lines.forEach((line, i) =>
       result.push({
-        originalContent: line,
-        changedContent: line,
-        originalLineNumber: originalLineNumber + i,
-        changedLineNumber: changedLineNumber + i,
-        highlightOriginal: false,
-        highlightChanged: false,
+        original_content: line,
+        changed_content: line,
+        original_line_num: originalLineNumber + i,
+        changed_line_num: changedLineNumber + i,
+        highlight_original: false,
+        highlight_changed: false,
       })
     );
   }
@@ -130,12 +160,12 @@ export class ChangeDetailsComponent implements OnInit {
 
     for (let i = 0; i < maxLength; i++) {
       result.push({
-        originalContent: aLines[i] || '',
-        changedContent: bLines[i] || '',
-        originalLineNumber: aLines[i] ? originalLineNumber + i : undefined,
-        changedLineNumber: bLines[i] ? changedLineNumber + i : undefined,
-        highlightOriginal: !!aLines[i],
-        highlightChanged: !!bLines[i],
+        original_content: aLines[i] || '',
+        changed_content: bLines[i] || '',
+        original_line_num: aLines[i] ? originalLineNumber + i : undefined,
+        changed_line_num: bLines[i] ? changedLineNumber + i : undefined,
+        highlight_original: !!aLines[i],
+        highlight_changed: !!bLines[i],
       });
     }
   }
@@ -147,12 +177,12 @@ export class ChangeDetailsComponent implements OnInit {
   ) {
     lines.forEach((line, i) =>
       result.push({
-        originalContent: line,
-        changedContent: '',
-        originalLineNumber: originalLineNumber + i,
-        changedLineNumber: undefined,
-        highlightOriginal: true,
-        highlightChanged: false,
+        original_content: line,
+        changed_content: '',
+        original_line_num: originalLineNumber + i,
+        changed_line_num: undefined,
+        highlight_original: true,
+        highlight_changed: false,
       })
     );
   }
@@ -164,21 +194,21 @@ export class ChangeDetailsComponent implements OnInit {
   ) {
     lines.forEach((line, i) =>
       result.push({
-        originalContent: '',
-        changedContent: line,
-        originalLineNumber: undefined,
-        changedLineNumber: changedLineNumber + i,
-        highlightOriginal: false,
-        highlightChanged: true,
+        original_content: '',
+        changed_content: line,
+        original_line_num: undefined,
+        changed_line_num: changedLineNumber + i,
+        highlight_original: false,
+        highlight_changed: true,
       })
     );
   }
 
   getDiffClass(diffLine: FrontDiffLine, column: 'left' | 'right'): string {
     if (column === 'left') {
-      return diffLine.highlightOriginal ? 'red-line line-color' : '';
+      return diffLine.highlight_original ? 'red-line line-color' : '';
     } else {
-      return diffLine.highlightChanged ? 'green-line line-color' : '';
+      return diffLine.highlight_changed ? 'green-line line-color' : '';
     }
   }
 }
