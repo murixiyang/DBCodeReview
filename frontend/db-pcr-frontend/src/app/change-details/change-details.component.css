@@ -5,11 +5,73 @@
   width: 100%;
 }
 
-.white-space-preserve {
-  white-space: pre-wrap;
+.file-link {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.file-link:hover {
+  color: darkblue;
+}
+
+.header-labels {
+  display: flex;
+  margin-bottom: 10px; /* Space between header and comment area */
+}
+
+.header-labels .label {
+  flex: 1; /* Each label takes up 50% of the width */
+  text-align: center; /* Center the text within each half */
+  margin: 0; /* Remove default paragraph margins */
+  font-weight: bold; /* Optional: make the text stand out */
+}
+
+.comment-area {
+  display: flex;
+  border: 1px solid #ccc;
+  margin: 20px 0;
   font-family: monospace;
 }
 
+.diff-column {
+  flex: 1;
+  padding: 10px;
+  overflow-x: auto;
+}
+
+/* Left column gets a right border for visual separation */
+.diff-column.left {
+  border-right: 1px solid #ddd;
+}
+
+.diff-line {
+  display: flex;
+  align-items: flex-start;
+  padding: 2px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.line-number {
+  width: 40px;
+  text-align: right;
+  padding-right: 10px;
+  color: #888;
+  border-right: 1px solid #eee;
+  margin-right: 10px;
+}
+
+.line-content {
+  flex: 1;
+}
+
+/* Preserve whitespace and line breaks */
+.white-space-preserve {
+  white-space: pre-wrap;
+}
+
+/* Diff type colors */
 .red-line {
   color: red;
 }

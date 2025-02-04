@@ -3,11 +3,15 @@ import { ActivatedRoute } from '@angular/router';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
 import { KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
-import { FrontDiffContent, DiffInfo } from '../interface/diff-info';
+import {
+  FrontDiffContent,
+  DiffInfo,
+  DiffContent,
+} from '../interface/diff-info';
 
 @Component({
   selector: 'app-change-details',
-  imports: [NgIf, NgFor, KeyValuePipe, NgClass],
+  imports: [NgFor, KeyValuePipe, NgClass],
   templateUrl: './change-details.component.html',
   styleUrl: './change-details.component.css',
 })
@@ -19,7 +23,10 @@ export class ChangeDetailsComponent implements OnInit {
   modiFileMap: Map<string, ModiFileInfo> = new Map<string, ModiFileInfo>();
 
   selectedFile: string = '';
-  diffContent: FrontDiffContent[] = [];
+
+  inlineDiffContent: FrontDiffContent[] = [];
+  oringinalContent: FrontDiffContent[] = [];
+  changedContent: FrontDiffContent[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -45,31 +52,59 @@ export class ChangeDetailsComponent implements OnInit {
 
   getFileDiff(filePath: string) {
     this.selectedFile = filePath;
-    this.diffContent = [];
+    this.inlineDiffContent = [];
+    this.oringinalContent = [];
+    this.changedContent = [];
 
     this.gerritService
       .getFileDiff(this.changeId, this.revisionId, filePath)
       .subscribe((diff: DiffInfo) => {
         // Convert into FrontDiffContent
-        for (let i = 0; i < diff.content.length; i++) {
-          let diffContent = diff.content[i];
-          let frontDiffContent: FrontDiffContent = {
-            type: 'a',
-            content: [],
-          };
-
-          if (diffContent.a) {
-            frontDiffContent.content = diffContent.a;
-          } else if (diffContent.b) {
-            frontDiffContent.type = 'b';
-            frontDiffContent.content = diffContent.b;
-          } else {
-            frontDiffContent.type = 'ab';
-            frontDiffContent.content = diffContent.ab;
-          }
-
-          this.diffContent.push(frontDiffContent);
-        }
+        this.convertDiffContentToTwoPart(diff.content);
       });
+  }
+
+  convertDiffContentToTwoPart(diffContent: DiffContent[]) {
+    for (let i = 0; i < diffContent.length; i++) {
+      let diffBlock = diffContent[i];
+
+      if (diffBlock.a) {
+        for (let j = 0; j < diffBlock.a.length; j++) {
+          this.oringinalContent.push({
+            type: 'a',
+            content: diffBlock.a[j],
+          });
+
+          this.changedContent.push({
+            type: 'b',
+            content: '',
+          });
+        }
+      } else if (diffBlock.b) {
+        for (let j = 0; j < diffBlock.b.length; j++) {
+          this.oringinalContent.push({
+            type: 'a',
+            content: '',
+          });
+
+          this.changedContent.push({
+            type: 'b',
+            content: diffBlock.b[j],
+          });
+        }
+      } else {
+        for (let j = 0; j < diffBlock.ab.length; j++) {
+          this.oringinalContent.push({
+            type: 'ab',
+            content: diffBlock.ab[j],
+          });
+
+          this.changedContent.push({
+            type: 'ab',
+            content: diffBlock.ab[j],
+          });
+        }
+      }
+    }
   }
 }

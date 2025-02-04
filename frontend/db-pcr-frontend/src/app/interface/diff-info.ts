@@ -21,5 +21,5 @@ export interface DiffContent {
 
 export interface FrontDiffContent {
   type: 'a' | 'b' | 'ab';
-  content: string[];
+  content: string;
 }

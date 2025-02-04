@@ -3,20 +3,58 @@
 
   <h2>Modified Files:</h2>
   <div *ngFor="let modiFile of modiFileMap | keyvalue">
-    <h3>{{ modiFile.key }}</h3>
-    <button (click)="getFileDiff(modiFile.key)">Get File Content</button>
+    <h3 class="file-link" (click)="getFileDiff(modiFile.key)">
+      {{ modiFile.key }}
+    </h3>
+  </div>
 
-    <div *ngIf="modiFile.key === selectedFile">
-      <div *ngFor="let line of diffContent">
+  <div class="header-labels">
+    <p class="label left">Original Version</p>
+    <p class="label right">Changed Version</p>
+  </div>
+
+  <!-- Comment Area -->
+  <div class="comment-area">
+    <!-- Left Column: Original Content -->
+    <div class="diff-column left">
+      <div
+        *ngFor="let diffLine of oringinalContent; let i = index"
+        class="diff-line"
+      >
+        <div class="line-number">
+          {{ i + 1 }}
+        </div>
         <div
+          class="line-content white-space-preserve"
           [ngClass]="{
-            'red-line': line.type === 'a',
-            'green-line': line.type === 'b',
-            'black-line': line.type === 'ab'
+            'red-line': diffLine.type === 'a',
+            'green-line': diffLine.type === 'b',
+            'black-line': diffLine.type === 'ab'
           }"
-          class="white-space-preserve"
         >
-          {{ line.content.join("\n") }}
+          {{ diffLine.content }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Changed Content -->
+    <div class="diff-column right">
+      <div
+        *ngFor="let diffLine of changedContent; let i = index"
+        class="diff-line"
+      >
+        <div class="line-number">
+          {{ i + 1 }}
+        </div>
+        <div
+          class="line-content white-space-preserve"
+          [ngClass]="{
+            'red-line': diffLine.type === 'a',
+            'green-line': diffLine.type === 'b',
+            'black-line': diffLine.type === 'ab'
+          }"
+        >
+          {{ diffLine.content }}
         </div>
       </div>
     </div>
