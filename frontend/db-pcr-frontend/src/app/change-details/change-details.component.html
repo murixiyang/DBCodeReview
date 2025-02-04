@@ -8,53 +8,42 @@
     </h3>
   </div>
 
-  <div class="header-labels">
-    <p class="label left">Original Version</p>
-    <p class="label right">Changed Version</p>
-  </div>
-
-  <!-- Comment Area -->
-  <div class="comment-area">
-    <!-- Left Column: Original Content -->
-    <div class="diff-column left">
-      <div
-        *ngFor="let diffLine of oringinalContent; let i = index"
-        class="diff-line"
-      >
-        <div class="line-number">
-          {{ i + 1 }}
-        </div>
-        <div
-          class="line-content white-space-preserve"
-          [ngClass]="{
-            'red-line': diffLine.type === 'a',
-            'green-line': diffLine.type === 'b',
-            'black-line': diffLine.type === 'ab'
-          }"
-        >
-          {{ diffLine.content }}
-        </div>
-      </div>
+  <div *ngIf="selectedFile">
+    <div class="header-labels">
+      <p class="label left">Original Version</p>
+      <p class="label right">Changed Version</p>
     </div>
 
-    <!-- Right Column: Changed Content -->
-    <div class="diff-column right">
+    <!-- Comment Area -->
+    <div class="comment-area">
       <div
-        *ngFor="let diffLine of changedContent; let i = index"
-        class="diff-line"
+        *ngFor="let diffLine of diffContentPair; let i = index"
+        class="diff-row"
       >
-        <div class="line-number">
-          {{ i + 1 }}
+        <!-- Left Column: Original Content -->
+        <div class="diff-column left">
+          <div class="line-number">
+            {{ i + 1 }}
+          </div>
+          <div
+            class="line-content white-space-preserve"
+            [ngClass]="diffLine.changedContent === '' ? 'red-line' : ''"
+          >
+            {{ diffLine.originalContent }}
+          </div>
         </div>
-        <div
-          class="line-content white-space-preserve"
-          [ngClass]="{
-            'red-line': diffLine.type === 'a',
-            'green-line': diffLine.type === 'b',
-            'black-line': diffLine.type === 'ab'
-          }"
-        >
-          {{ diffLine.content }}
+
+        <!-- Right Column: Changed Content -->
+        <div class="diff-column right">
+          <div class="line-number">
+            {{ i + 1 }}
+          </div>
+          <div
+            class="line-content white-space-preserve"
+            [ngClass]="diffLine.originalContent === '' ? 'green-line' : ''"
+          >
+            {{ diffLine.changedContent }}
+          </div>
         </div>
       </div>
     </div>

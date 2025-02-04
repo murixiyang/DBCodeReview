@@ -20,6 +20,6 @@ export interface DiffContent {
 }
 
 export interface FrontDiffContent {
-  type: 'a' | 'b' | 'ab';
-  content: string;
+  originalContent: string;
+  changedContent: string;
 }

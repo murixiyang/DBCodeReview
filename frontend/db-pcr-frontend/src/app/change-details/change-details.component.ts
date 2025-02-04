@@ -11,7 +11,7 @@ import {
 
 @Component({
   selector: 'app-change-details',
-  imports: [NgFor, KeyValuePipe, NgClass],
+  imports: [NgIf, NgFor, KeyValuePipe, NgClass],
   templateUrl: './change-details.component.html',
   styleUrl: './change-details.component.css',
 })
@@ -24,9 +24,10 @@ export class ChangeDetailsComponent implements OnInit {
 
   selectedFile: string = '';
 
-  inlineDiffContent: FrontDiffContent[] = [];
-  oringinalContent: FrontDiffContent[] = [];
-  changedContent: FrontDiffContent[] = [];
+  // inlineDiffContent: FrontDiffContent[] = [];
+  // oringinalContent: FrontDiffContent[] = [];
+  // changedContent: FrontDiffContent[] = [];
+  diffContentPair: FrontDiffContent[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -52,9 +53,7 @@ export class ChangeDetailsComponent implements OnInit {
 
   getFileDiff(filePath: string) {
     this.selectedFile = filePath;
-    this.inlineDiffContent = [];
-    this.oringinalContent = [];
-    this.changedContent = [];
+    this.diffContentPair = [];
 
     this.gerritService
       .getFileDiff(this.changeId, this.revisionId, filePath)
@@ -64,44 +63,29 @@ export class ChangeDetailsComponent implements OnInit {
       });
   }
 
-  convertDiffContentToTwoPart(diffContent: DiffContent[]) {
+  private convertDiffContentToTwoPart(diffContent: DiffContent[]) {
     for (let i = 0; i < diffContent.length; i++) {
       let diffBlock = diffContent[i];
 
       if (diffBlock.a) {
         for (let j = 0; j < diffBlock.a.length; j++) {
-          this.oringinalContent.push({
-            type: 'a',
-            content: diffBlock.a[j],
-          });
-
-          this.changedContent.push({
-            type: 'b',
-            content: '',
+          this.diffContentPair.push({
+            originalContent: diffBlock.a[j],
+            changedContent: '',
           });
         }
       } else if (diffBlock.b) {
         for (let j = 0; j < diffBlock.b.length; j++) {
-          this.oringinalContent.push({
-            type: 'a',
-            content: '',
-          });
-
-          this.changedContent.push({
-            type: 'b',
-            content: diffBlock.b[j],
+          this.diffContentPair.push({
+            originalContent: '',
+            changedContent: diffBlock.b[j],
           });
         }
       } else {
         for (let j = 0; j < diffBlock.ab.length; j++) {
-          this.oringinalContent.push({
-            type: 'ab',
-            content: diffBlock.ab[j],
-          });
-
-          this.changedContent.push({
-            type: 'ab',
-            content: diffBlock.ab[j],
+          this.diffContentPair.push({
+            originalContent: diffBlock.ab[j],
+            changedContent: diffBlock.ab[j],
           });
         }
       }
