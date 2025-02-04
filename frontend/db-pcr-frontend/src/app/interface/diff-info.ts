@@ -20,10 +20,10 @@ export interface DiffContent {
 }
 
 export interface FrontDiffLine {
-  original_content: string;
-  changed_content: string;
-  original_line_num: number | undefined;
-  changed_line_num: number | undefined;
-  highlight_original: boolean;
-  highlight_changed: boolean;
+  parent_content: string;
+  revision_content: string;
+  parent_line_num: number | undefined;
+  revision_line_num: number | undefined;
+  highlight_parent: boolean;
+  highlight_revision: boolean;
 }

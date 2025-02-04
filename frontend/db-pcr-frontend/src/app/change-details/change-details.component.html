@@ -21,14 +21,14 @@
         <div class="diff-column left" (click)="onLineClick(diffLine, 'PARENT')">
           <div class="diff-line-container">
             <div class="line-number">
-              {{ diffLine.original_line_num || "" }}
+              {{ diffLine.parent_line_num || "" }}
             </div>
 
             <div
               class="line-content white-space-preserve"
               [ngClass]="getDiffClass(diffLine, 'PARENT')"
             >
-              {{ diffLine.original_content }}
+              {{ diffLine.parent_content }}
             </div>
           </div>
 
@@ -37,7 +37,7 @@
             <app-comment-box
               [selectedFile]="selectedFile"
               [selectedSide]="'PARENT'"
-              [selectedLineNum]="diffLine.original_line_num"
+              [selectedLineNum]="diffLine.parent_line_num"
             ></app-comment-box>
           </div>
         </div>
@@ -49,13 +49,13 @@
         >
           <div class="diff-line-container">
             <div class="line-number">
-              {{ diffLine.changed_line_num || "" }}
+              {{ diffLine.revision_line_num || "" }}
             </div>
             <div
               class="line-content white-space-preserve"
               [ngClass]="getDiffClass(diffLine, 'REVISION')"
             >
-              {{ diffLine.changed_content }}
+              {{ diffLine.revision_content }}
             </div>
           </div>
 
@@ -64,7 +64,7 @@
             <app-comment-box
               [selectedFile]="selectedFile"
               [selectedSide]="'REVISION'"
-              [selectedLineNum]="diffLine.changed_line_num"
+              [selectedLineNum]="diffLine.revision_line_num"
             ></app-comment-box>
           </div>
         </div>

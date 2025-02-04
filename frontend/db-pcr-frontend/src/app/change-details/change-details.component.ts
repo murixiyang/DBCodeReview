@@ -78,8 +78,8 @@ export class ChangeDetailsComponent implements OnInit {
   onLineClick(line: FrontDiffLine, column: 'PARENT' | 'REVISION') {
     // Ensure the line have content
     if (
-      (column === 'PARENT' && !line.original_content) ||
-      (column === 'REVISION' && !line.changed_content)
+      (column === 'PARENT' && !line.parent_content) ||
+      (column === 'REVISION' && !line.revision_content)
     ) {
       return;
     }
@@ -95,19 +95,19 @@ export class ChangeDetailsComponent implements OnInit {
 
   private convertDiffContentToTwoPart(diffContent: DiffContent[]) {
     const result: FrontDiffLine[] = [];
-    let originalLineNumber = 1;
-    let changedLineNumber = 1;
+    let parentLineNumber = 1;
+    let revisionLineNumber = 1;
 
     for (const diffBlock of diffContent) {
       if (diffBlock.ab) {
-        this.processUnchangedLines(
+        this.processUnrevisionLines(
           diffBlock.ab,
           result,
-          originalLineNumber,
-          changedLineNumber
+          parentLineNumber,
+          revisionLineNumber
         );
-        originalLineNumber += diffBlock.ab.length;
-        changedLineNumber += diffBlock.ab.length;
+        parentLineNumber += diffBlock.ab.length;
+        revisionLineNumber += diffBlock.ab.length;
         continue;
       }
 
@@ -116,43 +116,43 @@ export class ChangeDetailsComponent implements OnInit {
           diffBlock.a,
           diffBlock.b,
           result,
-          originalLineNumber,
-          changedLineNumber
+          parentLineNumber,
+          revisionLineNumber
         );
-        originalLineNumber += diffBlock.a.length;
-        changedLineNumber += diffBlock.b.length;
+        parentLineNumber += diffBlock.a.length;
+        revisionLineNumber += diffBlock.b.length;
         continue;
       }
 
       if (diffBlock.a) {
-        this.processDeletedLines(diffBlock.a, result, originalLineNumber);
-        originalLineNumber += diffBlock.a.length;
+        this.processDeletedLines(diffBlock.a, result, parentLineNumber);
+        parentLineNumber += diffBlock.a.length;
         continue;
       }
 
       if (diffBlock.b) {
-        this.processAddedLines(diffBlock.b, result, changedLineNumber);
-        changedLineNumber += diffBlock.b.length;
+        this.processAddedLines(diffBlock.b, result, revisionLineNumber);
+        revisionLineNumber += diffBlock.b.length;
       }
     }
 
     this.diffContentList = result;
   }
 
-  private processUnchangedLines(
+  private processUnrevisionLines(
     lines: string[],
     result: FrontDiffLine[],
-    originalLineNumber: number,
-    changedLineNumber: number
+    parentLineNumber: number,
+    revisionLineNumber: number
   ) {
     lines.forEach((line, i) =>
       result.push({
-        original_content: line,
-        changed_content: line,
-        original_line_num: originalLineNumber + i,
-        changed_line_num: changedLineNumber + i,
-        highlight_original: false,
-        highlight_changed: false,
+        parent_content: line,
+        revision_content: line,
+        parent_line_num: parentLineNumber + i,
+        revision_line_num: revisionLineNumber + i,
+        highlight_parent: false,
+        highlight_revision: false,
       })
     );
   }
@@ -161,19 +161,19 @@ export class ChangeDetailsComponent implements OnInit {
     aLines: string[],
     bLines: string[],
     result: FrontDiffLine[],
-    originalLineNumber: number,
-    changedLineNumber: number
+    parentLineNumber: number,
+    revisionLineNumber: number
   ) {
     const maxLength = Math.max(aLines.length, bLines.length);
 
     for (let i = 0; i < maxLength; i++) {
       result.push({
-        original_content: aLines[i] || '',
-        changed_content: bLines[i] || '',
-        original_line_num: aLines[i] ? originalLineNumber + i : undefined,
-        changed_line_num: bLines[i] ? changedLineNumber + i : undefined,
-        highlight_original: !!aLines[i],
-        highlight_changed: !!bLines[i],
+        parent_content: aLines[i] || '',
+        revision_content: bLines[i] || '',
+        parent_line_num: aLines[i] ? parentLineNumber + i : undefined,
+        revision_line_num: bLines[i] ? revisionLineNumber + i : undefined,
+        highlight_parent: !!aLines[i],
+        highlight_revision: !!bLines[i],
       });
     }
   }
@@ -181,16 +181,16 @@ export class ChangeDetailsComponent implements OnInit {
   private processDeletedLines(
     lines: string[],
     result: FrontDiffLine[],
-    originalLineNumber: number
+    parentLineNumber: number
   ) {
     lines.forEach((line, i) =>
       result.push({
-        original_content: line,
-        changed_content: '',
-        original_line_num: originalLineNumber + i,
-        changed_line_num: undefined,
-        highlight_original: true,
-        highlight_changed: false,
+        parent_content: line,
+        revision_content: '',
+        parent_line_num: parentLineNumber + i,
+        revision_line_num: undefined,
+        highlight_parent: true,
+        highlight_revision: false,
       })
     );
   }
@@ -198,16 +198,16 @@ export class ChangeDetailsComponent implements OnInit {
   private processAddedLines(
     lines: string[],
     result: FrontDiffLine[],
-    changedLineNumber: number
+    revisionLineNumber: number
   ) {
     lines.forEach((line, i) =>
       result.push({
-        original_content: '',
-        changed_content: line,
-        original_line_num: undefined,
-        changed_line_num: changedLineNumber + i,
-        highlight_original: false,
-        highlight_changed: true,
+        parent_content: '',
+        revision_content: line,
+        parent_line_num: undefined,
+        revision_line_num: revisionLineNumber + i,
+        highlight_parent: false,
+        highlight_revision: true,
       })
     );
   }
@@ -216,13 +216,13 @@ export class ChangeDetailsComponent implements OnInit {
     var result_class = '';
 
     if (column === 'PARENT') {
-      result_class += diffLine.highlight_original ? 'red-line line-color ' : '';
-      result_class += diffLine.original_content ? 'have-content' : '';
+      result_class += diffLine.highlight_parent ? 'red-line line-color ' : '';
+      result_class += diffLine.parent_content ? 'have-content' : '';
     } else {
-      result_class += diffLine.highlight_changed
+      result_class += diffLine.highlight_revision
         ? 'green-line line-color '
         : '';
-      result_class += diffLine.changed_content ? 'have-content' : '';
+      result_class += diffLine.revision_content ? 'have-content' : '';
     }
     return result_class;
   }
