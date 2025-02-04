@@ -16,14 +16,11 @@
 
     <!-- Comment Area -->
     <div class="comment-area">
-      <div
-        *ngFor="let diffLine of diffContentPair; let i = index"
-        class="diff-row"
-      >
+      <div *ngFor="let diffLine of diffContentList" class="diff-row">
         <!-- Left Column: Original Content -->
         <div class="diff-column left">
           <div class="line-number">
-            {{ i + 1 }}
+            {{ diffLine.originalLineNumber || "" }}
           </div>
           <div
             class="line-content white-space-preserve"
@@ -36,7 +33,7 @@
         <!-- Right Column: Changed Content -->
         <div class="diff-column right">
           <div class="line-number">
-            {{ i + 1 }}
+            {{ diffLine.changedLineNumber || "" }}
           </div>
           <div
             class="line-content white-space-preserve"

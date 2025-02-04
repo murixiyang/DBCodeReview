@@ -22,6 +22,8 @@ export interface DiffContent {
 export interface FrontDiffLine {
   originalContent: string;
   changedContent: string;
-  highlightOrignial: boolean;
+  originalLineNumber: number | undefined;
+  changedLineNumber: number | undefined;
+  highlightOriginal: boolean;
   highlightChanged: boolean;
 }
