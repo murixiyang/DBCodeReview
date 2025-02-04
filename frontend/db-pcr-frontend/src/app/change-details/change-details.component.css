@@ -78,6 +78,7 @@
 
   /* Diff type colors */
 
+  .line-selected,
   .have-content:hover {
     background-color: #3a5ddc;
     color: white;

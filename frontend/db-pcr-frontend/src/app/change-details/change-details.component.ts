@@ -85,6 +85,7 @@ export class ChangeDetailsComponent implements OnInit {
     }
 
     this.selectedLine = line;
+
     this.selectedSide = column;
   }
 
@@ -216,14 +217,35 @@ export class ChangeDetailsComponent implements OnInit {
     var result_class = '';
 
     if (column === 'PARENT') {
+      // Highlight color
       result_class += diffLine.highlight_parent ? 'red-line line-color ' : '';
-      result_class += diffLine.parent_content ? 'have-content' : '';
+
+      // Whether can hover
+      result_class += diffLine.parent_content ? 'have-content ' : '';
+
+      // Whether selected
+      result_class +=
+        this.selectedLine?.parent_line_num === diffLine.parent_line_num &&
+        this.selectedSide === 'PARENT'
+          ? 'line-selected '
+          : '';
     } else {
+      // Highlight color
       result_class += diffLine.highlight_revision
         ? 'green-line line-color '
         : '';
-      result_class += diffLine.revision_content ? 'have-content' : '';
+
+      // Whether can hover
+      result_class += diffLine.revision_content ? 'have-content ' : '';
+
+      // Whether selected
+      result_class +=
+        this.selectedLine?.revision_line_num === diffLine.revision_line_num &&
+        this.selectedSide === 'REVISION'
+          ? 'line-selected '
+          : '';
     }
+
     return result_class;
   }
 }
