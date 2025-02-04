@@ -76,6 +76,14 @@ export class ChangeDetailsComponent implements OnInit {
 
   // When a line is clicked, open comment box below it
   onLineClick(line: FrontDiffLine, column: 'PARENT' | 'REVISION') {
+    // Ensure the line have content
+    if (
+      (column === 'PARENT' && !line.original_content) ||
+      (column === 'REVISION' && !line.changed_content)
+    ) {
+      return;
+    }
+
     this.selectedLine = line;
     this.selectedSide = column;
   }
@@ -204,11 +212,18 @@ export class ChangeDetailsComponent implements OnInit {
     );
   }
 
-  getDiffClass(diffLine: FrontDiffLine, column: 'left' | 'right'): string {
-    if (column === 'left') {
-      return diffLine.highlight_original ? 'red-line line-color' : '';
+  getDiffClass(diffLine: FrontDiffLine, column: 'PARENT' | 'REVISION'): string {
+    var result_class = '';
+
+    if (column === 'PARENT') {
+      result_class += diffLine.highlight_original ? 'red-line line-color ' : '';
+      result_class += diffLine.original_content ? 'have-content' : '';
     } else {
-      return diffLine.highlight_changed ? 'green-line line-color' : '';
+      result_class += diffLine.highlight_changed
+        ? 'green-line line-color '
+        : '';
+      result_class += diffLine.changed_content ? 'have-content' : '';
     }
+    return result_class;
   }
 }

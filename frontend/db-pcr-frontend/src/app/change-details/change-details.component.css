@@ -71,20 +71,20 @@
     padding-left: 10px; /* Space between number and text */
   }
 
-  .line-content:hover {
-    background-color: #3a5ddc;
-    color: white;
-    position: relative;
-    z-index: 2;
-    cursor: pointer;
-  }
-
   /* Preserve whitespace if needed */
   .white-space-preserve {
     white-space: pre-wrap;
   }
 
   /* Diff type colors */
+
+  .have-content:hover {
+    background-color: #3a5ddc;
+    color: white;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+  }
 
   .line-color {
     position: relative;

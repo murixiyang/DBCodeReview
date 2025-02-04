@@ -26,7 +26,7 @@
 
             <div
               class="line-content white-space-preserve"
-              [ngClass]="getDiffClass(diffLine, 'left')"
+              [ngClass]="getDiffClass(diffLine, 'PARENT')"
             >
               {{ diffLine.original_content }}
             </div>
@@ -53,7 +53,7 @@
             </div>
             <div
               class="line-content white-space-preserve"
-              [ngClass]="getDiffClass(diffLine, 'right')"
+              [ngClass]="getDiffClass(diffLine, 'REVISION')"
             >
               {{ diffLine.changed_content }}
             </div>
