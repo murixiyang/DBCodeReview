@@ -16,6 +16,10 @@ API Documentation: http://localhost:8081/swagger-ui.html
 
 --> localhost:8080
 
+git remote add gerrit: `ssh://admin@gerrit.myserver.com:29418/BlindTestExample.git`
+
+Push to Gerrit: `git push origin HEAD:refs/for/master`
+
 Basic testing of REST API functionality can be done with curl:
 GET: `curl http://localhost:8080/path/to/api/`
 PUT: `curl -X PUT http://localhost:8080/path/to/api/`

@@ -31,6 +31,7 @@
 .comment-area {
   border: 1px solid #ccc;
   margin: 10px 0;
+  font-size: 12px;
   font-family: "Consolas", "Courier New", monospace;
 
   .diff-row {
@@ -43,7 +44,6 @@
     flex: 1;
     overflow-x: auto;
     display: flex;
-    align-items: center;
     flex-wrap: nowrap;
   }
 
@@ -64,8 +64,6 @@
   .line-content {
     flex: 1;
     white-space: pre-wrap;
-    font-size: 12px;
-    line-height: 1.2;
   }
 
   .line-content:hover {

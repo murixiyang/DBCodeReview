@@ -3,11 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
 import { KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
-import {
-  FrontDiffContent,
-  DiffInfo,
-  DiffContent,
-} from '../interface/diff-info';
+import { DiffInfo, DiffContent, FrontDiffLine } from '../interface/diff-info';
 
 @Component({
   selector: 'app-change-details',
@@ -24,10 +20,7 @@ export class ChangeDetailsComponent implements OnInit {
 
   selectedFile: string = '';
 
-  // inlineDiffContent: FrontDiffContent[] = [];
-  // oringinalContent: FrontDiffContent[] = [];
-  // changedContent: FrontDiffContent[] = [];
-  diffContentPair: FrontDiffContent[] = [];
+  diffContentPair: FrontDiffLine[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -67,11 +60,46 @@ export class ChangeDetailsComponent implements OnInit {
     for (let i = 0; i < diffContent.length; i++) {
       let diffBlock = diffContent[i];
 
+      // If have ab, then a and b should be empty
+      if (diffBlock.ab) {
+        for (let j = 0; j < diffBlock.ab.length; j++) {
+          this.diffContentPair.push({
+            originalContent: diffBlock.ab[j],
+            changedContent: diffBlock.ab[j],
+            highlightOrignial: false,
+            highlightChanged: false,
+          });
+        }
+        continue;
+      }
+
+      // Both have content, but not the same
+      if (diffBlock.a && diffBlock.b) {
+        var maxLength = Math.max(diffBlock.a.length, diffBlock.b.length);
+
+        for (let j = 0; j < maxLength; j++) {
+          var highlightOrignial = diffBlock.a[j] ? true : false;
+          var highlightChanged = diffBlock.b[j] ? true : false;
+
+          this.diffContentPair.push({
+            originalContent: highlightOrignial ? diffBlock.a[j] : '',
+            changedContent: highlightChanged ? diffBlock.b[j] : '',
+            highlightOrignial: highlightOrignial,
+            highlightChanged: highlightChanged,
+          });
+        }
+
+        continue;
+      }
+
+      // Only one side has content
       if (diffBlock.a) {
         for (let j = 0; j < diffBlock.a.length; j++) {
           this.diffContentPair.push({
             originalContent: diffBlock.a[j],
             changedContent: '',
+            highlightOrignial: true,
+            highlightChanged: false,
           });
         }
       } else if (diffBlock.b) {
@@ -79,28 +107,19 @@ export class ChangeDetailsComponent implements OnInit {
           this.diffContentPair.push({
             originalContent: '',
             changedContent: diffBlock.b[j],
-          });
-        }
-      } else {
-        for (let j = 0; j < diffBlock.ab.length; j++) {
-          this.diffContentPair.push({
-            originalContent: diffBlock.ab[j],
-            changedContent: diffBlock.ab[j],
+            highlightOrignial: false,
+            highlightChanged: true,
           });
         }
       }
     }
   }
 
-  getDiffClass(diffLine: FrontDiffContent, column: 'left' | 'right'): string {
+  getDiffClass(diffLine: FrontDiffLine, column: 'left' | 'right'): string {
     if (column === 'left') {
-      return diffLine.changedContent === '' && diffLine.originalContent !== ''
-        ? 'red-line line-color'
-        : '';
+      return diffLine.highlightOrignial ? 'red-line line-color' : '';
     } else {
-      return diffLine.originalContent === '' && diffLine.changedContent !== ''
-        ? 'green-line line-color'
-        : '';
+      return diffLine.highlightChanged ? 'green-line line-color' : '';
     }
   }
 }

@@ -19,7 +19,9 @@ export interface DiffContent {
   ab: string[];
 }
 
-export interface FrontDiffContent {
+export interface FrontDiffLine {
   originalContent: string;
   changedContent: string;
+  highlightOrignial: boolean;
+  highlightChanged: boolean;
 }
