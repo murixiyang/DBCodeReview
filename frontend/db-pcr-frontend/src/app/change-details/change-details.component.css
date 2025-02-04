@@ -58,7 +58,6 @@
     padding-right: 10px;
     color: #888;
     border-right: 1px solid #eee;
-    margin-right: 10px;
     flex-shrink: 0; /* Ensure the number doesn’t shrink */
   }
 
@@ -69,17 +68,32 @@
     line-height: 1.2;
   }
 
+  .line-content:hover {
+    background-color: #3a5ddc;
+    color: white;
+    position: relative;
+    z-index: 2;
+  }
+
   /* Preserve whitespace if needed */
   .white-space-preserve {
     white-space: pre-wrap;
   }
 
   /* Diff type colors */
+
+  .line-color {
+    position: relative;
+    z-index: 1;
+  }
+
   .red-line {
-    background-color: #ffcdd2
+    background-color: #ffcdd2;
+    padding: 2px;
   }
 
   .green-line {
     background-color: #aaf2aa;
+    padding: 2px;
   }
 }
