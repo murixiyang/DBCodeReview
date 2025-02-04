@@ -1,6 +1,7 @@
 /* Comment box styling */
 .comment-box {
-  width: 100%;
+  width: 80%;
+  margin: auto;
   margin-top: 5px;
   display: flex;
   flex-direction: column;
@@ -16,6 +17,15 @@
   font-family: "Consolas", "Courier New", monospace;
   border: 1px solid #ccc;
   border-radius: 5px;
+}
+
+/* Button container */
+.comment-box-buttons {
+  width: 90%;
+  margin: auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .comment-box button {

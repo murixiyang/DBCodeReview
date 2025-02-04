@@ -36,14 +36,13 @@
 
   .diff-row {
     display: flex;
-    /* border-bottom: 1px solid #ddd; */
     position: relative;
   }
 
   .diff-column {
     flex: 1;
     display: flex;
-    /* flex-direction: column; */
+    flex-direction: column;
   }
 
   /* Left column gets a right border for visual separation */
@@ -53,6 +52,8 @@
 
   .diff-line-container {
     display: flex;
+    align-items: center; /* Aligns content vertically */
+    width: 100%;
   }
 
   .line-number {
@@ -67,6 +68,7 @@
   .line-content {
     flex: 1;
     white-space: pre-wrap;
+    padding-left: 10px; /* Space between number and text */
   }
 
   .line-content:hover {

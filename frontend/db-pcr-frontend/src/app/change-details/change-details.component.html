@@ -19,15 +19,17 @@
       <div *ngFor="let diffLine of diffContentList" class="diff-row">
         <!-- Left Column: Original Content -->
         <div class="diff-column left" (click)="onLineClick(diffLine, 'PARENT')">
-          <div class="line-number">
-            {{ diffLine.original_line_num || "" }}
-          </div>
+          <div class="diff-line-container">
+            <div class="line-number">
+              {{ diffLine.original_line_num || "" }}
+            </div>
 
-          <div
-            class="line-content white-space-preserve"
-            [ngClass]="getDiffClass(diffLine, 'left')"
-          >
-            {{ diffLine.original_content }}
+            <div
+              class="line-content white-space-preserve"
+              [ngClass]="getDiffClass(diffLine, 'left')"
+            >
+              {{ diffLine.original_content }}
+            </div>
           </div>
 
           <!-- Comment Box for Left Column -->
