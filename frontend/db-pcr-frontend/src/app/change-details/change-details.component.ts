@@ -91,4 +91,18 @@ export class ChangeDetailsComponent implements OnInit {
       }
     }
   }
+
+  getDiffClass(diffLine: FrontDiffContent, column: 'left' | 'right'): string {
+    if (column === 'left') {
+      // Original content column: red if changed is empty and original is non-empty
+      return diffLine.changedContent === '' && diffLine.originalContent !== ''
+        ? 'red-line'
+        : '';
+    } else {
+      // Changed content column: green if original is empty and changed is non-empty
+      return diffLine.originalContent === '' && diffLine.changedContent !== ''
+        ? 'green-line'
+        : '';
+    }
+  }
 }

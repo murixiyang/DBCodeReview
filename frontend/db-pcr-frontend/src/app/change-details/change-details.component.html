@@ -27,7 +27,7 @@
           </div>
           <div
             class="line-content white-space-preserve"
-            [ngClass]="diffLine.changedContent === '' ? 'red-line' : ''"
+            [ngClass]="getDiffClass(diffLine, 'left')"
           >
             {{ diffLine.originalContent }}
           </div>
@@ -40,7 +40,7 @@
           </div>
           <div
             class="line-content white-space-preserve"
-            [ngClass]="diffLine.originalContent === '' ? 'green-line' : ''"
+            [ngClass]="getDiffClass(diffLine, 'right')"
           >
             {{ diffLine.changedContent }}
           </div>
