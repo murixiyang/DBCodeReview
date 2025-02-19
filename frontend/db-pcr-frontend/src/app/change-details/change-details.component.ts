@@ -34,11 +34,6 @@ export class ChangeDetailsComponent implements OnInit {
   revisionId: string = '1';
 
   modiFileMap: Map<string, ModiFileInfo> = new Map<string, ModiFileInfo>();
-  draftCommentMap: Map<string, CommentInfo[]> = new Map<
-    string,
-    CommentInfo[]
-  >();
-  existedDraftCommentList: CommentInfo[] = [];
 
   selectedFile: string = '';
   selectedSide: 'PARENT' | 'REVISION' | null = null;
@@ -46,6 +41,9 @@ export class ChangeDetailsComponent implements OnInit {
 
   diffContentList: FrontDiffLine[] = [];
   draftCommentList: CommentInput[] = [];
+
+  parentDraftCommentMap: Map<number, CommentInfo[]> = new Map();
+  revisionDraftCommentMap: Map<number, CommentInfo[]> = new Map();
 
   constructor(
     private route: ActivatedRoute,
@@ -84,13 +82,13 @@ export class ChangeDetailsComponent implements OnInit {
     this.gerritService
       .getAllDraftComments(this.changeId, this.revisionId)
       .subscribe((dataMap: Map<string, CommentInfo[]>) => {
-        this.draftCommentMap = new Map(Object.entries(dataMap));
-        this.buildDraftCommentList();
+        const draftCommentMap = new Map(Object.entries(dataMap));
+        this.buildDraftCommentList(draftCommentMap);
       });
   }
 
-  buildDraftCommentList() {
-    this.draftCommentMap.forEach((commentList, key) => {
+  buildDraftCommentList(draftCommentMap: Map<string, CommentInfo[]>) {
+    draftCommentMap.forEach((commentList, key) => {
       const filePath = key;
 
       commentList.forEach((comment) => {
@@ -108,38 +106,34 @@ export class ChangeDetailsComponent implements OnInit {
         };
 
         // Add to existedDraftCommentList
-        this.existedDraftCommentList.push(newComment);
+        if (newComment.side === 'PARENT') {
+          if (!this.parentDraftCommentMap.has(newComment.line)) {
+            this.parentDraftCommentMap.set(newComment.line, []);
+          }
+          this.parentDraftCommentMap.get(newComment.line)?.push(newComment);
+        } else {
+          if (!this.revisionDraftCommentMap.has(newComment.line)) {
+            this.revisionDraftCommentMap.set(newComment.line, []);
+          }
+          this.revisionDraftCommentMap.get(newComment.line)?.push(newComment);
+        }
       });
     });
-
-    console.log('existedDraftCommentList', this.existedDraftCommentList);
   }
 
   getCommentsForLine(
     lineNumber: number | undefined,
     side: 'PARENT' | 'REVISION'
   ): CommentInfo[] {
-    const draftCommentList = this.draftCommentMap.get(this.selectedFile);
-
-    if (!draftCommentList || !lineNumber) {
+    if (lineNumber === undefined) {
       return [];
     }
 
-    // TODO: Why REVISION side is null?
-
-    // If your draftComments is an array, filter it by line and side:
-    const result = draftCommentList.filter(
-      (comment) =>
-        comment.line === lineNumber &&
-        (comment.side === side ||
-          (comment.side === null && side === 'REVISION'))
-    );
-
-    if (result.length !== 0) {
-      console.log('result', result);
+    if (side === 'PARENT') {
+      return this.parentDraftCommentMap.get(lineNumber) || [];
+    } else {
+      return this.revisionDraftCommentMap.get(lineNumber) || [];
     }
-
-    return result;
   }
 
   // When a line is clicked, open comment box below it

@@ -46,23 +46,17 @@
           </div>
 
           <div
-            *ngIf="
-              getCommentsForLine(diffLine.parent_line_num, 'PARENT').length > 0
+            *ngFor="
+              let comment of getCommentsForLine(
+                diffLine.parent_line_num,
+                'PARENT'
+              )
             "
           >
-            <div
-              *ngFor="
-                let comment of getCommentsForLine(
-                  diffLine.parent_line_num,
-                  'PARENT'
-                )
-              "
-            >
-              <app-comment-box
-                [commentMsg]="comment.message"
-                [edittable]="false"
-              ></app-comment-box>
-            </div>
+            <app-comment-box
+              [commentMsg]="comment.message"
+              [edittable]="false"
+            ></app-comment-box>
           </div>
         </div>
 
@@ -97,24 +91,17 @@
           </div>
 
           <div
-            *ngIf="
-              getCommentsForLine(diffLine.revision_line_num, 'REVISION')
-                .length > 0
+            *ngFor="
+              let comment of getCommentsForLine(
+                diffLine.revision_line_num,
+                'REVISION'
+              )
             "
           >
-            <div
-              *ngFor="
-                let comment of getCommentsForLine(
-                  diffLine.revision_line_num,
-                  'REVISION'
-                )
-              "
-            >
-              <app-comment-box
-                [commentMsg]="comment.message"
-                [edittable]="false"
-              ></app-comment-box>
-            </div>
+            <app-comment-box
+              [commentMsg]="comment.message"
+              [edittable]="false"
+            ></app-comment-box>
           </div>
         </div>
 
