@@ -49,10 +49,13 @@ export class CommentBoxComponent {
       .putDraftComment(this.changeId, this.revisionId, draftComment)
       .subscribe((data) => {
         console.log('Draft comment posted:', data);
+
+        // Close comment box
+        this.closeComment();
       });
   }
 
-  onCancel() {
+  closeComment() {
     this.commentMsg = '';
     this.closeCommentBox.emit();
   }

@@ -3,7 +3,7 @@
   <ng-container *ngIf="edittable; else readOnlyTemplate">
     <textarea [(ngModel)]="commentMsg" placeholder="Write a comment..."></textarea>
     <div class="comment-box-buttons">
-      <button (click)="onCancel()">Cancel</button>
+      <button (click)="closeComment()">Cancel</button>
       <button (click)="makeDraftComment(commentMsg)">Add Comment</button>
     </div>
   </ng-container>

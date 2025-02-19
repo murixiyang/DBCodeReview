@@ -54,6 +54,8 @@ export class ChangeDetailsComponent implements OnInit {
     this.changeId = this.route.snapshot.params['id'];
 
     this.getModiFileList(this.changeId, this.revisionId);
+
+    this.fetchDraftComments();
   }
 
   getModiFileList(changeId: string, revisionId: string) {
@@ -78,7 +80,7 @@ export class ChangeDetailsComponent implements OnInit {
       });
   }
 
-  onRefreshComment() {
+  fetchDraftComments() {
     this.gerritService
       .getAllDraftComments(this.changeId, this.revisionId)
       .subscribe((dataMap: Map<string, CommentInfo[]>) => {
@@ -87,35 +89,28 @@ export class ChangeDetailsComponent implements OnInit {
       });
   }
 
-  buildDraftCommentList(draftCommentMap: Map<string, CommentInfo[]>) {
-    draftCommentMap.forEach((commentList, key) => {
-      const filePath = key;
+  buildDraftCommentList(draftCommentMap: Map<string, CommentInfo[]>): void {
+    // Clear existing maps so we don't accumulate old data on repeated refreshes
+    this.parentDraftCommentMap.clear();
+    this.revisionDraftCommentMap.clear();
 
+    // For each file path -> array of comments
+    draftCommentMap.forEach((commentList) => {
       commentList.forEach((comment) => {
-        // new comment info
-        const newComment: CommentInfo = {
-          id: comment.id,
-          path: filePath,
-          line: comment.line,
-          range: comment.range,
-          message: comment.message,
-          in_reply_to: comment.in_reply_to,
-          side: comment.side ? comment.side : 'REVISION',
-          updated: comment.updated,
-          author: comment.author,
-        };
+        // If 'side' is null or undefined, default to 'REVISION'
+        const side = comment.side ?? 'REVISION';
 
-        // Add to existedDraftCommentList
-        if (newComment.side === 'PARENT') {
-          if (!this.parentDraftCommentMap.has(newComment.line)) {
-            this.parentDraftCommentMap.set(newComment.line, []);
+        // Insert into the correct map based on side
+        if (side === 'PARENT') {
+          if (!this.parentDraftCommentMap.has(comment.line)) {
+            this.parentDraftCommentMap.set(comment.line, []);
           }
-          this.parentDraftCommentMap.get(newComment.line)?.push(newComment);
+          this.parentDraftCommentMap.get(comment.line)?.push(comment);
         } else {
-          if (!this.revisionDraftCommentMap.has(newComment.line)) {
-            this.revisionDraftCommentMap.set(newComment.line, []);
+          if (!this.revisionDraftCommentMap.has(comment.line)) {
+            this.revisionDraftCommentMap.set(comment.line, []);
           }
-          this.revisionDraftCommentMap.get(newComment.line)?.push(newComment);
+          this.revisionDraftCommentMap.get(comment.line)?.push(comment);
         }
       });
     });
@@ -153,6 +148,7 @@ export class ChangeDetailsComponent implements OnInit {
   onCommentCancel() {
     this.selectedLine = null;
     this.selectedSide = null;
+    this.fetchDraftComments();
   }
 
   private convertDiffContentToTwoPart(diffContent: DiffContent[]) {
