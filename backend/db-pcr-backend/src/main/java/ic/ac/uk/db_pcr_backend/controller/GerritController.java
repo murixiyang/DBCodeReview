@@ -4,16 +4,21 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
+import ic.ac.uk.db_pcr_backend.model.CommentInfoModel;
+import ic.ac.uk.db_pcr_backend.model.CommentInputModel;
 import ic.ac.uk.db_pcr_backend.model.DiffInfoModel;
 import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 @RestController
 @RequestMapping("/api")
@@ -48,6 +53,15 @@ public class GerritController {
 
         // TODO: Currently suppose only 1 revision, with revisionId = 1
         return gerritService.getDiffInFile(changeId, revisionId, filePath);
+    }
+
+    @PutMapping("/put-draft-comment")
+    public ResponseEntity<CommentInfoModel> putDraftComment(
+            @RequestParam("changeId") String changeId,
+            @RequestParam("revisionId") String revisionId,
+            @RequestBody CommentInputModel commentInput) {
+        System.out.println("commentInput: " + commentInput.path + " " + commentInput.side + " " + commentInput.message);
+        return gerritService.putDraftComment(changeId, revisionId, commentInput);
     }
 
 }

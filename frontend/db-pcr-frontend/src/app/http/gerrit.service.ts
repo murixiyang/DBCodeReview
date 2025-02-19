@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SPRING_URL } from '../service/constant.service';
@@ -7,6 +7,7 @@ import { ProjectInfoModel } from '../interface/project-info';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { DiffInfo } from '../interface/diff-info';
 import { CommentInput } from '../interface/comment-input';
+import { CommentInfo } from '../interface/comment-info';
 
 @Injectable({
   providedIn: 'root',
@@ -51,8 +52,10 @@ export class GerritService {
     changeId: string,
     revisionId: string,
     commentInput: CommentInput
-  ): Observable<CommentInput> {
-    const url = `${this.baseUrl}/post-draft-comment?changeId=${changeId}&revisionId=${revisionId}`;
-    return this.http.put<CommentInput>(url, commentInput);
+  ): Observable<CommentInfo> {
+    const url = `${this.baseUrl}/put-draft-comment?changeId=${changeId}&revisionId=${revisionId}`;
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+    console.log('CommentInput:', commentInput);
+    return this.http.put<CommentInfo>(url, commentInput, { headers });
   }
 }

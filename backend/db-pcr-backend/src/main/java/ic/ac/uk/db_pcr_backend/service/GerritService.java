@@ -7,8 +7,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -18,6 +23,7 @@ import ic.ac.uk.db_pcr_backend.Constant;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
 import ic.ac.uk.db_pcr_backend.model.CommentInfoModel;
+import ic.ac.uk.db_pcr_backend.model.CommentInputModel;
 import ic.ac.uk.db_pcr_backend.model.DiffInfoModel;
 import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
 
@@ -75,6 +81,36 @@ public class GerritService {
         String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files/" + filePath + "/diff";
 
         return fetchGerritData(endPoint, DiffInfoModel.class);
+    }
+
+    public ResponseEntity<CommentInfoModel> putDraftComment(String changeId, String revisionId,
+            CommentInputModel commentInput) {
+
+        String endPoint = Constant.GERRIT_AUTHENTICATE_URL + "/changes/" + changeId +
+                "/revisions/" + revisionId + "/drafts";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBasicAuth(Constant.ADMIN_USERNAME, Constant.ADMIN_PASSWORD);
+
+        HttpEntity<CommentInputModel> requestEntity = new HttpEntity<>(commentInput, headers);
+
+        System.out.println("CommentInputModel: " + commentInput.path + " " + commentInput.message);
+
+        try {
+            // Use CommentInfoModel as the response type
+            ResponseEntity<CommentInfoModel> response = restTemplate.exchange(
+                    endPoint,
+                    HttpMethod.PUT,
+                    requestEntity,
+                    CommentInfoModel.class);
+            System.out.println("Response: " + response);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+        } catch (HttpClientErrorException e) {
+            System.out.println("ERROR: Failed to put draft comment to Gerrit at endpoint: " + endPoint);
+            e.printStackTrace();
+            return ResponseEntity.status(e.getStatusCode()).body(null);
+        }
     }
 
     private <T> T fetchGerritData(String endpoint, Class<T> dataClass) {
