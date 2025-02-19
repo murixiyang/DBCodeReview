@@ -40,7 +40,6 @@ export class ChangeDetailsComponent implements OnInit {
   selectedLine: FrontDiffLine | null = null;
 
   diffContentList: FrontDiffLine[] = [];
-  draftCommentList: CommentInput[] = [];
 
   parentDraftCommentMap: Map<number, CommentInfo[]> = new Map();
   revisionDraftCommentMap: Map<number, CommentInfo[]> = new Map();
@@ -95,10 +94,11 @@ export class ChangeDetailsComponent implements OnInit {
     this.revisionDraftCommentMap.clear();
 
     // For each file path -> array of comments
-    draftCommentMap.forEach((commentList) => {
+    draftCommentMap.forEach((commentList, path) => {
       commentList.forEach((comment) => {
         // If 'side' is null or undefined, default to 'REVISION'
         const side = comment.side ?? 'REVISION';
+        comment.path = path;
 
         // Insert into the correct map based on side
         if (side === 'PARENT') {
@@ -149,6 +149,9 @@ export class ChangeDetailsComponent implements OnInit {
     this.selectedLine = null;
     this.selectedSide = null;
     this.fetchDraftComments();
+    console.log('Refetching draft comments');
+    console.log('Draft comments:', this.parentDraftCommentMap);
+    console.log('Draft comments:', this.revisionDraftCommentMap);
   }
 
   private convertDiffContentToTwoPart(diffContent: DiffContent[]) {

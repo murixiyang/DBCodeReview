@@ -19,6 +19,7 @@ export class CommentBoxComponent {
   @Input() selectedLineNum: number | undefined = undefined;
 
   @Input() commentMsg: string = '';
+  @Input() draftId: string = '';
   @Input() edittable: boolean = true;
 
   @Output() closeCommentBox = new EventEmitter<void>();
@@ -58,5 +59,21 @@ export class CommentBoxComponent {
   closeComment() {
     this.commentMsg = '';
     this.closeCommentBox.emit();
+  }
+
+  deleteDraft() {
+    if (!this.draftId) {
+      console.error('Invalid draft ID');
+      return;
+    }
+
+    this.gerritSvc
+      .deleteDraftComment(this.changeId, this.revisionId, this.draftId)
+      .subscribe((data) => {
+        console.log('Draft comment deleted:', data);
+
+        // Close comment box
+        this.closeComment();
+      });
   }
 }

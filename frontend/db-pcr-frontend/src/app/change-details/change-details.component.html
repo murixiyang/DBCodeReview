@@ -54,8 +54,15 @@
             "
           >
             <app-comment-box
+              [changeId]="changeId"
+              [revisionId]="revisionId"
+              [selectedFile]="comment.path"
+              [selectedSide]="'PARENT'"
+              [selectedLineNum]="comment.line"
               [commentMsg]="comment.message"
+              [draftId]="comment.id"
               [edittable]="false"
+              (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
           </div>
         </div>
@@ -99,8 +106,15 @@
             "
           >
             <app-comment-box
+              [changeId]="changeId"
+              [revisionId]="revisionId"
+              [selectedFile]="comment.path"
+              [selectedSide]="'REVISION'"
+              [selectedLineNum]="comment.line"
               [commentMsg]="comment.message"
+              [draftId]="comment.id"
               [edittable]="false"
+              (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
           </div>
         </div>

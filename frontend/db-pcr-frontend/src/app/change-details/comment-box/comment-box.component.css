@@ -45,8 +45,22 @@
 }
 
 .comment-display {
-  padding: 8px;
+  position: relative; /* Allows positioning of the delete icon */
+  padding: 10px;
   background-color: #fef7e0;
-  font-size: 12px;
+  border-radius: 5px;
   font-family: "Consolas", "Courier New", monospace;
+}
+.delete-icon {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 16px;
+  color: #d00; /* Red color */
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.delete-icon:hover {
+  color: #a00;
 }

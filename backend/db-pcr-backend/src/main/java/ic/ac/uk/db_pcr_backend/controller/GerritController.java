@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -67,6 +68,14 @@ public class GerritController {
             @RequestParam("revisionId") String revisionId,
             @RequestBody CommentInputModel commentInput) {
         return gerritService.putDraftComment(changeId, revisionId, commentInput);
+    }
+
+    @DeleteMapping("/delete-draft-comment")
+    public ResponseEntity<String> deleteDraftComment(
+            @RequestParam("changeId") String changeId,
+            @RequestParam("revisionId") String revisionId,
+            @RequestParam("draftId") String draftId) {
+        return gerritService.deleteDraftComment(changeId, revisionId, draftId);
     }
 
 }

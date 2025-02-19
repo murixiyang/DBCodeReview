@@ -1,7 +1,10 @@
 <!-- Comment Box -->
 <div class="comment-box" (click)="$event.stopPropagation()">
   <ng-container *ngIf="edittable; else readOnlyTemplate">
-    <textarea [(ngModel)]="commentMsg" placeholder="Write a comment..."></textarea>
+    <textarea
+      [(ngModel)]="commentMsg"
+      placeholder="Write a comment..."
+    ></textarea>
     <div class="comment-box-buttons">
       <button (click)="closeComment()">Cancel</button>
       <button (click)="makeDraftComment(commentMsg)">Add Comment</button>
@@ -9,6 +12,7 @@
   </ng-container>
   <ng-template #readOnlyTemplate>
     <div class="comment-display">
+      <span class="delete-icon" (click)="deleteDraft()">&times;</span>
       {{ commentMsg }}
     </div>
   </ng-template>

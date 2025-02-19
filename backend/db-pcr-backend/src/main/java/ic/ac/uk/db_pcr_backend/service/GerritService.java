@@ -95,6 +95,30 @@ public class GerritService {
         }
     }
 
+    public ResponseEntity<String> deleteDraftComment(String changeId, String revisionId, String draftId) {
+        String endPoint = Constant.getGerritBaseUrl(true) + "/changes/" + changeId +
+                "/revisions/" + revisionId + "/drafts/" + draftId;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(Constant.ADMIN_USERNAME, Constant.ADMIN_PASSWORD);
+
+        HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(
+                    endPoint,
+                    HttpMethod.DELETE,
+                    entity,
+                    String.class);
+
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+        } catch (Exception e) {
+            System.out.println("ERROR: Failed to delete draft comment from Gerrit at endpoint: " + endPoint);
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     private <T> T fetchGerritData(String endpoint, Class<T> dataClass, Boolean needAuth) {
         try {
             String url = Constant.getGerritBaseUrl(needAuth) + endpoint;
