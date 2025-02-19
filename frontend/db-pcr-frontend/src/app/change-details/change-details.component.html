@@ -44,17 +44,16 @@
               (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
           </div>
-          
+
           <div
             *ngIf="
-              getCommentsForLine(diffLine.revision_line_num, 'PARENT').length >
-              0
+              getCommentsForLine(diffLine.parent_line_num, 'PARENT').length > 0
             "
           >
             <div
               *ngFor="
                 let comment of getCommentsForLine(
-                  diffLine.revision_line_num,
+                  diffLine.parent_line_num,
                   'PARENT'
                 )
               "

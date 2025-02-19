@@ -18,8 +18,8 @@ export class CommentBoxComponent {
   @Input() selectedSide: 'PARENT' | 'REVISION' = 'REVISION';
   @Input() selectedLineNum: number | undefined = undefined;
 
-  @Input() edittable: boolean = false;
   @Input() commentMsg: string = '';
+  @Input() edittable: boolean = true;
 
   @Output() closeCommentBox = new EventEmitter<void>();
 

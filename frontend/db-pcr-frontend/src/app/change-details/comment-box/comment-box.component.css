@@ -3,6 +3,7 @@
   width: 80%;
   margin: auto;
   margin-top: 5px;
+  margin-bottom: 5px;
   display: flex;
   flex-direction: column;
   background-color: #fef7e0;
@@ -41,4 +42,11 @@
 
 .comment-box button:hover {
   background-color: #2b4bb7;
+}
+
+.comment-display {
+  padding: 8px;
+  background-color: #fef7e0;
+  font-size: 12px;
+  font-family: "Consolas", "Courier New", monospace;
 }

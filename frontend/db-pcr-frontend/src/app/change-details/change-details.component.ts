@@ -38,6 +38,7 @@ export class ChangeDetailsComponent implements OnInit {
     string,
     CommentInfo[]
   >();
+  existedDraftCommentList: CommentInfo[] = [];
 
   selectedFile: string = '';
   selectedSide: 'PARENT' | 'REVISION' | null = null;
@@ -83,9 +84,35 @@ export class ChangeDetailsComponent implements OnInit {
     this.gerritService
       .getAllDraftComments(this.changeId, this.revisionId)
       .subscribe((dataMap: Map<string, CommentInfo[]>) => {
-        console.log('dataMap', dataMap);
         this.draftCommentMap = new Map(Object.entries(dataMap));
+        this.buildDraftCommentList();
       });
+  }
+
+  buildDraftCommentList() {
+    this.draftCommentMap.forEach((commentList, key) => {
+      const filePath = key;
+
+      commentList.forEach((comment) => {
+        // new comment info
+        const newComment: CommentInfo = {
+          id: comment.id,
+          path: filePath,
+          line: comment.line,
+          range: comment.range,
+          message: comment.message,
+          in_reply_to: comment.in_reply_to,
+          side: comment.side ? comment.side : 'REVISION',
+          updated: comment.updated,
+          author: comment.author,
+        };
+
+        // Add to existedDraftCommentList
+        this.existedDraftCommentList.push(newComment);
+      });
+    });
+
+    console.log('existedDraftCommentList', this.existedDraftCommentList);
   }
 
   getCommentsForLine(
