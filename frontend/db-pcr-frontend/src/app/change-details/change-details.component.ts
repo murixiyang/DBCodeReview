@@ -34,6 +34,10 @@ export class ChangeDetailsComponent implements OnInit {
   revisionId: string = '1';
 
   modiFileMap: Map<string, ModiFileInfo> = new Map<string, ModiFileInfo>();
+  draftCommentMap: Map<string, CommentInfo[]> = new Map<
+    string,
+    CommentInfo[]
+  >();
 
   selectedFile: string = '';
   selectedSide: 'PARENT' | 'REVISION' | null = null;
@@ -80,7 +84,35 @@ export class ChangeDetailsComponent implements OnInit {
       .getAllDraftComments(this.changeId, this.revisionId)
       .subscribe((dataMap: Map<string, CommentInfo[]>) => {
         console.log('dataMap', dataMap);
+        this.draftCommentMap = new Map(Object.entries(dataMap));
       });
+  }
+
+  getCommentsForLine(
+    lineNumber: number | undefined,
+    side: 'PARENT' | 'REVISION'
+  ): CommentInfo[] {
+    const draftCommentList = this.draftCommentMap.get(this.selectedFile);
+
+    if (!draftCommentList || !lineNumber) {
+      return [];
+    }
+
+    // TODO: Why REVISION side is null?
+
+    // If your draftComments is an array, filter it by line and side:
+    const result = draftCommentList.filter(
+      (comment) =>
+        comment.line === lineNumber &&
+        (comment.side === side ||
+          (comment.side === null && side === 'REVISION'))
+    );
+
+    if (result.length !== 0) {
+      console.log('result', result);
+    }
+
+    return result;
   }
 
   // When a line is clicked, open comment box below it

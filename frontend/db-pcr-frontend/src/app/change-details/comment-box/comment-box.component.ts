@@ -3,10 +3,11 @@ import { CommentInput } from '../../interface/comment-input';
 import { FormsModule } from '@angular/forms';
 import { GerritService } from '../../http/gerrit.service';
 import { CommentRange } from '../../interface/comment-range';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-comment-box',
-  imports: [FormsModule],
+  imports: [FormsModule, NgIf],
   templateUrl: './comment-box.component.html',
   styleUrl: './comment-box.component.css',
 })
@@ -14,10 +15,11 @@ export class CommentBoxComponent {
   @Input() changeId: string = '';
   @Input() revisionId: string = '';
   @Input() selectedFile: string = '';
-  @Input() selectedSide: 'PARENT' | 'REVISION' | undefined = undefined;
+  @Input() selectedSide: 'PARENT' | 'REVISION' = 'REVISION';
   @Input() selectedLineNum: number | undefined = undefined;
 
-  commentMsg: string = '';
+  @Input() edittable: boolean = false;
+  @Input() commentMsg: string = '';
 
   @Output() closeCommentBox = new EventEmitter<void>();
 

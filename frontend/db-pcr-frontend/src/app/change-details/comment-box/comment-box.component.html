@@ -1,12 +1,15 @@
 <!-- Comment Box -->
 <div class="comment-box" (click)="$event.stopPropagation()">
-  <textarea
-    [(ngModel)]="commentMsg"
-    placeholder="Write a comment..."
-  ></textarea>
-
-  <div class="comment-box-buttons">
-    <button (click)="onCancel()">Cancel</button>
-    <button (click)="makeDraftComment(commentMsg)">Add Comment</button>
-  </div>
+  <ng-container *ngIf="edittable; else readOnlyTemplate">
+    <textarea [(ngModel)]="commentMsg" placeholder="Write a comment..."></textarea>
+    <div class="comment-box-buttons">
+      <button (click)="onCancel()">Cancel</button>
+      <button (click)="makeDraftComment(commentMsg)">Add Comment</button>
+    </div>
+  </ng-container>
+  <ng-template #readOnlyTemplate>
+    <div class="comment-display">
+      {{ commentMsg }}
+    </div>
+  </ng-template>
 </div>

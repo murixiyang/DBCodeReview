@@ -40,8 +40,30 @@
               [selectedFile]="selectedFile"
               [selectedSide]="'PARENT'"
               [selectedLineNum]="diffLine.parent_line_num"
+              [edittable]="true"
               (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
+          </div>
+          
+          <div
+            *ngIf="
+              getCommentsForLine(diffLine.revision_line_num, 'PARENT').length >
+              0
+            "
+          >
+            <div
+              *ngFor="
+                let comment of getCommentsForLine(
+                  diffLine.revision_line_num,
+                  'PARENT'
+                )
+              "
+            >
+              <app-comment-box
+                [commentMsg]="comment.message"
+                [edittable]="false"
+              ></app-comment-box>
+            </div>
           </div>
         </div>
 
@@ -70,8 +92,30 @@
               [selectedFile]="selectedFile"
               [selectedSide]="'REVISION'"
               [selectedLineNum]="diffLine.revision_line_num"
+              [edittable]="true"
               (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
+          </div>
+
+          <div
+            *ngIf="
+              getCommentsForLine(diffLine.revision_line_num, 'REVISION')
+                .length > 0
+            "
+          >
+            <div
+              *ngFor="
+                let comment of getCommentsForLine(
+                  diffLine.revision_line_num,
+                  'REVISION'
+                )
+              "
+            >
+              <app-comment-box
+                [commentMsg]="comment.message"
+                [edittable]="false"
+              ></app-comment-box>
+            </div>
           </div>
         </div>
 
