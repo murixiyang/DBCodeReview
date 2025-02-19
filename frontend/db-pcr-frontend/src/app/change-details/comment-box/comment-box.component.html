@@ -1,12 +1,12 @@
 <!-- Comment Box -->
-<div class="comment-box">
+<div class="comment-box" (click)="$event.stopPropagation()">
   <textarea
     [(ngModel)]="commentMsg"
     placeholder="Write a comment..."
   ></textarea>
 
   <div class="comment-box-buttons">
-    <button>Cancel</button>
+    <button (click)="onCancel()">Cancel</button>
     <button (click)="makeDraftComment(commentMsg)">Add Comment</button>
   </div>
 </div>

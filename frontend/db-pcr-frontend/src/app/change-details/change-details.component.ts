@@ -85,7 +85,6 @@ export class ChangeDetailsComponent implements OnInit {
     }
 
     this.selectedLine = line;
-
     this.selectedSide = column;
   }
 

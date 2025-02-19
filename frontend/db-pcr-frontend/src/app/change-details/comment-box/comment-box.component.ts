@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommentRange } from '../../interface/comment-input';
 import { FormsModule } from '@angular/forms';
 
@@ -15,6 +15,8 @@ export class CommentBoxComponent {
 
   commentMsg: string = '';
 
+  @Output() closeCommentBox = new EventEmitter<void>();
+
   constructor() {}
 
   makeDraftComment(message: string, lineRange?: CommentRange) {
@@ -25,5 +27,10 @@ export class CommentBoxComponent {
       this.selectedLineNum,
       lineRange
     );
+  }
+
+  onCancel() {
+    this.commentMsg = '';
+    this.closeCommentBox.emit();
   }
 }

@@ -38,6 +38,7 @@
               [selectedFile]="selectedFile"
               [selectedSide]="'PARENT'"
               [selectedLineNum]="diffLine.parent_line_num"
+              (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
           </div>
         </div>
@@ -65,6 +66,7 @@
               [selectedFile]="selectedFile"
               [selectedSide]="'REVISION'"
               [selectedLineNum]="diffLine.revision_line_num"
+              (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
           </div>
         </div>
