@@ -1,7 +1,5 @@
 package ic.ac.uk.db_pcr_backend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 public class DiffInfoModel {
     public DiffFileMetaInfo meta_a; // not present when the file is added
     public DiffFileMetaInfo meta_b; // not present when the file is deleted

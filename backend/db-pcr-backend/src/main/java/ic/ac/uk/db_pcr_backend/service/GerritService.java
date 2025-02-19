@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ic.ac.uk.db_pcr_backend.Constant;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
+import ic.ac.uk.db_pcr_backend.model.CommentInfoModel;
 import ic.ac.uk.db_pcr_backend.model.DiffInfoModel;
 import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
 
@@ -46,6 +47,30 @@ public class GerritService {
         return fetchGerritMapData(endPoint, FileInfoModel[].class);
     }
 
+    public CommentInfoModel putDraftComment(String changeId, String revisionId, String filePath,
+            CommentInfoModel draftComment) {
+        String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/drafts";
+
+        try {
+            String url = Constant.GERRIT_BASE_URL + endPoint;
+
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(draftComment);
+
+            ResponseEntity<String> response = restTemplate.postForEntity(url, json, String.class);
+            if (response.getBody() == null) {
+                return null;
+            }
+
+            json = CommonFunctionService.trimJson(response.getBody());
+            return mapper.readValue(json, CommentInfoModel.class);
+        } catch (IOException e) {
+            System.err.println("ERROR: Failed to put draft comment to Gerrit at endpoint: " + endPoint);
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public DiffInfoModel getDiffInFile(String changeId, String revisionId, String filePath) {
         String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files/" + filePath + "/diff";
 
@@ -62,8 +87,6 @@ public class GerritService {
             }
 
             String json = CommonFunctionService.trimJson(response.getBody());
-
-            System.out.println("json: " + json);
 
             ObjectMapper mapper = new ObjectMapper();
             return mapper.readValue(json, dataClass);

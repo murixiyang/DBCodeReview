@@ -1,3 +1,5 @@
+import { AccountInfo } from './account-info';
+
 export interface ChangeInfo {
   id: string;
   triplet_id: string;
@@ -10,9 +12,5 @@ export interface ChangeInfo {
   updated: string;
   insertions: number;
   deletions: number;
-  owner: Owner;
-}
-
-export interface Owner {
-  _account_id: number;
+  owner: AccountInfo;
 }

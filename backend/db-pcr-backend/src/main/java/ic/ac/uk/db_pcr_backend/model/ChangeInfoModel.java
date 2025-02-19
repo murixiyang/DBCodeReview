@@ -18,11 +18,5 @@ public class ChangeInfoModel {
     public String updated; // Timestamp of when the change was last updated
     public int insertions; // Number of inserted lines
     public int deletions; // Number of deleted lines
-    public OwnerModel owner; // Account ID of the change owner
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class OwnerModel {
-        @JsonProperty("_account_id")
-        public int accountId;
-    }
+    public AccountInfoModel owner; // Account ID of the change owner
 }

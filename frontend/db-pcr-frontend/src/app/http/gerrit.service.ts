@@ -6,6 +6,7 @@ import { ChangeInfo } from '../interface/change-info';
 import { ProjectInfoModel } from '../interface/project-info';
 import { ModiFileInfo } from '../interface/modi-file-info';
 import { DiffInfo } from '../interface/diff-info';
+import { CommentInput } from '../interface/comment-input';
 
 @Injectable({
   providedIn: 'root',
@@ -44,5 +45,14 @@ export class GerritService {
     return this.http.get<DiffInfo>(
       `${this.baseUrl}/get-file-diff?changeId=${changeId}&revisionId=${revisionId}&filePath=${filePath}`
     );
+  }
+
+  putDraftComment(
+    changeId: string,
+    revisionId: string,
+    commentInput: CommentInput
+  ): Observable<CommentInput> {
+    const url = `${this.baseUrl}/post-draft-comment?changeId=${changeId}&revisionId=${revisionId}`;
+    return this.http.put<CommentInput>(url, commentInput);
   }
 }

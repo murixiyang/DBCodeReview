@@ -10,7 +10,7 @@ import {
   NgIf,
 } from '@angular/common';
 import { DiffInfo, DiffContent, FrontDiffLine } from '../interface/diff-info';
-import { CommentInput, CommentRange } from '../interface/comment-input';
+import { CommentInput } from '../interface/comment-input';
 import { FormsModule } from '@angular/forms';
 import { CommentBoxComponent } from './comment-box/comment-box.component';
 

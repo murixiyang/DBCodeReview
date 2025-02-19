@@ -35,6 +35,8 @@
           <!-- Comment Box for Left Column -->
           <div *ngIf="selectedLine === diffLine && selectedSide === 'PARENT'">
             <app-comment-box
+              [changeId]="changeId"
+              [revisionId]="revisionId"
               [selectedFile]="selectedFile"
               [selectedSide]="'PARENT'"
               [selectedLineNum]="diffLine.parent_line_num"
@@ -63,6 +65,8 @@
           <!-- Comment Box for Right Column -->
           <div *ngIf="selectedLine === diffLine && selectedSide === 'REVISION'">
             <app-comment-box
+              [changeId]="changeId"
+              [revisionId]="revisionId"
               [selectedFile]="selectedFile"
               [selectedSide]="'REVISION'"
               [selectedLineNum]="diffLine.revision_line_num"
