@@ -7,4 +7,9 @@ public class Constant {
     public static final String USERNAME = "murixiyang";
     public static final String ADMIN_PASSWORD = "ZGp3+AH1HMqdpz8b3sARR+WPdT8N6s0gBwsq1f3AdA";
     public static final String USER_PASSWORD = "PXTx/6foa7mo7Hkl1LNsG2wlhdUd7wJZ6grtgoTjLQ";
+
+    public static String getGerritBaseUrl(Boolean needAuth) {
+        return needAuth ? GERRIT_AUTHENTICATE_URL : GERRIT_BASE_URL;
+    }
+
 }

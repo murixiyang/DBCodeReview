@@ -13,6 +13,7 @@ import { DiffInfo, DiffContent, FrontDiffLine } from '../interface/diff-info';
 import { CommentInput } from '../interface/comment-input';
 import { FormsModule } from '@angular/forms';
 import { CommentBoxComponent } from './comment-box/comment-box.component';
+import { CommentInfo } from '../interface/comment-info';
 
 @Component({
   selector: 'app-change-details',
@@ -71,6 +72,14 @@ export class ChangeDetailsComponent implements OnInit {
       .subscribe((diff: DiffInfo) => {
         // Convert into FrontDiffContent
         this.convertDiffContentToTwoPart(diff.content);
+      });
+  }
+
+  onRefreshComment() {
+    this.gerritService
+      .getAllDraftComments(this.changeId, this.revisionId)
+      .subscribe((dataMap: Map<string, CommentInfo[]>) => {
+        console.log('dataMap', dataMap);
       });
   }
 

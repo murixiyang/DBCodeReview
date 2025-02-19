@@ -1,7 +1,6 @@
 package ic.ac.uk.db_pcr_backend.service;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -13,10 +12,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ic.ac.uk.db_pcr_backend.Constant;
@@ -38,55 +35,37 @@ public class GerritService {
     public Map<String, ProjectInfoModel> getProjectList() {
         String endPoint = "/projects";
 
-        return fetchGerritMapData(endPoint, ProjectInfoModel[].class);
+        return fetchGerritMapData(endPoint, ProjectInfoModel.class, false);
     }
 
     public List<ChangeInfoModel> getChangesWithQuery(String query) {
         String endPoint = "/changes?q=" + query;
 
-        return fetchGerritListData(endPoint, ChangeInfoModel[].class);
+        return fetchGerritListData(endPoint, ChangeInfoModel[].class, false);
     }
 
     public Map<String, FileInfoModel> getModifiedFileInChange(String changeId, String revisionId) {
         String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files";
 
-        return fetchGerritMapData(endPoint, FileInfoModel[].class);
-    }
-
-    public CommentInfoModel putDraftComment(String changeId, String revisionId, String filePath,
-            CommentInfoModel draftComment) {
-        String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/drafts";
-
-        try {
-            String url = Constant.GERRIT_BASE_URL + endPoint;
-
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(draftComment);
-
-            ResponseEntity<String> response = restTemplate.postForEntity(url, json, String.class);
-            if (response.getBody() == null) {
-                return null;
-            }
-
-            json = CommonFunctionService.trimJson(response.getBody());
-            return mapper.readValue(json, CommentInfoModel.class);
-        } catch (IOException e) {
-            System.err.println("ERROR: Failed to put draft comment to Gerrit at endpoint: " + endPoint);
-            e.printStackTrace();
-            return null;
-        }
+        return fetchGerritMapData(endPoint, FileInfoModel.class, false);
     }
 
     public DiffInfoModel getDiffInFile(String changeId, String revisionId, String filePath) {
         String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/files/" + filePath + "/diff";
 
-        return fetchGerritData(endPoint, DiffInfoModel.class);
+        return fetchGerritData(endPoint, DiffInfoModel.class, false);
+    }
+
+    public Map<String, CommentInfoModel[]> getAllDraftComments(String changeId, String revisionId) {
+        String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/drafts";
+
+        return fetchGerritMapData(endPoint, CommentInfoModel[].class, true);
     }
 
     public ResponseEntity<CommentInfoModel> putDraftComment(String changeId, String revisionId,
             CommentInputModel commentInput) {
 
-        String endPoint = Constant.GERRIT_AUTHENTICATE_URL + "/changes/" + changeId +
+        String endPoint = Constant.getGerritBaseUrl(true) + "/changes/" + changeId +
                 "/revisions/" + revisionId + "/drafts";
 
         HttpHeaders headers = new HttpHeaders();
@@ -95,27 +74,30 @@ public class GerritService {
 
         HttpEntity<CommentInputModel> requestEntity = new HttpEntity<>(commentInput, headers);
 
-        System.out.println("CommentInputModel: " + commentInput.path + " " + commentInput.message);
-
         try {
-            // Use CommentInfoModel as the response type
-            ResponseEntity<CommentInfoModel> response = restTemplate.exchange(
+
+            ResponseEntity<String> response = restTemplate.exchange(
                     endPoint,
                     HttpMethod.PUT,
                     requestEntity,
-                    CommentInfoModel.class);
-            System.out.println("Response: " + response);
-            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
-        } catch (HttpClientErrorException e) {
+                    String.class);
+            String json = CommonFunctionService.trimJson(response.getBody());
+
+            ObjectMapper mapper = new ObjectMapper();
+            CommentInfoModel result = mapper.readValue(json, CommentInfoModel.class);
+
+            return ResponseEntity.status(response.getStatusCode()).body(result);
+
+        } catch (IOException e) {
             System.out.println("ERROR: Failed to put draft comment to Gerrit at endpoint: " + endPoint);
             e.printStackTrace();
-            return ResponseEntity.status(e.getStatusCode()).body(null);
+            return ResponseEntity.badRequest().build();
         }
     }
 
-    private <T> T fetchGerritData(String endpoint, Class<T> dataClass) {
+    private <T> T fetchGerritData(String endpoint, Class<T> dataClass, Boolean needAuth) {
         try {
-            String url = Constant.GERRIT_BASE_URL + endpoint;
+            String url = Constant.getGerritBaseUrl(needAuth) + endpoint;
 
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
             if (response.getBody() == null) {
@@ -133,16 +115,24 @@ public class GerritService {
         }
     }
 
-    private <T> List<T> fetchGerritListData(String endpoint, Class<T[]> dataClass) {
+    private <T> List<T> fetchGerritListData(String endpoint, Class<T[]> dataClass, Boolean needAuth) {
         try {
-            String url = Constant.GERRIT_BASE_URL + endpoint;
+            String url = Constant.getGerritBaseUrl(needAuth) + endpoint;
 
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            HttpHeaders headers = new HttpHeaders();
+            if (needAuth) {
+                headers.setBasicAuth(Constant.ADMIN_USERNAME, Constant.ADMIN_PASSWORD);
+            }
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
             if (response.getBody() == null) {
                 return Collections.emptyList();
             }
 
             String json = CommonFunctionService.trimJson(response.getBody());
+
+            System.out.println("json: " + json);
 
             ObjectMapper mapper = new ObjectMapper();
             T[] data = mapper.readValue(json, dataClass);
@@ -154,11 +144,17 @@ public class GerritService {
         }
     }
 
-    private <T> Map<String, T> fetchGerritMapData(String endpoint, Class<T[]> dataClass) {
+    private <T> Map<String, T> fetchGerritMapData(String endpoint, Class<T> dataClass, Boolean needAuth) {
         try {
-            String url = Constant.GERRIT_BASE_URL + endpoint;
+            String url = Constant.getGerritBaseUrl(needAuth) + endpoint;
 
-            ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+            HttpHeaders headers = new HttpHeaders();
+            if (needAuth) {
+                headers.setBasicAuth(Constant.ADMIN_USERNAME, Constant.ADMIN_PASSWORD);
+            }
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
             if (response.getBody() == null) {
                 return Collections.emptyMap();
             }
@@ -166,8 +162,9 @@ public class GerritService {
             String json = CommonFunctionService.trimJson(response.getBody());
 
             ObjectMapper mapper = new ObjectMapper();
-            Map<String, T> dataMap = mapper.readValue(json, new TypeReference<Map<String, T>>() {
-            });
+            Map<String, T> dataMap = mapper.readValue(
+                    json,
+                    mapper.getTypeFactory().constructMapType(Map.class, String.class, dataClass));
 
             return dataMap;
         } catch (IOException e) {

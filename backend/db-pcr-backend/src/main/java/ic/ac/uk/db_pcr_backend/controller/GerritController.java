@@ -18,7 +18,7 @@ import ic.ac.uk.db_pcr_backend.model.DiffInfoModel;
 import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
 import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api")
@@ -55,12 +55,17 @@ public class GerritController {
         return gerritService.getDiffInFile(changeId, revisionId, filePath);
     }
 
+    @GetMapping("/get-draft-comments")
+    public Map<String, CommentInfoModel[]> getDraftComments(@RequestParam("changeId") String changeId,
+            @RequestParam("revisionId") String revisionId) {
+        return gerritService.getAllDraftComments(changeId, revisionId);
+    }
+
     @PutMapping("/put-draft-comment")
     public ResponseEntity<CommentInfoModel> putDraftComment(
             @RequestParam("changeId") String changeId,
             @RequestParam("revisionId") String revisionId,
             @RequestBody CommentInputModel commentInput) {
-        System.out.println("commentInput: " + commentInput.path + " " + commentInput.side + " " + commentInput.message);
         return gerritService.putDraftComment(changeId, revisionId, commentInput);
     }
 

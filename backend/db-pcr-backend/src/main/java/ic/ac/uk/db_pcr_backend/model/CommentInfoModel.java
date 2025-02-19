@@ -1,5 +1,8 @@
 package ic.ac.uk.db_pcr_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CommentInfoModel {
     public String id; // The URL encoded UUID of the comment.
     public String path; // The file path for which the inline comment was done. Not set if returned in a

@@ -48,6 +48,15 @@ export class GerritService {
     );
   }
 
+  getAllDraftComments(
+    changeId: string,
+    revisionId: string
+  ): Observable<Map<string, CommentInfo[]>> {
+    return this.http.get<Map<string, CommentInfo[]>>(
+      `${this.baseUrl}/get-draft-comments?changeId=${changeId}&revisionId=${revisionId}`
+    );
+  }
+
   putDraftComment(
     changeId: string,
     revisionId: string,
@@ -55,7 +64,6 @@ export class GerritService {
   ): Observable<CommentInfo> {
     const url = `${this.baseUrl}/put-draft-comment?changeId=${changeId}&revisionId=${revisionId}`;
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    console.log('CommentInput:', commentInput);
     return this.http.put<CommentInfo>(url, commentInput, { headers });
   }
 }
