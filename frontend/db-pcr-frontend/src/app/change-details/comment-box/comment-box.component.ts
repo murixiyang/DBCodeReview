@@ -16,24 +16,36 @@ export class CommentBoxComponent {
   @Input() changeId: string = '';
   @Input() revisionId: string = '';
 
+  // Used when creating a new draft comment
   @Input() newCommentInput: CommentInput | undefined = undefined;
   @Input() commentMsg: string = '';
 
+  // Used when show existed draft comment
   @Input() existCommentInfo: CommentInfo | undefined = undefined;
+
   @Input() edittable: boolean = true;
+
+  editting: boolean = false;
 
   @Output() closeCommentBox = new EventEmitter<void>();
 
   constructor(private gerritSvc: GerritService) {}
 
-  makeDraftComment(message: string, lineRange?: CommentRange) {
-    if (!this.newCommentInput) {
-      console.log('ERROR: Invalid newCommentInput');
+  onSaveDraft(): void {
+    // If editting a existed comment
+    if (this.editting && this.existCommentInfo) {
+      this.onUpdateDraft(this.commentInfoToCommentInput(this.existCommentInfo));
       return;
     }
 
-    // Create CommentInput object
-    this.newCommentInput.message = message;
+    // Creating new comment
+    if (!this.newCommentInput) {
+      console.error('Invalid comment input');
+      return;
+    }
+
+    // Change message
+    this.newCommentInput.message = this.commentMsg;
 
     // Post draft comment
     this.gerritSvc
@@ -42,16 +54,37 @@ export class CommentBoxComponent {
         console.log('Draft comment posted:', data);
 
         // Close comment box
-        this.closeComment();
+        this.onCloseDraft();
       });
   }
 
-  closeComment() {
+  onUpdateDraft(oldCommentInput: CommentInput): void {
+    oldCommentInput.message = this.commentMsg;
+
+    // Post draft comment
+    this.gerritSvc
+      .updateDraftComment(this.changeId, this.revisionId, oldCommentInput)
+      .subscribe((data) => {
+        console.log('Draft comment updated:', data);
+
+        // Close comment box
+        this.onCloseDraft();
+      });
+  }
+
+  onCloseDraft() {
     this.commentMsg = '';
+    this.editting = false;
     this.closeCommentBox.emit();
   }
 
-  deleteDraft() {
+  onEditDraft(): void {
+    this.edittable = true;
+    this.commentMsg = this.existCommentInfo?.message || '';
+    this.editting = true;
+  }
+
+  onDeleteDraft() {
     if (!this.existCommentInfo) {
       console.error('Invalid existed comment info');
       return;
@@ -71,7 +104,20 @@ export class CommentBoxComponent {
         console.log('Draft comment deleted:', data);
 
         // Close comment box
-        this.closeComment();
+        this.onCloseDraft();
       });
+  }
+
+  private commentInfoToCommentInput(commentInfo: CommentInfo): CommentInput {
+    return {
+      id: commentInfo.id,
+      path: commentInfo.path,
+      side: commentInfo.side,
+      line: commentInfo.line,
+      range: commentInfo.range,
+      in_reply_to: commentInfo.in_reply_to,
+      message: commentInfo.message,
+      updated: commentInfo.updated,
+    };
   }
 }

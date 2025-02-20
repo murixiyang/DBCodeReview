@@ -6,15 +6,19 @@
       placeholder="Write a comment..."
     ></textarea>
     <div class="comment-box-buttons">
-      <button (click)="closeComment()">Cancel</button>
-      <button (click)="makeDraftComment(commentMsg)">Add Comment</button>
+      <button (click)="onCloseDraft()">Cancel</button>
+      <button (click)="onSaveDraft()">Save</button>
     </div>
   </ng-container>
-  
+
   <ng-template #readOnlyTemplate>
     <div class="comment-display">
-      <span class="delete-icon" (click)="deleteDraft()">&times;</span>
       {{ existCommentInfo?.message }}
+
+      <div class="comment-actions">
+        <div class="comment-action" (click)="onDeleteDraft()">Discard</div>
+        <div class="comment-action" (click)="onEditDraft()">Edit</div>
+      </div>
     </div>
   </ng-template>
 </div>

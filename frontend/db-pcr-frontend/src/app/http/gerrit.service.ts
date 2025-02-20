@@ -67,6 +67,16 @@ export class GerritService {
     return this.http.put<CommentInfo>(url, commentInput, { headers });
   }
 
+  updateDraftComment(
+    changeId: string,
+    revisionId: string,
+    commentInput: CommentInput
+  ): Observable<CommentInfo> {
+    const url = `${this.baseUrl}/update-draft-comment?changeId=${changeId}&revisionId=${revisionId}&draftId=${commentInput.id}`;
+    const headers = new HttpHeaders().set('Content-Type', 'application/json');
+    return this.http.put<CommentInfo>(url, commentInput, { headers });
+  }
+
   deleteDraftComment(
     changeId: string,
     revisionId: string,

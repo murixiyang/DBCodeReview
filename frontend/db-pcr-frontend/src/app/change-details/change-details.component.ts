@@ -84,6 +84,7 @@ export class ChangeDetailsComponent implements OnInit {
       .getAllDraftComments(this.changeId, this.revisionId)
       .subscribe((dataMap: Map<string, CommentInfo[]>) => {
         const draftCommentMap = new Map(Object.entries(dataMap));
+        console.log('dataMap: ', dataMap);
         this.buildDraftCommentList(draftCommentMap);
       });
   }

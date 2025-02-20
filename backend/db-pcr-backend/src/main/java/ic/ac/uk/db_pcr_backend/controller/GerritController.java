@@ -70,6 +70,14 @@ public class GerritController {
         return gerritService.putDraftComment(changeId, revisionId, commentInput);
     }
 
+    @PutMapping("/update-draft-comment")
+    public ResponseEntity<CommentInfoModel> updateDraftComment(
+            @RequestParam("changeId") String changeId,
+            @RequestParam("revisionId") String revisionId,
+            @RequestBody CommentInputModel commentInput) {
+        return gerritService.updateDraftComment(changeId, revisionId, commentInput);
+    }
+
     @DeleteMapping("/delete-draft-comment")
     public ResponseEntity<String> deleteDraftComment(
             @RequestParam("changeId") String changeId,

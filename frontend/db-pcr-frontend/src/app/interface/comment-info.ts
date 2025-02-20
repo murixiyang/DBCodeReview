@@ -10,5 +10,5 @@ export interface CommentInfo {
   in_reply_to?: string;
   message: string;
   updated: string;
-  author?: AccountInfo;
+  author?: AccountInfo; // unset for draft comments
 }

@@ -1,9 +1,9 @@
-import { CommentRange } from "./comment-range";
+import { CommentRange } from './comment-range';
 
 export interface CommentInput {
   id?: string; // UUID of the comment, if exists, update comment
   path?: string; // file path
-  side?: 'PARENT' | 'REVISION'; // 'PARENT' or 'REVISION'
+  side?: string; // 'PARENT' or 'REVISION'
   line?: number; // if 0, it's a file comment
   range?: CommentRange;
   in_reply_to?: string; // URL encoded UUID of the comment to which this comment is a reply

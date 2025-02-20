@@ -62,6 +62,39 @@ public class GerritService {
         return fetchGerritMapData(endPoint, CommentInfoModel[].class, true);
     }
 
+    public ResponseEntity<CommentInfoModel> updateDraftComment(String changeId, String revisionId,
+            CommentInputModel commentInput) {
+
+        String endPoint = Constant.getGerritBaseUrl(true) + "/changes/" + changeId +
+                "/revisions/" + revisionId + "/drafts/" + commentInput.id;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBasicAuth(Constant.ADMIN_USERNAME, Constant.ADMIN_PASSWORD);
+
+        HttpEntity<CommentInputModel> requestEntity = new HttpEntity<>(commentInput, headers);
+
+        try {
+
+            ResponseEntity<String> response = restTemplate.exchange(
+                    endPoint,
+                    HttpMethod.PUT,
+                    requestEntity,
+                    String.class);
+            String json = CommonFunctionService.trimJson(response.getBody());
+
+            ObjectMapper mapper = new ObjectMapper();
+            CommentInfoModel result = mapper.readValue(json, CommentInfoModel.class);
+
+            return ResponseEntity.status(response.getStatusCode()).body(result);
+
+        } catch (IOException e) {
+            System.out.println("ERROR: Failed to put draft comment to Gerrit at endpoint: " + endPoint);
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     public ResponseEntity<CommentInfoModel> putDraftComment(String changeId, String revisionId,
             CommentInputModel commentInput) {
 

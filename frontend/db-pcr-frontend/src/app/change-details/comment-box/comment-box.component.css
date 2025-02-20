@@ -51,16 +51,21 @@
   border-radius: 5px;
   font-family: "Consolas", "Courier New", monospace;
 }
-.delete-icon {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  font-size: 16px;
-  color: #d00; /* Red color */
-  cursor: pointer;
-  transition: color 0.2s ease-in-out;
+
+.comment-actions {
+  display: flex;
+  gap: 15px;       /* Space between buttons */
+  margin-top: 8px; /* Space above the actions */
 }
 
-.delete-icon:hover {
-  color: #a00;
+.comment-action {
+  cursor: pointer;
+  color: #3a5ddc;             /* Base color (blue) */
+  font-size: 12px;
+  text-decoration: underline;
+  user-select: none;
+}
+
+.comment-action:hover {
+  color: #2b4bb7;  /* Darker blue on hover */
 }
