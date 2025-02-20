@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { GerritService } from '../../http/gerrit.service';
 import { CommentRange } from '../../interface/comment-range';
 import { NgIf } from '@angular/common';
+import { CommentInfo } from '../../interface/comment-info';
 
 @Component({
   selector: 'app-comment-box',
@@ -14,12 +15,11 @@ import { NgIf } from '@angular/common';
 export class CommentBoxComponent {
   @Input() changeId: string = '';
   @Input() revisionId: string = '';
-  @Input() selectedFile: string = '';
-  @Input() selectedSide: 'PARENT' | 'REVISION' = 'REVISION';
-  @Input() selectedLineNum: number | undefined = undefined;
 
+  @Input() newCommentInput: CommentInput | undefined = undefined;
   @Input() commentMsg: string = '';
-  @Input() draftId: string = '';
+
+  @Input() existCommentInfo: CommentInfo | undefined = undefined;
   @Input() edittable: boolean = true;
 
   @Output() closeCommentBox = new EventEmitter<void>();
@@ -27,27 +27,17 @@ export class CommentBoxComponent {
   constructor(private gerritSvc: GerritService) {}
 
   makeDraftComment(message: string, lineRange?: CommentRange) {
-    if (
-      !this.selectedFile ||
-      !this.selectedSide ||
-      this.selectedLineNum === undefined
-    ) {
-      console.error('Invalid comment input');
+    if (!this.newCommentInput) {
+      console.log('ERROR: Invalid newCommentInput');
       return;
     }
 
     // Create CommentInput object
-    const draftComment: CommentInput = {
-      path: this.selectedFile,
-      side: this.selectedSide,
-      line: this.selectedLineNum,
-      range: lineRange,
-      message: message,
-    };
+    this.newCommentInput.message = message;
 
     // Post draft comment
     this.gerritSvc
-      .putDraftComment(this.changeId, this.revisionId, draftComment)
+      .putDraftComment(this.changeId, this.revisionId, this.newCommentInput)
       .subscribe((data) => {
         console.log('Draft comment posted:', data);
 
@@ -62,13 +52,21 @@ export class CommentBoxComponent {
   }
 
   deleteDraft() {
-    if (!this.draftId) {
-      console.error('Invalid draft ID');
+    if (!this.existCommentInfo) {
+      console.error('Invalid existed comment info');
       return;
     }
 
+    if (!this.existCommentInfo.id) {
+      console.error('Invalid comment ID');
+    }
+
     this.gerritSvc
-      .deleteDraftComment(this.changeId, this.revisionId, this.draftId)
+      .deleteDraftComment(
+        this.changeId,
+        this.revisionId,
+        this.existCommentInfo.id
+      )
       .subscribe((data) => {
         console.log('Draft comment deleted:', data);
 

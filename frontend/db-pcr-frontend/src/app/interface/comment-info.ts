@@ -5,10 +5,10 @@ export interface CommentInfo {
   id: string;
   path: string;
   side: string;
-  line: number;
-  range: CommentRange;
-  in_reply_to: string;
+  line?: number;
+  range?: CommentRange;
+  in_reply_to?: string;
   message: string;
   updated: string;
-  author: AccountInfo;
+  author?: AccountInfo;
 }

@@ -37,9 +37,7 @@
             <app-comment-box
               [changeId]="changeId"
               [revisionId]="revisionId"
-              [selectedFile]="selectedFile"
-              [selectedSide]="'PARENT'"
-              [selectedLineNum]="diffLine.parent_line_num"
+              [newCommentInput]="makeDraftCommentInput('PARENT')"
               [edittable]="true"
               (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
@@ -56,11 +54,7 @@
             <app-comment-box
               [changeId]="changeId"
               [revisionId]="revisionId"
-              [selectedFile]="comment.path"
-              [selectedSide]="'PARENT'"
-              [selectedLineNum]="comment.line"
-              [commentMsg]="comment.message"
-              [draftId]="comment.id"
+              [existCommentInfo]="comment"
               [edittable]="false"
               (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
@@ -89,9 +83,7 @@
             <app-comment-box
               [changeId]="changeId"
               [revisionId]="revisionId"
-              [selectedFile]="selectedFile"
-              [selectedSide]="'REVISION'"
-              [selectedLineNum]="diffLine.revision_line_num"
+              [newCommentInput]="makeDraftCommentInput('REVISION')"
               [edittable]="true"
               (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>
@@ -108,11 +100,7 @@
             <app-comment-box
               [changeId]="changeId"
               [revisionId]="revisionId"
-              [selectedFile]="comment.path"
-              [selectedSide]="'REVISION'"
-              [selectedLineNum]="comment.line"
-              [commentMsg]="comment.message"
-              [draftId]="comment.id"
+              [existCommentInfo]="comment"
               [edittable]="false"
               (closeCommentBox)="onCommentCancel()"
             ></app-comment-box>

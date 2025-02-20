@@ -10,10 +10,11 @@
       <button (click)="makeDraftComment(commentMsg)">Add Comment</button>
     </div>
   </ng-container>
+  
   <ng-template #readOnlyTemplate>
     <div class="comment-display">
       <span class="delete-icon" (click)="deleteDraft()">&times;</span>
-      {{ commentMsg }}
+      {{ existCommentInfo?.message }}
     </div>
   </ng-template>
 </div>

@@ -100,6 +100,11 @@ export class ChangeDetailsComponent implements OnInit {
         const side = comment.side ?? 'REVISION';
         comment.path = path;
 
+        // Ensure it is inline comment
+        if (comment.line === undefined) {
+          return;
+        }
+
         // Insert into the correct map based on side
         if (side === 'PARENT') {
           if (!this.parentDraftCommentMap.has(comment.line)) {
@@ -149,9 +154,6 @@ export class ChangeDetailsComponent implements OnInit {
     this.selectedLine = null;
     this.selectedSide = null;
     this.fetchDraftComments();
-    console.log('Refetching draft comments');
-    console.log('Draft comments:', this.parentDraftCommentMap);
-    console.log('Draft comments:', this.revisionDraftCommentMap);
   }
 
   private convertDiffContentToTwoPart(diffContent: DiffContent[]) {
@@ -307,5 +309,16 @@ export class ChangeDetailsComponent implements OnInit {
     }
 
     return result_class;
+  }
+
+  makeDraftCommentInput(side: 'PARENT' | 'REVISION'): CommentInput {
+    return {
+      path: this.selectedFile,
+      side: side,
+      line:
+        side === 'PARENT'
+          ? this.selectedLine?.parent_line_num
+          : this.selectedLine?.revision_line_num,
+    };
   }
 }
