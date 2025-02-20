@@ -62,6 +62,12 @@ public class GerritService {
         return fetchGerritMapData(endPoint, CommentInfoModel[].class, true);
     }
 
+    public Map<String, CommentInfoModel[]> getAllComments(String changeId, String revisionId) {
+        String endPoint = "/changes/" + changeId + "/revisions/" + revisionId + "/comments";
+
+        return fetchGerritMapData(endPoint, CommentInfoModel[].class, false);
+    }
+
     public ResponseEntity<CommentInfoModel> updateDraftComment(String changeId, String revisionId,
             CommentInputModel commentInput) {
 

@@ -62,6 +62,12 @@ public class GerritController {
         return gerritService.getAllDraftComments(changeId, revisionId);
     }
 
+    @GetMapping("/get-comments")
+    public Map<String, CommentInfoModel[]> getComments(@RequestParam("changeId") String changeId,
+            @RequestParam("revisionId") String revisionId) {
+        return gerritService.getAllComments(changeId, revisionId);
+    }
+
     @PutMapping("/put-draft-comment")
     public ResponseEntity<CommentInfoModel> putDraftComment(
             @RequestParam("changeId") String changeId,

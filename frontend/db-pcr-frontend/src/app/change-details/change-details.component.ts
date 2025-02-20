@@ -322,4 +322,15 @@ export class ChangeDetailsComponent implements OnInit {
           : this.selectedLine?.revision_line_num,
     };
   }
+
+  getComments() {
+    this.gerritService.getAllComments(this.changeId, this.revisionId).subscribe(
+      (dataMap: Map<string, CommentInfo[]>) => {
+        console.log('dataMap: ', dataMap);
+      },
+      (error) => {
+        console.error('Error:', error);
+      }
+    );
+  }
 }

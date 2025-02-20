@@ -1,5 +1,8 @@
 package ic.ac.uk.db_pcr_backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AccountInfoModel {
     public String _account_id; // The numeric ID of the account.
     public String name; // The full name of the user. Only set if detailed account information is

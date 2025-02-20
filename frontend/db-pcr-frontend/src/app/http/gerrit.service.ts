@@ -48,6 +48,15 @@ export class GerritService {
     );
   }
 
+  getAllComments(
+    changeId: string,
+    revisionId: string
+  ): Observable<Map<string, CommentInfo[]>> {
+    return this.http.get<Map<string, CommentInfo[]>>(
+      `${this.baseUrl}/get-comments?changeId=${changeId}&revisionId=${revisionId}`
+    );
+  }
+
   getAllDraftComments(
     changeId: string,
     revisionId: string

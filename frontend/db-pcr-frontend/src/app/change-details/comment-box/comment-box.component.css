@@ -54,18 +54,19 @@
 
 .comment-actions {
   display: flex;
-  gap: 15px;       /* Space between buttons */
+  justify-content: flex-end; /* Push actions to the right */
+  gap: 15px; /* Space between buttons */
   margin-top: 8px; /* Space above the actions */
 }
 
 .comment-action {
   cursor: pointer;
-  color: #3a5ddc;             /* Base color (blue) */
+  color: #3a5ddc; /* Base color (blue) */
   font-size: 12px;
   text-decoration: underline;
   user-select: none;
 }
 
 .comment-action:hover {
-  color: #2b4bb7;  /* Darker blue on hover */
+  color: #2b4bb7; /* Darker blue on hover */
 }
