@@ -2,6 +2,9 @@ package ic.ac.uk.db_pcr_backend.service;
 
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -11,17 +14,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import ic.ac.uk.db_pcr_backend.Constant;
+import ic.ac.uk.db_pcr_backend.model.GitLabModel.GitLabCommitModel;
 
 @Service
 public class GitLabService {
 
-    public ResponseEntity<String> getRepositoryCommits(String repoUrl) {
+    public ResponseEntity<List<GitLabCommitModel>> getRepositoryCommits(String repoUrl) {
         String encodedProject = getEncodedProject(repoUrl);
+        String endpoint = Constant.GITLAB_API_BASE_URL + "/projects/" + encodedProject + "/repository/commits";
 
         try {
-            URI url = new URI(Constant.GITLAB_API_BASE_URL + "/projects/" + encodedProject +
-                    "/repository/commits");
+            URI url = new URI(endpoint);
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("PRIVATE-TOKEN", Constant.GITLAB_PERSONAL_TOKEN);
@@ -30,15 +36,22 @@ public class GitLabService {
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 
-            System.out.println("after send url: " + url);
+            if (response.getBody() == null) {
+                return ResponseEntity.ok().body(Collections.emptyList());
+            }
 
-            System.out.println("Response: " + response.getBody());
-            return ResponseEntity.ok(response.getBody());
+            String json = CommonFunctionService.trimJson(response.getBody());
 
+            System.out.println("json: " + json);
+
+            ObjectMapper mapper = new ObjectMapper();
+            GitLabCommitModel[] data = mapper.readValue(json, GitLabCommitModel[].class);
+
+            return ResponseEntity.ok().body(Arrays.asList(data));
         } catch (Exception e) {
             e.printStackTrace();
-
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            System.err.println("ERROR: Failed to fetch data from GitLab at endpoint: " + endpoint);
+            return ResponseEntity.badRequest().body(Collections.emptyList());
         }
 
     }

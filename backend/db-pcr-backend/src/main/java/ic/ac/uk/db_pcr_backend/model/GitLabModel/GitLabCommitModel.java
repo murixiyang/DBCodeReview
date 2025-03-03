@@ -10,6 +10,6 @@ public class GitLabCommitModel {
     String message;
     String author_name;
     String author_email;
-    String commited_date;
+    String committed_date;
     String web_url;
 }

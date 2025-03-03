@@ -2,12 +2,12 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { SPRING_URL } from '../service/constant.service';
-import { ChangeInfo } from '../interface/change-info';
-import { ProjectInfoModel } from '../interface/project-info';
-import { ModiFileInfo } from '../interface/modi-file-info';
-import { DiffInfo } from '../interface/diff-info';
-import { CommentInput } from '../interface/comment-input';
-import { CommentInfo } from '../interface/comment-info';
+import { ChangeInfo } from '../interface/gerrit/change-info';
+import { ProjectInfoModel } from '../interface/gerrit/project-info';
+import { ModiFileInfo } from '../interface/gerrit/modi-file-info';
+import { DiffInfo } from '../interface/gerrit/diff-info';
+import { CommentInput } from '../interface/gerrit/comment-input';
+import { CommentInfo } from '../interface/gerrit/comment-info';
 
 @Injectable({
   providedIn: 'root',

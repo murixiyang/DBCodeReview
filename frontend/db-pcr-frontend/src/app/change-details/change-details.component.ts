@@ -1,19 +1,18 @@
-import { Component, NgModule, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ModiFileInfo } from '../interface/modi-file-info';
+import { ModiFileInfo } from '../interface/gerrit/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
 import {
-  CommonModule,
   KeyValuePipe,
   NgClass,
   NgFor,
   NgIf,
 } from '@angular/common';
-import { DiffInfo, DiffContent, FrontDiffLine } from '../interface/diff-info';
-import { CommentInput } from '../interface/comment-input';
+import { DiffInfo, DiffContent, FrontDiffLine } from '../interface/gerrit/diff-info';
+import { CommentInput } from '../interface/gerrit/comment-input';
 import { FormsModule } from '@angular/forms';
 import { CommentBoxComponent } from './comment-box/comment-box.component';
-import { CommentInfo } from '../interface/comment-info';
+import { CommentInfo } from '../interface/gerrit/comment-info';
 
 @Component({
   selector: 'app-change-details',
