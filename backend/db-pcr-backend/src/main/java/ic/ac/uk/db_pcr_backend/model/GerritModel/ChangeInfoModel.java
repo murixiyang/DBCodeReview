@@ -1,4 +1,4 @@
-package ic.ac.uk.db_pcr_backend.model;
+package ic.ac.uk.db_pcr_backend.model.GerritModel;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

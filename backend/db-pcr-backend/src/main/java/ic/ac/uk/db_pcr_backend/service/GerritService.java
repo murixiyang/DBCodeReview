@@ -17,12 +17,12 @@ import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ic.ac.uk.db_pcr_backend.Constant;
-import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
-import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
-import ic.ac.uk.db_pcr_backend.model.CommentInfoModel;
-import ic.ac.uk.db_pcr_backend.model.CommentInputModel;
-import ic.ac.uk.db_pcr_backend.model.DiffInfoModel;
-import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.ChangeInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.CommentInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.CommentInputModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.DiffInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.FileInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.ProjectInfoModel;
 
 @Service
 public class GerritService {

@@ -1,4 +1,4 @@
-package ic.ac.uk.db_pcr_backend.model;
+package ic.ac.uk.db_pcr_backend.model.GerritModel;
 
 public class DiffInfoModel {
     public DiffFileMetaInfo meta_a; // not present when the file is added

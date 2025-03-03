@@ -16,12 +16,12 @@ import ic.ac.uk.db_pcr_backend.Constant;
 @Service
 public class GitLabService {
 
-    public ResponseEntity<?> getRepositoryData(String repoUrl) {
+    public ResponseEntity<String> getRepositoryCommits(String repoUrl) {
         String encodedProject = getEncodedProject(repoUrl);
 
         try {
             URI url = new URI(Constant.GITLAB_API_BASE_URL + "/projects/" + encodedProject +
-                    "/");
+                    "/repository/commits");
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("PRIVATE-TOKEN", Constant.GITLAB_PERSONAL_TOKEN);

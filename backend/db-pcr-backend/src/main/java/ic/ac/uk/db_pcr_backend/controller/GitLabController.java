@@ -16,9 +16,9 @@ public class GitLabController {
     @Autowired
     private GitLabService gitLabService;
 
-    @GetMapping("/repo")
-    public ResponseEntity<?> getRepositoryData(@RequestParam("url") String repoUrl) {
-        return gitLabService.getRepositoryData(repoUrl);
+    @GetMapping("/get-repo-commits")
+    public ResponseEntity<?> getRepositoryCommits(@RequestParam("url") String repoUrl) {
+        return gitLabService.getRepositoryCommits(repoUrl);
     }
 
 }

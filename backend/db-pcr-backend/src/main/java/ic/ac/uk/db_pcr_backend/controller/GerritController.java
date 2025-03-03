@@ -12,12 +12,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ic.ac.uk.db_pcr_backend.model.ChangeInfoModel;
-import ic.ac.uk.db_pcr_backend.model.CommentInfoModel;
-import ic.ac.uk.db_pcr_backend.model.CommentInputModel;
-import ic.ac.uk.db_pcr_backend.model.DiffInfoModel;
-import ic.ac.uk.db_pcr_backend.model.FileInfoModel;
-import ic.ac.uk.db_pcr_backend.model.ProjectInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.ChangeInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.CommentInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.CommentInputModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.DiffInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.FileInfoModel;
+import ic.ac.uk.db_pcr_backend.model.GerritModel.ProjectInfoModel;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import org.springframework.web.bind.annotation.RequestBody;
 

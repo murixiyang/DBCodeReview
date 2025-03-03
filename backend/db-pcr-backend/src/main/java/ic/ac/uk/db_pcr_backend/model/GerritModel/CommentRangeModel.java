@@ -1,4 +1,4 @@
-package ic.ac.uk.db_pcr_backend.model;
+package ic.ac.uk.db_pcr_backend.model.GerritModel;
 
 public class CommentRangeModel {
     public Integer start_line;
