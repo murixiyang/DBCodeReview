@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GitLabCommitModel {
-    String id;
-    String short_id;
-    String title;
-    String message;
-    String author_name;
-    String author_email;
-    String committed_date;
-    String web_url;
+    public String id;
+    public String short_id;
+    public String title;
+    public String message;
+    public String author_name;
+    public String author_email;
+    public String committed_date;
+    public String web_url;
 }

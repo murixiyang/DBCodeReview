@@ -18,6 +18,7 @@ export class ProjectListComponent implements OnInit {
   // GitLab Fetch
   repoUrl: string = '';
   repoCommitList: GitlabCommitInfo[] = [];
+  error: string = '';
 
   projectMap: Map<string, ProjectInfoModel> = new Map<
     string,
@@ -55,11 +56,16 @@ export class ProjectListComponent implements OnInit {
   }
 
   fetchGitLabCommits() {
-    this.gitLabService
-      .getRepoCommits(this.repoUrl)
-      .subscribe((data: GitlabCommitInfo[]) => {
+    this.gitLabService.getRepoCommits(this.repoUrl).subscribe({
+      next: (data) => {
         this.repoCommitList = data;
-      });
+        this.error = '';
+      },
+      error: (err) => {
+        console.error('Error fetching commits:', err);
+        this.error = 'Unable to fetch commits. Please check the url.';
+      },
+    });
   }
 
   navigateToChangeDetails(changeId: string) {

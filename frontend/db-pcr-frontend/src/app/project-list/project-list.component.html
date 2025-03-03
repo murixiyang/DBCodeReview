@@ -1,24 +1,6 @@
 <div class="page-container">
   <h1>Projects</h1>
 
-  <h1>Enter Repository URL</h1>
-  <!-- Two-way binding for the URL input -->
-  <input type="text" [(ngModel)]="repoUrl" placeholder="Enter repository URL" />
-
-  <!-- Button triggers the fetchCommits method -->
-  <button (click)="fetchGitLabCommits()">Fetch Commits</button>
-
-  <!-- Display commits if available -->
-  <div *ngIf="repoCommitList && repoCommitList.length">
-    <ul>
-      <li *ngFor="let repoCommit of repoCommitList">
-        Commit ID: {{ repoCommit.short_id }} | Title: {{ repoCommit.title }} |
-        Date:
-        {{ repoCommit.committed_date }}
-      </li>
-    </ul>
-  </div>
-
   <div *ngFor="let item of projectMap | keyvalue">
     {{ item.key }}
     <button (click)="onSelectProject(item.key)">Get Commits</button>
@@ -37,5 +19,32 @@
       by {{ change.owner._account_id }} at {{ change.updated }}<br />
       Message: {{ change.subject }} <br /><br />
     </div>
+  </div>
+
+  <h3>Enter Repository URL</h3>
+  <!-- Two-way binding for the URL input -->
+  <input type="text" [(ngModel)]="repoUrl" placeholder="Enter repository URL" />
+
+  <!-- Button triggers the fetchCommits method -->
+  <button (click)="fetchGitLabCommits()">Fetch Commits</button>
+
+  <!-- Display commits if available -->
+  <div *ngIf="repoCommitList && repoCommitList.length">
+    <ul>
+      <li *ngFor="let repoCommit of repoCommitList">
+        Commit ID:
+        <a class="change-link">
+          {{ repoCommit.id }}
+        </a>
+        by {{ repoCommit.author_name }} at {{ repoCommit.committed_date }}<br />
+
+        Message: {{ repoCommit.message }} <br /><br />
+      </li>
+    </ul>
+  </div>
+
+  <!-- Display error message if exists -->
+  <div *ngIf="error" class="error">
+    <p>Error: {{ error }}</p>
   </div>
 </div>

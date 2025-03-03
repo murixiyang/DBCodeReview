@@ -15,3 +15,7 @@
 .change-link:hover {
   color: darkblue;
 }
+
+.error {
+  color: red;
+}
