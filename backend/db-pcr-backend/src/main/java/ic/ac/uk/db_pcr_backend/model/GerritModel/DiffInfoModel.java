@@ -1,5 +1,8 @@
 package ic.ac.uk.db_pcr_backend.model.GerritModel;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DiffInfoModel {
     public DiffFileMetaInfo meta_a; // not present when the file is added
     public DiffFileMetaInfo meta_b; // not present when the file is deleted
@@ -8,6 +11,7 @@ public class DiffInfoModel {
     public String[] diff_header; // A list of strings representing the patch set diff header
     public DiffContentModel[] content; // The content differences in the file as a list of DiffContent entities
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DiffFileMetaInfo {
         public String name;
         public String content_type;
