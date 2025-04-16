@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ProjectInfoModel } from '../interface/gerrit/project-info';
-import { ChangeInfo } from '../interface/gerrit/change-info';
 import { GerritService } from '../http/gerrit.service';
 import { Router } from '@angular/router';
 import { KeyValuePipe, NgFor, NgIf } from '@angular/common';
@@ -24,9 +23,6 @@ export class ProjectListComponent implements OnInit {
     string,
     ProjectInfoModel
   >();
-  selectedProject: string = '';
-
-  changeList: ChangeInfo[] = [];
 
   constructor(
     private gerritService: GerritService,
@@ -39,19 +35,6 @@ export class ProjectListComponent implements OnInit {
       .getProjectList()
       .subscribe((dataMap: Map<string, ProjectInfoModel>) => {
         this.projectMap = dataMap;
-      });
-  }
-
-  onSelectProject(projectName: string) {
-    this.selectedProject = projectName;
-    this.getChangesOfProject(projectName);
-  }
-
-  getChangesOfProject(projectName: string) {
-    this.gerritService
-      .getChangesOfProject(projectName)
-      .subscribe((data: ChangeInfo[]) => {
-        this.changeList = data;
       });
   }
 
@@ -68,7 +51,7 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  navigateToChangeDetails(changeId: string) {
-    this.router.navigate(['/change-detail', changeId]);
+  navigateToChangeList(projectName: string) {
+    this.router.navigate(['/commit-list', projectName]);
   }
 }

@@ -49,7 +49,7 @@ export class ChangeDetailsComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.changeId = this.route.snapshot.params['id'];
+    this.changeId = this.route.snapshot.params['change-id'];
 
     this.getModiFileList(this.changeId, this.revisionId);
 

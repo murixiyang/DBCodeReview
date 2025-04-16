@@ -2,23 +2,9 @@
   <h1>Projects</h1>
 
   <div *ngFor="let item of projectMap | keyvalue">
-    {{ item.key }}
-    <button (click)="onSelectProject(item.key)">Get Commits</button>
-  </div>
-
-  <div *ngIf="selectedProject != ''">
-    <div *ngIf="changeList.length == 0">No changes found</div>
-    <div *ngFor="let change of changeList">
-      changeID:
-      <a
-        class="change-link"
-        (click)="navigateToChangeDetails(change.change_id)"
-      >
-        {{ change.change_id }}
-      </a>
-      by {{ change.owner._account_id }} at {{ change.updated }}<br />
-      Message: {{ change.subject }} <br /><br />
-    </div>
+    <a class="change-link" (click)="navigateToChangeList(item.key)">
+      {{ item.key }}
+    </a>
   </div>
 
   <h3>Enter Repository URL</h3>
