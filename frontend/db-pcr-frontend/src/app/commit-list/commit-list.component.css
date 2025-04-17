@@ -1,10 +1,9 @@
-.change-link {
-  color: blue;
-  text-decoration: underline;
-  cursor: pointer;
-  transition: color 0.2s ease-in-out;
+table {
+  width: 100%;
 }
-
-.change-link:hover {
-  color: darkblue;
+th.mat-header-cell {
+  font-weight: bold;
+}
+mat-chip {
+  font-size: 0.9em;
 }
