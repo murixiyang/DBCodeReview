@@ -1,0 +1,33 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  background-color: #fafafa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: 56px;
+}
+
+.logo a {
+  font-size: 1.25rem;
+  font-weight: bold;
+  text-decoration: none;
+  color: #333;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.auth-section {
+  display: flex;
+  align-items: center;
+}
+
+.auth-section .welcome {
+  margin-right: 0.5rem;
+}
+
+.auth-section button {
+  margin-left: 0.5rem;
+  padding: 0.3rem 0.6rem;
+}
