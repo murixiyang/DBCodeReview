@@ -13,7 +13,7 @@
   <ng-container matColumnDef="hash">
     <th mat-header-cell *matHeaderCellDef>Commit Hash</th>
     <td mat-cell *matCellDef="let e">
-      <a href="#" (click)="$event.preventDefault()">{{ e.hash }}</a>
+      <a [routerLink]="['/change-detail', e.hash]">{{ e.hash }}</a>
     </td>
   </ng-container>
 

@@ -4,33 +4,20 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { ChangeInfo } from '../interface/gerrit/change-info';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GerritService } from '../http/gerrit.service';
 import { ReviewEntry } from '../interface/review-status';
 
 @Component({
-  imports: [
-    MatTableModule,
-    MatChipsModule,
-    MatButtonModule,
-    DatePipe,
-  ],
+  imports: [MatTableModule, MatChipsModule, MatButtonModule, DatePipe, RouterLink],
   templateUrl: './commit-list.component.html',
   styleUrl: './commit-list.component.css',
 })
 export class CommitListComponent implements OnInit {
   projectName: string = '';
-  commitList: ChangeInfo[] = [];
 
   displayedColumns = ['status', 'hash', 'message', 'date', 'action'];
-  dataSource: ReviewEntry[] = [
-    {
-      status: 'Waiting for Review',
-      hash: 'abc123',
-      message: 'Initial commit',
-      date: new Date('2023-10-01'),
-    },
-  ];
+  dataSource: ReviewEntry[] = [];
 
   constructor(
     private gerritService: GerritService,
@@ -47,15 +34,16 @@ export class CommitListComponent implements OnInit {
     this.gerritService
       .getChangesOfProject(projectName)
       .subscribe((data: ChangeInfo[]) => {
-        this.commitList = data;
+        this.dataSource = data.map((change) => ({
+          status: 'Waiting for Review',
+          hash: change.change_id,
+          message: change.subject,
+          date: new Date(change.updated),
+        }));
       });
   }
 
   requestReview(entry: ReviewEntry) {
     console.log('Request review for', entry);
-  }
-
-  navigateToChangeDetails(changeId: string) {
-    this.router.navigate(['/change-detail', changeId]);
   }
 }
