@@ -2,52 +2,48 @@ package ic.ac.uk.db_pcr_backend.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-          // 1) disable CSRF because Angular handles the UI 
-          .csrf(csrf -> csrf.disable())
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        // disable CSRF for a pure JSON API
+        .csrf(csrf -> csrf.disable())
 
-          // 2) require authentication on all API endpoints
-          .authorizeHttpRequests(auth -> auth
+        // require Basic auth on /api/**, allow all other endpoints
+        .authorizeHttpRequests(auth -> auth
             .requestMatchers("/api/**").authenticated()
-            .anyRequest().permitAll()
-          )
-          
-          // 3) use only HTTP Basic—no form login redirect
-          .httpBasic(Customizer.withDefaults());
-        return http.build();
-    }
+            .anyRequest().permitAll())
 
-    @Bean
-    public InMemoryUserDetailsManager userDetailsService(PasswordEncoder pwEnc) {
-        UserDetails user1 = User.withUsername("alice")
-                                .password(pwEnc.encode("alicePass"))
-                                .roles("USER")
-                                .build();
-        UserDetails user2 = User.withUsername("bob")
-                                .password(pwEnc.encode("bobPass"))
-                                .roles("USER")
-                                .build();
-        return new InMemoryUserDetailsManager(user1, user2);
-    }
+        // configure HTTP Basic and override its entry point:
+        .httpBasic(basic -> basic
+            .authenticationEntryPoint(
+                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    return http.build();
+  }
+
+  @Bean
+  public InMemoryUserDetailsManager userDetailsService() {
+    var alice = User.withUsername("alice")
+        .password("{noop}alicePass")
+        .roles("USER")
+        .build();
+    var bob = User.withUsername("bob")
+        .password("{noop}bobPass")
+        .roles("USER")
+        .build();
+    return new InMemoryUserDetailsManager(alice, bob);
+  }
 }
