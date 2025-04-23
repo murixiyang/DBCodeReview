@@ -19,9 +19,7 @@ export class LoginComponent {
 
   login() {
     this.auth.login(this.username, this.password).subscribe({
-      next: () => (
-        (this.error = null), this.router.navigate(['/project-list'])
-      ),
+      next: () => (this.error = null),
       error: () => (this.error = 'Login failed'),
     });
   }

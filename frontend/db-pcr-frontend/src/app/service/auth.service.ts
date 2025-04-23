@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { SPRING_URL } from './constant.service';
 
 @Injectable({
   providedIn: 'root',
@@ -23,16 +24,17 @@ export class AuthService {
    * Perform Basic auth against /api/auth-test.
    * On success, store credentials and emit username.
    */
-  login(username: string, password: string): Observable<any> {
+  login(username: string, password: string): Observable<string> {
     const creds = btoa(`${username}:${password}`);
-    const headers = new HttpHeaders({ Authorization: `Basic ${creds}` });
     return this.http
-      .get('/api/auth-test', { headers, responseType: 'text' })
+      .get(`${SPRING_URL}/auth-test`, {
+        headers: { Authorization: `Basic ${creds}` },
+        responseType: 'text',
+      })
       .pipe(
-        tap(() => {
-          this.credentials = creds;
+        tap((userNameReturned) => {
           sessionStorage.setItem('credentials', creds);
-          this.userSubject.next(username);
+          this.userSubject.next(userNameReturned);
         })
       );
   }
