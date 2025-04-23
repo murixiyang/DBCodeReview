@@ -15,8 +15,7 @@ export class AuthService {
     const stored = sessionStorage.getItem('credentials');
     if (stored) {
       this.credentials = stored;
-      const decodedUser = atob(stored).split(':')[0];
-      this.userSubject.next(decodedUser);
+      this.userSubject.next(atob(stored).split(':')[0]);
     }
   }
 
@@ -33,6 +32,8 @@ export class AuthService {
       })
       .pipe(
         tap((userNameReturned) => {
+          this.credentials = creds;
+
           sessionStorage.setItem('credentials', creds);
           this.userSubject.next(userNameReturned);
         })

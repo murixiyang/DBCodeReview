@@ -18,9 +18,15 @@ export class LoginComponent {
   constructor(private auth: AuthService, private router: Router) {}
 
   login() {
+    this.error = null;
     this.auth.login(this.username, this.password).subscribe({
-      next: () => (this.error = null),
-      error: () => (this.error = 'Login failed'),
+      next: () => {
+        // credentials are set in AuthService
+        this.router.navigate(['/project-list']); // or whatever your list path is
+      },
+      error: () => {
+        this.error = 'Login failed';
+      },
     });
   }
 }
