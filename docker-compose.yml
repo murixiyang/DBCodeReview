@@ -4,17 +4,17 @@ services:
     container_name: gitlab-ce
     hostname: gitlab.local
     ports:
-      - "8443:443"
       - "8080:80"
+      - "8443:443"
       - "2224:22"
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
     volumes:
       - gitlab-config:/etc/gitlab
       - gitlab-logs:/var/log/gitlab
       - gitlab-data:/var/opt/gitlab
-    environment:
-      GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost:8080'
-        gitlab_rails['gitlab_shell_ssh_port'] = 2224
 
   gerrit:
     image: gerritcodereview/gerrit:3.11.1
