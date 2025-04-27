@@ -1,0 +1,55 @@
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:17.11.1-ce.0
+    container_name: gitlab-ce
+    hostname: gitlab.local
+    ports:
+      - "8443:443"
+      - "8080:80"
+      - "2224:22"
+    volumes:
+      - gitlab-config:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+      - gitlab-data:/var/opt/gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:8080'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+
+  gerrit:
+    image: gerritcodereview/gerrit:3.11.1
+    container_name: gerrit
+    ports:
+      - "8090:8080"
+      - "29418:29418"
+    volumes:
+      - gerrit-data:/var/gerrit/review_site
+
+  backend:
+    build:
+      context: ./backend/db-pcr-backend
+      dockerfile: Dockerfile
+    container_name: review-backend
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      GERRIT_URL: http://gerrit:8080
+    depends_on:
+      - gerrit
+
+  frontend:
+    build:
+      context: ./frontend/db-pcr-frontend
+      dockerfile: Dockerfile
+    container_name: review-ui
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+volumes:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+  gerrit-data:
