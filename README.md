@@ -10,6 +10,10 @@ docker-compose up -d
 
 docker-compose logs backend
 
+## only rebuild this stage
+docker-compose up -d --build backend
+
+
 # Frontend(Angular)
 
 Run: `cd ./frontend/db-pcr-frontend` --> `ng serve` --> localhost:4200

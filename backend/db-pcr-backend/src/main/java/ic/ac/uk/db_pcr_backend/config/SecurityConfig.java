@@ -22,6 +22,9 @@ public class SecurityConfig {
 
         // require Basic auth on /api/**, allow all other endpoints
         .authorizeHttpRequests(auth -> auth
+            // allow webhook to POST anonymously
+            .requestMatchers("/api/hooks/gitlab").permitAll()
+
             .requestMatchers("/api/**").authenticated()
             .anyRequest().permitAll())
 
