@@ -2,6 +2,14 @@
 
 Individual Project - Double-blind Code Review
 
+# Docker
+
+docker-compose down
+docker-compose build
+docker-compose up -d
+
+docker-compose logs backend
+
 # Frontend(Angular)
 
 Run: `cd ./frontend/db-pcr-frontend` --> `ng serve` --> localhost:4200
