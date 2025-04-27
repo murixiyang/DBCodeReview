@@ -37,6 +37,8 @@ services:
       GERRIT_URL: http://gerrit:8080
     depends_on:
       - gerrit
+    volumes:
+      - backend-data:/app/data
 
   frontend:
     build:
@@ -53,3 +55,4 @@ volumes:
   gitlab-logs:
   gitlab-data:
   gerrit-data:
+  backend-data:
