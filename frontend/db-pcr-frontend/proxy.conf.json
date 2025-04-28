@@ -1,8 +1,18 @@
 {
-  "/api": {
+  "/oauth2": {
     "target": "http://localhost:8081",
     "secure": false,
-    "changeOrigin": true,
-    "logLevel": "debug"
-  }
+    "changeOrigin": true
+  },
+  "/login/**": {
+    "target": "http://localhost:8081",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/logout": {
+    "target": "http://localhost:8081",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/api": { "target": "http://localhost:8081" }
 }

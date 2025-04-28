@@ -35,6 +35,9 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       GERRIT_URL: http://gerrit:8080
+      GITLAB_URL: http://gitlab:8080/api/v4
+      GITLAB_TOKEN: glpat-25R5qrDaaaZMYQyzCCqQ
+      WEBHOOK_URL: http://host.docker.internal:8081/api/hooks/gitlab
     depends_on:
       - gerrit
     volumes:

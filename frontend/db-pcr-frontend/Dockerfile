@@ -11,7 +11,7 @@ RUN npm run build -- --configuration=development
 
 FROM nginx:1.25-alpine
 # remove default welcome page
-RUN rm -rf /usr/share/nginx/html/*
+RUN rm -rf /usr/share/nginx/html/* /etc/nginx/conf.d/default.conf
 
 # copy our custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf

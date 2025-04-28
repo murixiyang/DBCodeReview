@@ -1,56 +1,40 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap } from 'rxjs';
-import { SPRING_URL } from './constant.service';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private credentials: string | null = null;
-  private userSubject = new BehaviorSubject<string | null>(null);
-  user$ = this.userSubject.asObservable();
+  user$ = new BehaviorSubject<string | null>(null);
 
   constructor(private http: HttpClient) {
-    const stored = sessionStorage.getItem('credentials');
-    if (stored) {
-      this.credentials = stored;
-      this.userSubject.next(atob(stored).split(':')[0]);
-    }
+    this.refreshUser();
   }
 
-  /**
-   * Perform Basic auth against /api/auth-test.
-   * On success, store credentials and emit username.
-   */
-  login(username: string, password: string): Observable<string> {
-    const creds = btoa(`${username}:${password}`);
-    return this.http
-      .get(`${SPRING_URL}/auth-test`, {
-        headers: { Authorization: `Basic ${creds}` },
-        responseType: 'text',
+  /** Redirect the browser to Spring’s OAuth2-login start */
+  login() {
+    window.location.href = '/oauth2/authorization/gitlab';
+  }
+
+  /** Call the check current user endpoint to bootstrap user info */
+  refreshUser() {
+    this.http
+      .get<string>('/api/user', {
+        withCredentials: true,
+        responseType: 'text' as 'json',
       })
-      .pipe(
-        tap((userNameReturned) => {
-          this.credentials = creds;
-
-          sessionStorage.setItem('credentials', creds);
-          this.userSubject.next(userNameReturned);
-        })
-      );
+      .subscribe({
+        next: (user) => this.user$.next(user),
+        error: () => this.user$.next(null),
+      });
   }
 
-  /** Clear session and notify subscribers */
+  /** Log out by letting Spring invalidate the session */
   logout() {
-    this.credentials = null;
-    sessionStorage.removeItem('credentials');
-    this.userSubject.next(null);
-  }
-
-  /** Provide headers for authenticated requests */
-  getAuthHeaders(): HttpHeaders {
-    return this.credentials
-      ? new HttpHeaders({ Authorization: `Basic ${this.credentials}` })
-      : new HttpHeaders();
+    this.http.post('/logout', {}, { withCredentials: true }).subscribe(() => {
+      this.user$.next(null);
+      // optional: redirect back to login or home
+    });
   }
 }

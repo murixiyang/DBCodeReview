@@ -20,11 +20,10 @@ export class TopbarComponent {
   /** Log out and redirect to the login page */
   logout() {
     this.authService.logout();
-    this.router.navigate(['/login']);
   }
 
   /** Navigate to the login page */
   login() {
-    this.router.navigate(['/login']);
+    this.authService.login();
   }
 }
