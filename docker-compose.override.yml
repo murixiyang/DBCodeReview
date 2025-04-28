@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  gitlab:
+    scale: 0
+  gerrit:
+    scale: 0
+
+  backend:
+    environment:
+      GITLAB_URL: http://20.77.48.174/api/v4
+      GERRIT_URL: http://20.77.48.174:8090
+      GITLAB_TOKEN: ${GITLAB_TOKEN}
+      WEBHOOK_URL: http://host.docker.internal:8081/api/hooks/gitlab
+
+  frontend:
+    environment:
+      API_BASE_URL: http://localhost:8081
