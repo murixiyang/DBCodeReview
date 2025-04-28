@@ -23,8 +23,15 @@ public class SecurityConfig {
             .requestMatchers("/api/**").authenticated()
             .anyRequest().permitAll())
         // enable OAuth2 login with GitLab
-        .oauth2Login(Customizer.withDefaults());
-
+        .oauth2Login(oauth -> oauth
+            // force this URL on success:
+            .defaultSuccessUrl("http://localhost:4200/", true))
+        .logout(logout -> logout
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("http://localhost:4200/")
+            .invalidateHttpSession(true)
+            .deleteCookies("JSESSIONID")
+            .permitAll());
     return http.build();
   }
 

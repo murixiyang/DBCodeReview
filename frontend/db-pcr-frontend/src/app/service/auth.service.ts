@@ -30,11 +30,9 @@ export class AuthService {
       });
   }
 
-  /** Log out by letting Spring invalidate the session */
+  /** Navigate the browser to Spring’s logout endpoint */
   logout() {
-    this.http.post('/logout', {}, { withCredentials: true }).subscribe(() => {
-      this.user$.next(null);
-      // optional: redirect back to login or home
-    });
+    // this causes a full page load → Spring invalidates cookies & session and then 302s you
+    window.location.href = '/logout';
   }
 }
