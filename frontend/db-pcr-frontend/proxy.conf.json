@@ -1,18 +1,26 @@
 {
+  "/api": {
+    "target": "http://localhost:8081",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
   "/oauth2": {
     "target": "http://localhost:8081",
     "secure": false,
-    "changeOrigin": true
+    "changeOrigin": true,
+    "logLevel": "debug"
   },
-  "/login/**": {
+  "/login/oauth2": {
     "target": "http://localhost:8081",
     "secure": false,
-    "changeOrigin": true
+    "changeOrigin": true,
+    "logLevel": "debug"
   },
   "/logout": {
     "target": "http://localhost:8081",
     "secure": false,
-    "changeOrigin": true
-  },
-  "/api": { "target": "http://localhost:8081" }
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
 }
