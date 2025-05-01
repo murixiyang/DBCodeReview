@@ -6,7 +6,7 @@
       *ngFor="let p of projects$ | async"
       (click)="navigateToCommitList(p.name)"
     >
-      {{ p.name }} <small>({{ p.namespace.full_path }})</small>
+      {{ p.name }} 
     </mat-list-item>
   </mat-list>
 </div>

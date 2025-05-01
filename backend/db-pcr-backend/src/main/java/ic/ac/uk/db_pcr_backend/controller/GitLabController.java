@@ -7,10 +7,9 @@ import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
+
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,25 +22,18 @@ import ic.ac.uk.db_pcr_backend.service.GitLabService;
 public class GitLabController {
 
     private final GitLabService gitLabService;
-    private final OAuth2AuthorizedClientService clients;
 
     @Autowired
-    public GitLabController(GitLabService gitLabService,
-            OAuth2AuthorizedClientService clients) {
+    public GitLabController(GitLabService gitLabService) {
         this.gitLabService = gitLabService;
-        this.clients = clients;
     }
 
     @GetMapping("/projects")
-    public ResponseEntity<List<Project>> listProjects(
-            OAuth2AuthenticationToken authToken) throws GitLabApiException {
+    public ResponseEntity<List<Project>> listProject(
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws GitLabApiException {
 
-        OAuth2AuthorizedClient client = clients.loadAuthorizedClient(
-                authToken.getAuthorizedClientRegistrationId(),
-                authToken.getName());
         String accessToken = client.getAccessToken().getTokenValue();
-
-        return ResponseEntity.ok(gitLabService.listUserProjects(accessToken));
+        return ResponseEntity.ok(gitLabService.listPersonalProject(accessToken));
     }
 
     @GetMapping("/get-repo-commits")

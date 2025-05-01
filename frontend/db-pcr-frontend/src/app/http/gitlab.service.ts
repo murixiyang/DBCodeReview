@@ -3,7 +3,7 @@ import { SPRING_URL_GITLAB } from '../service/constant.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { GitlabCommitInfo } from '../interface/gitlab/gitlab-commit-info';
-import { ProjectSchema } from '@gitbeaker/rest';;
+import { ProjectSchema } from '@gitbeaker/rest';
 
 @Injectable({
   providedIn: 'root',

@@ -48,7 +48,7 @@ services:
 
       # If you have local containers up (via --profile local), these default
       # to talking to them.  Otherwise, set EXTERNAL_* in your env or a .env file.
-      GITLAB_URL: ${EXTERNAL_GITLAB_URL:-http://gitlab}/api/v4
+      GITLAB_URL: ${EXTERNAL_GITLAB_URL:-http://gitlab}
       GERRIT_URL: ${EXTERNAL_GERRIT_URL:-http://gerrit:8080}
       GERRIT_AUTHENTICATE_URL: ${EXTERNAL_GERRIT_AUTH_URL:-http://gerrit:8080/a}
 

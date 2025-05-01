@@ -7,8 +7,10 @@ import java.util.Collections;
 import java.util.List;
 
 import org.gitlab4j.api.GitLabApi;
+import org.gitlab4j.api.GitLabApi.ApiVersion;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Project;
+import org.gitlab4j.models.Constants.TokenType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
@@ -28,24 +30,17 @@ import ic.ac.uk.db_pcr_backend.model.GitLabModel.GitLabCommitModel;
 public class GitLabService {
 
     private final String apiUrl;
-    private final String token;
-    private final RestTemplate restTemplate;
 
     // Constructor
     public GitLabService(@Value("${gitlab.url}") String apiUrl,
-            @Value("${gitlab.token}") String token,
-            @Value("${webhook.url}") String webhookUrl,
             RestTemplateBuilder restTemplateBuilder) {
         this.apiUrl = apiUrl;
-        this.token = token;
-        this.restTemplate = restTemplateBuilder.defaultHeader("PRIVATE-TOKEN", token).build();
-
     }
 
-    public List<Project> listUserProjects(String oauthToken) throws GitLabApiException {
-        try (GitLabApi api = new GitLabApi(apiUrl, oauthToken)) {
-            // return all projects the user has access to
-            return api.getProjectApi().getProjects();
+    /** Get the list of projects for a given user. */
+    public List<Project> listPersonalProject(String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            return gitLabApi.getProjectApi().getOwnedProjects();
         }
     }
 

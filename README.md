@@ -16,6 +16,9 @@ docker-compose up -d
 
 docker-compose logs backend
 
+## Live log
+docker-compose logs --tail=100 -f backend
+
 ## only rebuild this stage
 
 docker-compose up -d --build backend

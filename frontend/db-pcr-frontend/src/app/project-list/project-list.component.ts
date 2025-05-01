@@ -22,7 +22,19 @@ export class ProjectListComponent implements OnInit {
   constructor(private gitLabService: GitlabService, private router: Router) {}
 
   ngOnInit() {
+    console.log('ProjectListComponent initialized');
     this.projects$ = this.gitLabService.getProjects();
+
+    console.log(
+      'projects$:',
+      this.projects$.subscribe((projects) => {
+        console.log('Projects:', projects);
+      })
+    );
+  }
+
+  navigateToCommitList(projectName: string) {
+    this.router.navigate(['/commit-list', projectName]);
   }
 
   // fetchGitLabCommits() {
@@ -37,8 +49,4 @@ export class ProjectListComponent implements OnInit {
   //     },
   //   });
   // }
-
-  navigateToCommitList(projectName: string) {
-    this.router.navigate(['/commit-list', projectName]);
-  }
 }
