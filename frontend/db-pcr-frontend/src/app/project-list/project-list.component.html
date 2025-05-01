@@ -1,36 +1,12 @@
 <div class="page-container">
   <h1>Projects</h1>
 
-  <div *ngFor="let item of projectMap | keyvalue">
-    <a class="change-link" (click)="navigateToChangeList(item.key)">
-      {{ item.key }}
-    </a>
-  </div>
-
-  <h3>Enter Repository URL</h3>
-  <!-- Two-way binding for the URL input -->
-  <input type="text" [(ngModel)]="repoUrl" placeholder="Enter repository URL" />
-
-  <!-- Button triggers the fetchCommits method -->
-  <button (click)="fetchGitLabCommits()">Fetch Commits</button>
-
-  <!-- Display commits if available -->
-  <div *ngIf="repoCommitList && repoCommitList.length">
-    <ul>
-      <li *ngFor="let repoCommit of repoCommitList">
-        Commit ID:
-        <a class="change-link">
-          {{ repoCommit.id }}
-        </a>
-        by {{ repoCommit.author_name }} at {{ repoCommit.committed_date }}<br />
-
-        Message: {{ repoCommit.message }} <br /><br />
-      </li>
-    </ul>
-  </div>
-
-  <!-- Display error message if exists -->
-  <div *ngIf="error" class="error">
-    <p>Error: {{ error }}</p>
-  </div>
+  <mat-list>
+    <mat-list-item
+      *ngFor="let p of projects$ | async"
+      (click)="navigateToCommitList(p.name)"
+    >
+      {{ p.name }} <small>({{ p.namespace.full_path }})</small>
+    </mat-list-item>
+  </mat-list>
 </div>

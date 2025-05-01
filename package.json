@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@angular/material": "^19.2.14",
+    "@gitbeaker/rest": "^42.5.0"
+  }
+}

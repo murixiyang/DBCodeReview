@@ -20,6 +20,8 @@ docker-compose logs backend
 
 docker-compose up -d --build backend
 
+docker-compose restart frontend
+
 # Frontend(Angular)
 
 Run: `cd ./frontend/db-pcr-frontend` --> `ng serve` --> localhost:4200
@@ -43,3 +45,7 @@ GET: `curl http://localhost:8080/path/to/api/`
 PUT: `curl -X PUT http://localhost:8080/path/to/api/`
 POST: `curl -X POST http://localhost:8080/path/to/api/`
 DELETE: `curl -X DELETE http://localhost:8080/path/to/api/`
+
+# ChatGPT
+
+I am developing a double blinded peer code review platform, with frontend using Angular, backend using Springboot and Java. I integerated with GitLab CE (as student code repository)and Gerrit(to use the api for code review process). I serve GitLab CE and Gerrit on Microsoft Azure Virtual Machine and frontend and backend currently on localhost docker. I have integrated OAuth login with GitLab CE.

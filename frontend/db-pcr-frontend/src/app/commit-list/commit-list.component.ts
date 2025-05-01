@@ -9,7 +9,13 @@ import { GerritService } from '../http/gerrit.service';
 import { ReviewEntry } from '../interface/review-status';
 
 @Component({
-  imports: [MatTableModule, MatChipsModule, MatButtonModule, DatePipe, RouterLink],
+  imports: [
+    MatTableModule,
+    MatChipsModule,
+    MatButtonModule,
+    DatePipe,
+    RouterLink,
+  ],
   templateUrl: './commit-list.component.html',
   styleUrl: './commit-list.component.css',
 })

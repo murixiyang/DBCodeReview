@@ -5,11 +5,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
+import org.gitlab4j.api.GitLabApi;
+import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -28,7 +29,6 @@ public class GitLabService {
 
     private final String apiUrl;
     private final String token;
-    private final String webhookUrl;
     private final RestTemplate restTemplate;
 
     // Constructor
@@ -38,44 +38,15 @@ public class GitLabService {
             RestTemplateBuilder restTemplateBuilder) {
         this.apiUrl = apiUrl;
         this.token = token;
-        this.webhookUrl = webhookUrl;
         this.restTemplate = restTemplateBuilder.defaultHeader("PRIVATE-TOKEN", token).build();
 
     }
 
-    /** Ensure that a push-only webhook is set up for the given project. */
-    public void ensurePushWebhook(int projectId) {
-        var hooks = listWebhooks(projectId);
-        boolean exists = hooks.stream()
-                .anyMatch(h -> webhookUrl.equals(h.get("url")) && Boolean.TRUE.equals(h.get("push_events")));
-        if (!exists) {
-            addPushWebhook(projectId);
+    public List<Project> listUserProjects(String oauthToken) throws GitLabApiException {
+        try (GitLabApi api = new GitLabApi(apiUrl, oauthToken)) {
+            // return all projects the user has access to
+            return api.getProjectApi().getProjects();
         }
-    }
-
-    /** Add a push-only webhook to given project */
-    public void addPushWebhook(int projectId) {
-        String url = apiUrl + "/projects/" + projectId + "/hooks";
-        var payload = Map.of(
-                "url", webhookUrl,
-                "push_events", true,
-                "merge_requests_events", false,
-                "enable_ssl_verification", false);
-        restTemplate.postForEntity(url, payload, String.class);
-    }
-
-    /** List existing hooks on a project */
-    public List<Map<String, Object>> listWebhooks(int projectId) {
-        String url = apiUrl + "/projects/" + projectId + "/hooks";
-        return restTemplate.exchange(url, HttpMethod.GET, null,
-                new ParameterizedTypeReference<List<Map<String, Object>>>() {
-                }).getBody();
-    }
-
-    /** Remove a webhook by its hookId. */
-    public void removeWebhook(int projectId, int hookId) {
-        var url = apiUrl + "/projects/" + projectId + "/hooks/" + hookId;
-        restTemplate.delete(url);
     }
 
     /** Get the list of commits for a given repository URL. */
