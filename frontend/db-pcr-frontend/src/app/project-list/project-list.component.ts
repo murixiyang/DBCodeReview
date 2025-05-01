@@ -33,8 +33,8 @@ export class ProjectListComponent implements OnInit {
     );
   }
 
-  navigateToCommitList(projectName: string) {
-    this.router.navigate(['/commit-list', projectName]);
+  navigateToCommitList(projectId: number) {
+    this.router.navigate(['/commit-list', projectId]);
   }
 
   // fetchGitLabCommits() {

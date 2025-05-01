@@ -4,7 +4,7 @@
   <mat-list>
     <mat-list-item
       *ngFor="let p of projects$ | async"
-      (click)="navigateToCommitList(p.name)"
+      (click)="navigateToCommitList(p.id)"
     >
       {{ p.name }} 
     </mat-list-item>

@@ -16,7 +16,7 @@ export class GitlabService {
   /**  Get user's project list */
   getProjects(): Observable<ProjectSchema[]> {
     return this.http.get<ProjectSchema[]>(`${this.baseUrl}/projects`, {
-      withCredentials: true, // send the session cookie to Spring
+      withCredentials: true,
     });
   }
 
