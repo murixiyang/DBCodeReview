@@ -1,12 +1,11 @@
 <div class="page-container">
   <h1>Projects</h1>
 
-  <mat-list>
-    <mat-list-item
-      *ngFor="let p of projects$ | async"
-      (click)="navigateToCommitList(p.id)"
-    >
-      {{ p.name }} 
-    </mat-list-item>
-  </mat-list>
+  <div
+    *ngFor="let p of projects$ | async"
+    (click)="navigateToCommitList(p.id)"
+    class="change-link"
+  >
+    {{ p.name }}
+  </div>
 </div>

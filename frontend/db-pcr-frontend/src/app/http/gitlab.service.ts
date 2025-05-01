@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { SPRING_URL_GITLAB } from '../service/constant.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { GitlabCommitInfo } from '../interface/gitlab/gitlab-commit-info';
-import { ProjectSchema } from '@gitbeaker/rest';
+import { CommitSchema, ProjectSchema } from '@gitbeaker/rest';
 
 @Injectable({
   providedIn: 'root',
@@ -20,9 +19,11 @@ export class GitlabService {
     });
   }
 
-  getRepoCommits(repoUrl: string): Observable<GitlabCommitInfo[]> {
-    return this.http.get<GitlabCommitInfo[]>(
-      `${this.baseUrl}/get-repo-commits?url=${repoUrl}`
+  /** Get project commits */
+  getProjectCommits(projectId: number): Observable<CommitSchema[]> {
+    return this.http.get<CommitSchema[]>(
+      `${this.baseUrl}/get-project-commits?projectId=${projectId}`,
+      { withCredentials: true }
     );
   }
 }
