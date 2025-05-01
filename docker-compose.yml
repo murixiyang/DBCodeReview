@@ -1,4 +1,8 @@
+version: "3.8"
+
 services:
+  # ───────────────────────────────────────────────────────────────
+  # Local GitLab CE
   gitlab:
     image: gitlab/gitlab-ce:17.11.1-ce.0
     container_name: gitlab-ce
@@ -9,13 +13,17 @@ services:
       - "2224:22"
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://localhost'
+        external_url 'http://gitlab.local'
         gitlab_rails['gitlab_shell_ssh_port'] = 2224
     volumes:
       - gitlab-config:/etc/gitlab
       - gitlab-logs:/var/log/gitlab
       - gitlab-data:/var/opt/gitlab
+    profiles:
+      - local
 
+  # ───────────────────────────────────────────────────────────────
+  # Local Gerrit
   gerrit:
     image: gerritcodereview/gerrit:3.11.1
     container_name: gerrit
@@ -24,7 +32,10 @@ services:
       - "29418:29418"
     volumes:
       - gerrit-data:/var/gerrit/review_site
+    profiles:
+      - local
 
+  # ───────────────────────────────────────────────────────────────
   backend:
     build:
       context: ./backend/db-pcr-backend
@@ -34,15 +45,20 @@ services:
       - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: dev
-      GERRIT_URL: http://gerrit:8080
-      GITLAB_URL: http://gitlab:8080/api/v4
+
+      # If you have local containers up (via --profile local), these default
+      # to talking to them.  Otherwise, set EXTERNAL_* in your env or a .env file.
+      GITLAB_URL: ${EXTERNAL_GITLAB_URL:-http://gitlab}/api/v4
+      GERRIT_URL: ${EXTERNAL_GERRIT_URL:-http://gerrit:8080}
+      GERRIT_AUTHENTICATE_URL: ${EXTERNAL_GERRIT_AUTH_URL:-http://gerrit:8080/a}
+
       GITLAB_TOKEN: ${GITLAB_TOKEN}
       WEBHOOK_URL: http://host.docker.internal:8081/api/hooks/gitlab
-    depends_on:
-      - gerrit
+
     volumes:
       - backend-data:/app/data
 
+  # ───────────────────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend/db-pcr-frontend
@@ -50,6 +66,8 @@ services:
     container_name: review-ui
     ports:
       - "4200:80"
+    environment:
+      API_BASE_URL: ${API_BASE_URL:-http://localhost:8081}
     depends_on:
       - backend
 
