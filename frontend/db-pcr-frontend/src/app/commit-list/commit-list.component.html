@@ -13,7 +13,7 @@
   <ng-container matColumnDef="hash">
     <th mat-header-cell *matHeaderCellDef>Commit Hash</th>
     <td mat-cell *matCellDef="let e">
-      <a [routerLink]="['/commit-detail', e.id]">{{ e.commit.shortId }}</a>
+      <a [routerLink]="['/commit-detail', projectId, e.commit.id]">{{ e.commit.shortId }}</a>
     </td>
   </ng-container>
 

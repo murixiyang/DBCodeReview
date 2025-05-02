@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { SPRING_URL_GITLAB } from '../service/constant.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CommitSchema, ProjectSchema } from '@gitbeaker/rest';
+import { CommitDiffSchema, CommitSchema, ProjectSchema } from '@gitbeaker/rest';
 
 @Injectable({
   providedIn: 'root',
@@ -23,6 +23,14 @@ export class GitlabService {
   getProjectCommits(projectId: number): Observable<CommitSchema[]> {
     return this.http.get<CommitSchema[]>(
       `${this.baseUrl}/get-project-commits?projectId=${projectId}`,
+      { withCredentials: true }
+    );
+  }
+
+  /** Get the list of modified files for a commit */
+  getCommitFileDiff(projectId: string, sha: string): Observable<CommitDiffSchema[]> {
+    return this.http.get<any>(
+      `${this.baseUrl}/get-commit-file-diff?projectId=${projectId}&sha=${sha}`,
       { withCredentials: true }
     );
   }

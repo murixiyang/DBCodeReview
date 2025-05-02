@@ -5,6 +5,7 @@ import java.util.List;
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Commit;
+import org.gitlab4j.api.models.Diff;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.models.Constants.TokenType;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,14 @@ public class GitLabService {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
             List<Commit> commits = gitLabApi.getCommitsApi().getCommits(projectId);
             return commits;
+        }
+    }
+
+    /** Get the diff file for a given commit. */
+    public List<Diff> getCommitFileDiff(String projectId, String sha, String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            List<Diff> diff = gitLabApi.getCommitsApi().getDiff(projectId, sha);
+            return diff;
         }
     }
 

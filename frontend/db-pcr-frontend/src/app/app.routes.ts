@@ -6,7 +6,7 @@ import { CommitListComponent } from './commit-list/commit-list.component';
 
 export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
-  { path: 'commit-list/:project-id', component: CommitListComponent },
-  { path: 'commit-detail/:commit-id', component: CommitDetailComponent },
+  { path: 'commit-list/:projectId', component: CommitListComponent },
+  { path: 'commit-detail/:projectId/:sha', component: CommitDetailComponent },
   { path: '', redirectTo: '/project-list', pathMatch: 'full' },
 ];

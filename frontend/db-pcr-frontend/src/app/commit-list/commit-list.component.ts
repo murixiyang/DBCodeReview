@@ -31,7 +31,7 @@ export class CommitListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.projectId = this.route.snapshot.params['project-id'];
+    this.projectId = this.route.snapshot.params['projectId'];
     this.getProjectCommits(this.projectId);
   }
 
