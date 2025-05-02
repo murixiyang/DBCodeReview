@@ -1,19 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ModiFileInfo } from '../interface/gerrit/modi-file-info';
-import { GerritService } from '../http/gerrit.service';
 import { KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
-import {
-  DiffInfo,
-  DiffContent,
-  FrontDiffLine,
-} from '../interface/gerrit/diff-info';
-import { CommentInput } from '../interface/gerrit/comment-input';
+import { FrontDiffLine } from '../interface/gerrit/diff-info';
 import { FormsModule } from '@angular/forms';
 import { CommentBoxComponent } from './comment-box/comment-box.component';
-import { CommentInfo } from '../interface/gerrit/comment-info';
 import { CommitDiffSchema } from '@gitbeaker/rest';
 import { GitlabService } from '../http/gitlab.service';
+import { html } from 'diff2html';
 
 @Component({
   selector: 'app-commit-details',
@@ -32,7 +25,10 @@ export class CommitDetailComponent implements OnInit {
   projectId: string = '';
   sha: string = '';
 
-  commitDiffList: CommitDiffSchema[] = [];
+  diffList: CommitDiffSchema[] = [];
+
+  // Store hte generated HTML for the selected file
+  diffHtml: string | null = null;
 
   selectedFile: string = '';
   selectedSide: 'PARENT' | 'REVISION' | null = null;
@@ -66,7 +62,15 @@ export class CommitDetailComponent implements OnInit {
   getDiffList() {
     this.gitLabSvc.getCommitDiff(this.projectId, this.sha).subscribe((data) => {
       console.log('Modified files:', data);
-      this.commitDiffList = data;
+      this.diffList = data;
+    });
+  }
+
+  onSelectFile(diff: CommitDiffSchema) {
+    this.diffHtml = html(diff.diff, {
+      drawFileList: false,
+      matching: 'lines',
+      outputFormat: 'side-by-side',
     });
   }
 
