@@ -1,17 +1,18 @@
 <div class="page-container">
   <div class="file-list">
     <h2>Files changed in {{ sha }}</h2>
+
     <ul>
       <li
         *ngFor="let diff of diffList"
         (click)="onSelectFile(diff)"
         class="file-item"
       >
-        {{ diff.new_path }}
+        {{ diff["newPath"] }}
       </li>
     </ul>
-  </div>
 
-  <!-- Once a file is selected, dump the generated HTML -->
-  <div class="diff-container" *ngIf="diffHtml" [innerHTML]="diffHtml"></div>
+    <!-- Once a file is selected, dump the generated HTML -->
+    <div class="diff-container" *ngIf="diffHtml" [innerHTML]="diffHtml"></div>
+  </div>
 </div>

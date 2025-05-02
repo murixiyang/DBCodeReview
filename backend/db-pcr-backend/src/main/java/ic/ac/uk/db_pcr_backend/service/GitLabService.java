@@ -39,7 +39,7 @@ public class GitLabService {
         }
     }
 
-    /** Get the diff for a given commit. */
+    /** Get the unidiff for a given commit. */
     public List<Diff> getCommitDiff(String projectId, String sha, String oauthToken) throws GitLabApiException {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
             List<Diff> diff = gitLabApi.getCommitsApi().getDiff(projectId, sha);
