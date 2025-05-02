@@ -2,20 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ModiFileInfo } from '../interface/gerrit/modi-file-info';
 import { GerritService } from '../http/gerrit.service';
+import { KeyValuePipe, NgClass, NgFor, NgIf } from '@angular/common';
 import {
-  KeyValuePipe,
-  NgClass,
-  NgFor,
-  NgIf,
-} from '@angular/common';
-import { DiffInfo, DiffContent, FrontDiffLine } from '../interface/gerrit/diff-info';
+  DiffInfo,
+  DiffContent,
+  FrontDiffLine,
+} from '../interface/gerrit/diff-info';
 import { CommentInput } from '../interface/gerrit/comment-input';
 import { FormsModule } from '@angular/forms';
 import { CommentBoxComponent } from './comment-box/comment-box.component';
 import { CommentInfo } from '../interface/gerrit/comment-info';
 
 @Component({
-  selector: 'app-change-details',
+  selector: 'app-commit-details',
   imports: [
     NgIf,
     NgFor,
@@ -24,10 +23,10 @@ import { CommentInfo } from '../interface/gerrit/comment-info';
     FormsModule,
     CommentBoxComponent,
   ],
-  templateUrl: './change-details.component.html',
-  styleUrl: './change-details.component.css',
+  templateUrl: './commit-details.component.html',
+  styleUrl: './commit-details.component.css',
 })
-export class ChangeDetailsComponent implements OnInit {
+export class CommitDetailComponent implements OnInit {
   changeId: string = '';
   // TODO: right now, assume the revisionId is '1' in backend
   revisionId: string = '1';
