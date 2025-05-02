@@ -44,12 +44,12 @@ public class GitLabController {
         return ResponseEntity.ok(gitLabService.getProjectCommits(projectId, accessToken));
     }
 
-    @GetMapping("/get-commit-file-diff")
+    @GetMapping("/get-commit-diff")
     public ResponseEntity<List<Diff>> getCommitDiff(@RequestParam("projectId") String projectId,
             @RequestParam("sha") String sha,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws GitLabApiException {
         String accessToken = client.getAccessToken().getTokenValue();
-        return ResponseEntity.ok(gitLabService.getCommitFileDiff(projectId, sha, accessToken));
+        return ResponseEntity.ok(gitLabService.getCommitDiff(projectId, sha, accessToken));
     }
 
 }

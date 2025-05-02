@@ -39,12 +39,11 @@ public class GitLabService {
         }
     }
 
-    /** Get the diff file for a given commit. */
-    public List<Diff> getCommitFileDiff(String projectId, String sha, String oauthToken) throws GitLabApiException {
+    /** Get the diff for a given commit. */
+    public List<Diff> getCommitDiff(String projectId, String sha, String oauthToken) throws GitLabApiException {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
             List<Diff> diff = gitLabApi.getCommitsApi().getDiff(projectId, sha);
             return diff;
         }
     }
-
 }

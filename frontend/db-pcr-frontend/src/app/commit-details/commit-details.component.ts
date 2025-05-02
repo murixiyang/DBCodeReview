@@ -32,7 +32,7 @@ export class CommitDetailComponent implements OnInit {
   projectId: string = '';
   sha: string = '';
 
-  fileDiffList: CommitDiffSchema[] = [];
+  commitDiffList: CommitDiffSchema[] = [];
 
   selectedFile: string = '';
   selectedSide: 'PARENT' | 'REVISION' | null = null;
@@ -58,18 +58,16 @@ export class CommitDetailComponent implements OnInit {
     this.projectId = this.route.snapshot.params['projectId'];
     this.sha = this.route.snapshot.params['sha'];
 
-    this.getFileDiffList();
+    this.getDiffList();
 
     // this.fetchDraftComments();
   }
 
-  getFileDiffList() {
-    this.gitLabSvc
-      .getCommitFileDiff(this.projectId, this.sha)
-      .subscribe((data) => {
-        console.log('Modified files:', data);
-        this.fileDiffList = data;
-      });
+  getDiffList() {
+    this.gitLabSvc.getCommitDiff(this.projectId, this.sha).subscribe((data) => {
+      console.log('Modified files:', data);
+      this.commitDiffList = data;
+    });
   }
 
   // getFileDiff(filePath: string) {

@@ -28,9 +28,12 @@ export class GitlabService {
   }
 
   /** Get the list of modified files for a commit */
-  getCommitFileDiff(projectId: string, sha: string): Observable<CommitDiffSchema[]> {
+  getCommitDiff(
+    projectId: string,
+    sha: string
+  ): Observable<CommitDiffSchema[]> {
     return this.http.get<any>(
-      `${this.baseUrl}/get-commit-file-diff?projectId=${projectId}&sha=${sha}`,
+      `${this.baseUrl}/get-commit-diff?projectId=${projectId}&sha=${sha}`,
       { withCredentials: true }
     );
   }
