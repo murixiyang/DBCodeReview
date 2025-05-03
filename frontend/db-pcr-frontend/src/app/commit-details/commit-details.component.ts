@@ -1,9 +1,9 @@
 import {
-  AfterViewChecked,
   Component,
   ElementRef,
   OnInit,
-  ViewChild,
+  QueryList,
+  ViewChildren,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgFor } from '@angular/common';
@@ -30,8 +30,9 @@ export class CommitDetailComponent implements OnInit {
   // Store hte generated HTML for the selected file
   diffHtml: SafeHtml | null = null;
 
-  @ViewChild('diffContainer', { static: false })
-  diffContainer!: ElementRef<HTMLElement>;
+  // grab all <div #diffContainer> refs
+  @ViewChildren('diffContainer', { read: ElementRef })
+  diffContainers!: QueryList<ElementRef<HTMLDivElement>>;
 
   constructor(
     private route: ActivatedRoute,
@@ -53,7 +54,7 @@ export class CommitDetailComponent implements OnInit {
     });
   }
 
-  onSelectFile(diff: CommitDiffSchema) {
+  drawDiffHtml(diff: CommitDiffSchema): SafeHtml {
     // Build minimal unified-diff with headers
     const header = [
       `diff --git a/${diff['oldPath']} b/${diff['newPath']}`,
@@ -63,15 +64,45 @@ export class CommitDetailComponent implements OnInit {
 
     const fullDiff = `${header}\n${diff.diff}`;
 
-    // 1) Draw into your container
-    const ui = new Diff2HtmlUI(this.diffContainer.nativeElement, fullDiff, {
-      outputFormat: 'side-by-side',
+    const rawHtml = html(fullDiff, {
       drawFileList: false,
       matching: 'lines',
+      outputFormat: 'side-by-side',
     });
-    ui.draw();
 
-    // 2) This wrapper has its own highlight step
-    ui.highlightCode();
+    return this.sanitizer.bypassSecurityTrustHtml(rawHtml);
+  }
+
+  ngAfterViewInit() {
+    // whenever diffList *or* the DOM changes, redraw
+    this.diffContainers.changes.subscribe(() => this.renderAllDiffs());
+    this.renderAllDiffs();
+  }
+
+  private renderAllDiffs() {
+    // if we have both diffs and containers, zip them by index
+    this.diffContainers.forEach((elRef, idx) => {
+      const diff = this.diffList[idx];
+      if (!diff) return;
+
+      // build a minimal unified-diff
+      const header = [
+        `diff --git a/${diff['oldPath']} b/${diff['newPath']}`,
+        `--- a/${diff['oldPath']}`,
+        `+++ b/${diff['newPath']}`,
+      ].join('\n');
+      const fullDiff = `${header}\n${diff.diff}`;
+
+      // instantiate the UI wrapper
+      const ui = new Diff2HtmlUI(elRef.nativeElement, fullDiff, {
+        outputFormat: 'side-by-side',
+        drawFileList: false,
+        matching: 'lines',
+        highlight: true,
+      });
+
+      ui.draw();
+      ui.highlightCode();
+    });
   }
 }
