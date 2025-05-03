@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   OnInit,
@@ -10,10 +11,7 @@ import { NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommitDiffSchema } from '@gitbeaker/rest';
 import { GitlabService } from '../http/gitlab.service';
-import { html } from 'diff2html';
 import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim';
-
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-commit-details',
@@ -21,14 +19,11 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   templateUrl: './commit-details.component.html',
   styleUrl: './commit-details.component.css',
 })
-export class CommitDetailComponent implements OnInit {
+export class CommitDetailComponent implements OnInit, AfterViewInit {
   projectId: string = '';
   sha: string = '';
 
   diffList: CommitDiffSchema[] = [];
-
-  // Store hte generated HTML for the selected file
-  diffHtml: SafeHtml | null = null;
 
   // grab all <div #diffContainer> refs
   @ViewChildren('diffContainer', { read: ElementRef })
@@ -36,8 +31,7 @@ export class CommitDetailComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private gitLabSvc: GitlabService,
-    private sanitizer: DomSanitizer
+    private gitLabSvc: GitlabService
   ) {}
 
   ngOnInit() {
@@ -52,25 +46,6 @@ export class CommitDetailComponent implements OnInit {
       console.log('Modified files:', data);
       this.diffList = data;
     });
-  }
-
-  drawDiffHtml(diff: CommitDiffSchema): SafeHtml {
-    // Build minimal unified-diff with headers
-    const header = [
-      `diff --git a/${diff['oldPath']} b/${diff['newPath']}`,
-      `--- a/${diff['oldPath']}`,
-      `+++ b/${diff['newPath']}`,
-    ].join('\n');
-
-    const fullDiff = `${header}\n${diff.diff}`;
-
-    const rawHtml = html(fullDiff, {
-      drawFileList: false,
-      matching: 'lines',
-      outputFormat: 'side-by-side',
-    });
-
-    return this.sanitizer.bypassSecurityTrustHtml(rawHtml);
   }
 
   ngAfterViewInit() {
@@ -102,7 +77,6 @@ export class CommitDetailComponent implements OnInit {
       });
 
       ui.draw();
-      ui.highlightCode();
     });
   }
 }

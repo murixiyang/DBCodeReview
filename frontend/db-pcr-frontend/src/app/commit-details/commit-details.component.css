@@ -8,3 +8,7 @@
 .diff-container {
   margin-top: 1rem;
 }
+
+:host ::ng-deep .hljs {
+  background: transparent !important;
+}
