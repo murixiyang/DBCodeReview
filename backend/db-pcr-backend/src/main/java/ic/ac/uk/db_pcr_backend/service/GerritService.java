@@ -1,11 +1,16 @@
 package ic.ac.uk.db_pcr_backend.service;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.http.client.CredentialsProvider;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.info.ProjectInfoProperties.Git;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -14,7 +19,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gerrit.extensions.api.GerritApi;
+import com.google.gerrit.extensions.api.projects.ProjectInput;
+import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.extensions.restapi.RestApiException;
+import com.urswolfer.gerrit.client.rest.GerritAuthData;
+import com.urswolfer.gerrit.client.rest.GerritAuthData.Basic;
+import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 
 import ic.ac.uk.db_pcr_backend.Constant;
 import ic.ac.uk.db_pcr_backend.model.GerritModel.ChangeInfoModel;
@@ -26,10 +42,86 @@ import ic.ac.uk.db_pcr_backend.model.GerritModel.ProjectInfoModel;
 
 @Service
 public class GerritService {
+
+    // —–– Inject these from application.properties or your .env
+    @Value("${gitlab.url}")
+    private String gitlabApiUrl;
+    @Value("${gerrit.url}")
+    private String gerritHttpUrl;
+    @Value("${gerrit.branch:master}")
+    private String gerritBranch;
+    @Value("${gerrit.username}")
+    private String gerritUsername;
+    @Value("${gerrit.password}")
+    private String gerritHttpPassword;
+
+    private final GerritAuthData.Basic gerritAuthData;
+    private final GerritRestApiFactory gerritApiFactory;
     private final RestTemplate restTemplate;
 
-    public GerritService() {
-        restTemplate = new RestTemplate();
+    public GerritService(Basic gerritAuthData, GerritRestApiFactory gerritApiFactory) {
+        this.gerritAuthData = new GerritAuthData.Basic(
+                gerritHttpUrl, gerritUsername, gerritHttpPassword);
+        this.gerritApiFactory = gerritApiFactory;
+        this.restTemplate = new RestTemplate();
+    }
+
+    public String submitForReview(
+            String projectId,
+            String sha,
+            String gitlabToken) throws Exception {
+        // --- 1) Ensure the Gerrit project exists (create if missing)
+        GerritApi gApi = gerritApiFactory.create(gerritAuthData);
+        try {
+            gApi.projects().name(projectId).get();
+        } catch (RestApiException notFound) {
+            var in = new ProjectInput();
+            in.createEmptyCommit = true;
+            gApi.projects().create(projectId);
+        }
+
+        // --- 2) Clone the GitLab repo at that single commit
+        Path tempDir = Files.createTempDirectory("review-");
+        CloneCommand clone = org.eclipse.jgit.api.Git.cloneRepository()
+                .setURI(gitlabApiUrl + "/" + projectId + ".git")
+                .setDirectory(tempDir.toFile())
+                .setNoCheckout(true);
+        // use the OAuth token as HTTPS password
+        org.eclipse.jgit.transport.CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2",
+                gitlabToken);
+        clone.setCredentialsProvider(gitlabCreds);
+        try (org.eclipse.jgit.api.Git git = clone.call()) {
+
+            // fetch just that SHA
+            git.fetch()
+                    .setCredentialsProvider(gitlabCreds)
+                    .setRefSpecs(new RefSpec(sha + ":" + sha))
+                    .call();
+
+            git.checkout().setName(sha).call();
+
+            // --- 3) Push into Gerrit’s refs/for/<branch>
+            String remote = gerritHttpUrl + "/" + projectId + ".git";
+            org.eclipse.jgit.transport.CredentialsProvider gerritCreds = new UsernamePasswordCredentialsProvider(
+                    gerritUsername, gerritHttpPassword);
+
+            git.push()
+                    .setRemote(remote)
+                    .setRefSpecs(new RefSpec(sha + ":refs/for/" + gerritBranch))
+                    .setCredentialsProvider(gerritCreds)
+                    .call();
+        }
+
+        // --- 4) Look up the new Gerrit Change by commit SHA
+        List<ChangeInfo> changes = gApi.changes()
+                .query("commit:" + sha + " status:open")
+                .get();
+
+        if (changes.isEmpty()) {
+            throw new IllegalStateException("Gerrit change not found for " + sha);
+        }
+        // return numeric Change-Id as a string
+        return String.valueOf(changes.get(0)._number);
     }
 
     public Map<String, ProjectInfoModel> getProjectList() {
