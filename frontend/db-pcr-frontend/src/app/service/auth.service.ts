@@ -30,6 +30,11 @@ export class AuthService {
       });
   }
 
+  /** Get current username */
+  getUser() {
+    return this.user$.asObservable();
+  }
+
   /** Navigate the browser to Spring’s logout endpoint */
   logout() {
     // this causes a full page load → Spring invalidates cookies & session and then 302s you
