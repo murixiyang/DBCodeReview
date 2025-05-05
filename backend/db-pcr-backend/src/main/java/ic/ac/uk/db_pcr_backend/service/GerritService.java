@@ -32,6 +32,7 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
+import org.gitlab4j.api.models.Project;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gerrit.extensions.api.GerritApi;
@@ -90,8 +91,10 @@ public class GerritService {
             String sha,
             String gitlabToken) throws Exception {
 
+        Project project = this.gitLabSvc.getProjectById(projectId, gitlabToken);
         String cloneUrl = this.gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
-        String pathWithNamespace = this.gitLabSvc.getProjectPathWithNamespace(projectId, gitlabToken);
+        String defaultBranch = project.getDefaultBranch();
+        String pathWithNamespace = project.getPathWithNamespace();
 
         // --- 1) Ensure the Gerrit project exists (create if missing)
         GerritApi gerritApi = gerritApiFactory.create(gerritAuthData);
@@ -114,15 +117,16 @@ public class GerritService {
 
         // --- 2) Clone the GitLab repo at that single commit
         Path tempDir = Files.createTempDirectory("review-");
+        // use the OAuth token as HTTPS password
+        org.eclipse.jgit.transport.CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2",
+                gitlabToken);
 
         CloneCommand clone = Git.cloneRepository()
                 .setURI(cloneUrl)
                 .setDirectory(tempDir.toFile())
-                .setNoCheckout(true);
+                .setCredentialsProvider(gitlabCreds).setBranchesToClone(List.of("refs/heads/" + defaultBranch))
+                .setBranch("refs/heads/" + defaultBranch).setDepth(1);
 
-        // use the OAuth token as HTTPS password
-        org.eclipse.jgit.transport.CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2",
-                gitlabToken);
         clone.setCredentialsProvider(gitlabCreds);
 
         // Run the clone
@@ -180,12 +184,9 @@ public class GerritService {
             String remote = gerritAuthUrl + "/" + pathWithNamespace + ".git";
             CredentialsProvider gerritCreds = new UsernamePasswordCredentialsProvider(
                     gerritUsername, gerritHttpPassword);
-
-            System.out.println("DBLOG: Gerrit username: " + gerritUsername + ", password: " + gerritHttpPassword);
-            System.out.println("DBLOG: Push to Gerrit: " + remote);
+            RefSpec refSpec = new RefSpec("HEAD:refs/for/" + gerritBranch);
 
             // Push the new head to Gerrit
-            RefSpec refSpec = new RefSpec("HEAD:refs/for/" + gerritBranch);
             Iterable<PushResult> results = git.push()
                     .setRemote(remote)
                     .setRefSpecs(refSpec)

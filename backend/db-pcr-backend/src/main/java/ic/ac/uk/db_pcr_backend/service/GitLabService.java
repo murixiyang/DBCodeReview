@@ -48,6 +48,13 @@ public class GitLabService {
         }
     }
 
+    /** Get project by project id */
+    public Project getProjectById(String projectId, String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            return gitLabApi.getProjectApi().getProject(projectId);
+        }
+    }
+
     /** Get git clone URL for a project id */
     public String getProjectCloneUrl(String projectId, String oauthToken) throws GitLabApiException {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
@@ -65,6 +72,14 @@ public class GitLabService {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
             Project project = gitLabApi.getProjectApi().getProject(projectid);
             return project.getPathWithNamespace();
+        }
+    }
+
+    /** Get Default branch for a project */
+    public String getDefaultBranch(String projectId, String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            Project project = gitLabApi.getProjectApi().getProject(projectId);
+            return project.getDefaultBranch();
         }
     }
 }
