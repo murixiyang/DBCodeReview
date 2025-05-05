@@ -1,6 +1,8 @@
 package ic.ac.uk.db_pcr_backend.service;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -42,6 +44,8 @@ import ic.ac.uk.db_pcr_backend.model.GerritModel.ProjectInfoModel;
 @Service
 public class GerritService {
     private final String gitlabApiUrl;
+    private final GitLabService gitLabSvc;
+
     private final String gerritHttpUrl;
     private final String gerritUsername;
     private final String gerritHttpPassword;
@@ -53,12 +57,14 @@ public class GerritService {
 
     public GerritService(
             @Value("${gitlab.url}") String gitlabApiUrl,
+            GitLabService gitLabService,
             @Value("${gerrit.url}") String gerritHttpUrl,
             @Value("${gerrit.username}") String gerritUsername,
             @Value("${gerrit.password}") String gerritHttpPassword,
             @Value("${gerrit.branch:master}") String gerritBranch) {
 
         this.gitlabApiUrl = gitlabApiUrl;
+        this.gitLabSvc = gitLabService;
         this.gerritHttpUrl = gerritHttpUrl;
         this.gerritUsername = gerritUsername;
         this.gerritHttpPassword = gerritHttpPassword;
@@ -76,21 +82,26 @@ public class GerritService {
             String gitlabToken) throws Exception {
         System.out.println("DEBUGOUTPUT: submitForReview: " + projectId + " " + sha + " " + gitlabToken);
 
+        String cloneUrl = this.gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
+        System.out.println("DEBUGOUTPUT: GitLab clone URL: " + cloneUrl);
+
+        String pathWithNamespace = this.gitLabSvc.getProjectPathWithNamespace(projectId, gitlabToken);
+        System.out.println("DEBUGOUTPUT: GitLab pathWithNamespace: " + pathWithNamespace);
+
         // --- 1) Ensure the Gerrit project exists (create if missing)
         System.out.println("DEBUGOUTPUT: Create Factory for Gerrit API");
         GerritApi gerritApi = gerritApiFactory.create(gerritAuthData);
         System.out.println("DEBUGOUTPUT: Factory created: " + gerritApi);
         try {
-            gerritApi.projects().name(projectId).get();
-            System.out.println("DEBUGOUTPUT: Gerrit project already exists: " + projectId);
-        } catch (RestApiException e) {
-            if (e instanceof HttpStatusException hse && hse.getStatusCode() == 404) {
+            gerritApi.projects().name(pathWithNamespace).get();
+            System.out.println("DEBUGOUTPUT: Gerrit project already exists: " + pathWithNamespace);
+        } catch (RuntimeException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof HttpStatusException hse && hse.getStatusCode() == 404) {
                 // Project not found, create it
-                System.out.println("DEBUGOUTPUT: Gerrit project not exists. Create it : " + projectId);
-                var in = new ProjectInput();
-                in.createEmptyCommit = true;
-                gerritApi.projects().create(projectId);
-                System.out.println("DEBUGOUTPUT: Gerrit project created: " + projectId);
+                System.out.println("DEBUGOUTPUT: Gerrit project not exists. Create it : " + pathWithNamespace);
+                gerritApi.projects().create(pathWithNamespace);
+                System.out.println("DEBUGOUTPUT: Gerrit project created: " + pathWithNamespace);
             } else {
                 System.out.println("ERROR: Failed to check Gerrit project: " + e.getMessage());
                 throw e;
@@ -98,12 +109,13 @@ public class GerritService {
         }
 
         // --- 2) Clone the GitLab repo at that single commit
+
         System.out.println("DEBUGOUTPUT: Create temporary directory for Git clone");
         Path tempDir = Files.createTempDirectory("review-");
 
-        System.out.println("DEBUGOUTPUT: Clone GitLab repo of URL: " + gitlabApiUrl + "/" + projectId + ".git");
+        System.out.println("DEBUGOUTPUT: Clone GitLab repo of URL: " + cloneUrl);
         CloneCommand clone = org.eclipse.jgit.api.Git.cloneRepository()
-                .setURI(gitlabApiUrl + "/" + projectId + ".git")
+                .setURI(cloneUrl)
                 .setDirectory(tempDir.toFile())
                 .setNoCheckout(true);
 
@@ -124,8 +136,8 @@ public class GerritService {
             System.out.println("DEBUGOUTPUT: Checked out commit " + sha);
 
             // --- 3) Push into Gerrit’s refs/for/<branch>
-            System.out.println("DEBUGOUTPUT: Push to Gerrit: " + gerritHttpUrl + "/" + projectId + ".git");
-            String remote = gerritHttpUrl + "/" + projectId + ".git";
+            System.out.println("DEBUGOUTPUT: Push to Gerrit: " + gerritHttpUrl + "/" + pathWithNamespace + ".git");
+            String remote = gerritHttpUrl + "/" + pathWithNamespace + ".git";
             org.eclipse.jgit.transport.CredentialsProvider gerritCreds = new UsernamePasswordCredentialsProvider(
                     gerritUsername, gerritHttpPassword);
 
@@ -139,18 +151,21 @@ public class GerritService {
 
         // --- 4) Look up the new Gerrit Change by commit SHA
         System.out.println("DEBUGOUTPUT: Look up Gerrit Change by commit SHA: " + sha);
-        List<ChangeInfo> changes = gerritApi.changes()
-                .query("commit:" + sha + " status:open")
-                .get();
 
-        System.out.println("DEBUGOUTPUT: Found " + changes.size() + " Gerrit changes for commit SHA: " + sha);
+        try {
+            List<ChangeInfo> changes = gerritApi.changes()
+                    .query("commit:" + sha)
+                    .withQuery("status=open")
+                    .get();
 
-        if (changes.isEmpty()) {
+            System.out.println("DEBUGOUTPUT: Found " + changes.size() + " Gerrit changes for commit SHA: " + sha);
+
+            // return numeric Change-Id as a string
+            return String.valueOf(changes.get(0)._number);
+        } catch (RestApiException e) {
             System.out.println("DEBUGOUTPUT: No Gerrit change found for commit SHA: " + sha);
             throw new IllegalStateException("Gerrit change not found for " + sha);
         }
-        // return numeric Change-Id as a string
-        return String.valueOf(changes.get(0)._number);
     }
 
     public Map<String, ProjectInfoModel> getProjectList() {
