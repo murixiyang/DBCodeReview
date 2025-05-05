@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GitlabService } from '../http/gitlab.service';
 import { CommitListItem } from '../interface/commit-list-item';
+import { GerritService } from '../http/gerrit.service';
 
 @Component({
   imports: [
@@ -19,13 +20,14 @@ import { CommitListItem } from '../interface/commit-list-item';
   styleUrl: './commit-list.component.css',
 })
 export class CommitListComponent implements OnInit {
-  projectId: number = 0;
+  projectId: string = '';
 
   displayedColumns = ['status', 'hash', 'message', 'date', 'action'];
   commitList: CommitListItem[] = [];
 
   constructor(
     private gitLabSvc: GitlabService,
+    private gerritSvc: GerritService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -35,7 +37,7 @@ export class CommitListComponent implements OnInit {
     this.getProjectCommits(this.projectId);
   }
 
-  getProjectCommits(projectId: number) {
+  getProjectCommits(projectId: string) {
     this.gitLabSvc.getProjectCommits(projectId).subscribe((data) => {
       console.log('Project commits:', data);
       this.commitList = data.map((commit) => {
@@ -49,6 +51,17 @@ export class CommitListComponent implements OnInit {
   }
 
   requestReview(listItem: CommitListItem) {
-    console.log('Request review for', listItem);
+    console.log('Requesting review for commit:', listItem);
+    this.gerritSvc
+      .postRequestReview(this.projectId, listItem.commit.id)
+      .subscribe(
+        (response) => {
+          console.log('Request review response:', response);
+          listItem.status = 'Waiting for Review';
+        },
+        (error) => {
+          console.error('Error requesting review:', error);
+        }
+      );
   }
 }

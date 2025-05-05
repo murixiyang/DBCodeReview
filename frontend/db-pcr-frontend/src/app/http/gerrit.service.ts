@@ -17,6 +17,19 @@ export class GerritService {
 
   constructor(private http: HttpClient) {}
 
+  postRequestReview(
+    projectId: string,
+    sha: string
+  ): Observable<{ changeId: string }> {
+    const url = `${this.baseUrl}/post-request-review`;
+    // build the body exactly as your @RequestBody record expects
+    const body = { projectId, sha };
+
+    return this.http.post<{ changeId: string }>(url, body, {
+      withCredentials: true, // send the JSESSIONID so Spring can look up the OAuth2AuthorizedClient
+    });
+  }
+
   getProjectList(): Observable<Map<string, ProjectInfoModel>> {
     return this.http.get<Map<string, ProjectInfoModel>>(
       `${this.baseUrl}/get-project-list`

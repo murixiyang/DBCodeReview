@@ -20,7 +20,7 @@ export class GitlabService {
   }
 
   /** Get project commits */
-  getProjectCommits(projectId: number): Observable<CommitSchema[]> {
+  getProjectCommits(projectId: string): Observable<CommitSchema[]> {
     return this.http.get<CommitSchema[]>(
       `${this.baseUrl}/get-project-commits?projectId=${projectId}`,
       { withCredentials: true }
