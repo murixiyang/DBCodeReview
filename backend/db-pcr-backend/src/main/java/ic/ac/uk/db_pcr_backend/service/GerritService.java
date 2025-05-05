@@ -30,6 +30,7 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
+import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
 import org.gitlab4j.api.models.Project;
@@ -91,9 +92,10 @@ public class GerritService {
             String sha,
             String gitlabToken) throws Exception {
 
+        String returnChangeId = "";
+
         Project project = this.gitLabSvc.getProjectById(projectId, gitlabToken);
         String cloneUrl = this.gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
-        String defaultBranch = project.getDefaultBranch();
         String pathWithNamespace = project.getPathWithNamespace();
 
         // --- 1) Ensure the Gerrit project exists (create if missing)
@@ -115,113 +117,102 @@ public class GerritService {
             }
         }
 
-        // --- 2) Clone the GitLab repo at that single commit
+        // --- 2) Clone Gerrit repo
         Path tempDir = Files.createTempDirectory("review-");
-        // use the OAuth token as HTTPS password
-        org.eclipse.jgit.transport.CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2",
+        String gerritRemote = gerritAuthUrl + "/" + pathWithNamespace + ".git";
+        CredentialsProvider gerritCreds = new UsernamePasswordCredentialsProvider(
+                gerritUsername, gerritHttpPassword);
+        CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2",
                 gitlabToken);
 
-        CloneCommand clone = Git.cloneRepository()
-                .setURI(cloneUrl)
+        Git git = Git.cloneRepository()
+                .setURI(gerritRemote)
                 .setDirectory(tempDir.toFile())
-                .setCredentialsProvider(gitlabCreds).setBranchesToClone(List.of("refs/heads/" + defaultBranch))
-                .setBranch("refs/heads/" + defaultBranch).setDepth(1);
+                .setBranch("refs/heads/" + gerritBranch)
+                .setCredentialsProvider(gerritCreds)
+                .call();
 
-        clone.setCredentialsProvider(gitlabCreds);
+        // --- 3) Add Gitlab repo as a remote and fetch commit
+        git.remoteAdd()
+                .setName("gitlab")
+                .setUri(new URIish(cloneUrl))
+                .call();
 
-        // Run the clone
-        try (Git git = clone.call()) {
+        // Fetch only the commit we need
+        git.fetch()
+                .setRemote("gitlab")
+                .setCredentialsProvider(gitlabCreds)
+                .setRefSpecs(new RefSpec(sha + ":" + sha))
+                .call();
 
-            // fetch just that SHA
-            git.fetch()
-                    .setCredentialsProvider(gitlabCreds)
-                    .setRefSpecs(new RefSpec(sha + ":" + sha))
-                    .call();
+        // --- 4) Cherry-pick the GitLab commit onto the Gerrit branch
+        ObjectId commitId = git.getRepository().resolve(sha);
+        RevCommit commit = new RevWalk(git.getRepository()).parseCommit(commitId);
+        git.cherryPick()
+                .include(commit)
+                .call();
 
-            // Now this commit is head
-            git.checkout().setName(sha).call();
+        // --- 5) Generate a Change-Id for this commit
 
-            // --- 3) Generate a Change-Id for this commit
+        // Parse the current HEAD commit:
+        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+            ObjectId headId = git.getRepository().resolve("HEAD");
+            RevCommit headCommit = revWalk.parseCommit(headId);
 
-            // A) Parse the current HEAD commit:
-            try (RevWalk revWalk = new RevWalk(git.getRepository())) {
-                ObjectId headId = git.getRepository().resolve("HEAD");
-                RevCommit commit = revWalk.parseCommit(headId);
+            // Check existing message for an existing Change-Id to avoid duplicates
+            String fullMsg = headCommit.getFullMessage();
+            if (!fullMsg.contains("Change-Id:")) {
+                // Generate a Change-Id
+                ObjectId treeId = headCommit.getTree().getId();
+                ObjectId parentId = headCommit.getParentCount() > 0
+                        ? headCommit.getParent(0).getId()
+                        : ObjectId.zeroId();
 
-                // B) Check existing message for an existing Change-Id to avoid duplicates
-                String fullMsg = commit.getFullMessage();
-                if (!fullMsg.contains("Change-Id:")) {
-                    // C) Generate a Change-Id
-                    ObjectId treeId = commit.getTree().getId();
-                    ObjectId parentId = commit.getParentCount() > 0
-                            ? commit.getParent(0).getId()
-                            : ObjectId.zeroId();
+                PersonIdent author = headCommit.getAuthorIdent();
+                PersonIdent committer = headCommit.getCommitterIdent();
+                ObjectId rawId = ChangeIdUtil.computeChangeId(
+                        treeId, parentId, author, committer, fullMsg);
 
-                    // 3) Compute the Change-Id SHA
-                    PersonIdent author = commit.getAuthorIdent();
-                    PersonIdent committer = commit.getCommitterIdent();
-                    ObjectId rawId = ChangeIdUtil.computeChangeId(
-                            treeId, parentId, author, committer, fullMsg);
+                String changeId = "I" + rawId.name();
+                returnChangeId = changeId;
+                String amendedMsg = fullMsg + "\n\n" + "Change-Id: " + changeId;
 
-                    // 4) Build the “I…” string
-                    String changeId = "I" + rawId.name();
-                    String amendedMsg = fullMsg + "\n\n" + "Change-Id: " + changeId;
+                // Set the new message
+                git.commit().setAmend(true).setMessage(amendedMsg).call();
 
-                    // D) Set the new message
-                    git.commit().setAmend(true).setMessage(amendedMsg).call();
-
-                }
-
-                ObjectId newHead = git.getRepository().resolve("HEAD");
-                try (RevWalk rw2 = new RevWalk(git.getRepository())) {
-                    RevCommit newCommit = rw2.parseCommit(newHead);
-                    System.out.println("DBLOG: Amended commit msg:\n"
-                            + newCommit.getFullMessage());
-                }
             }
 
-            // --- 4) Push into Gerrit’s refs/for/<branch>
-            String remote = gerritAuthUrl + "/" + pathWithNamespace + ".git";
-            CredentialsProvider gerritCreds = new UsernamePasswordCredentialsProvider(
-                    gerritUsername, gerritHttpPassword);
-            RefSpec refSpec = new RefSpec("HEAD:refs/for/" + gerritBranch);
-
-            // Push the new head to Gerrit
-            Iterable<PushResult> results = git.push()
-                    .setRemote(remote)
-                    .setRefSpecs(refSpec)
-                    .setCredentialsProvider(gerritCreds)
-                    .call();
-
-            for (PushResult pr : results) {
-                for (RemoteRefUpdate rru : pr.getRemoteUpdates()) {
-                    System.out.printf(
-                            "DBLOG: push %s → %s : %s %n    server says: %s%n",
-                            rru.getSrcRef(), rru.getRemoteName(),
-                            rru.getStatus(),
-                            rru.getMessage());
-                }
+            ObjectId newHead = git.getRepository().resolve("HEAD");
+            try (RevWalk rw2 = new RevWalk(git.getRepository())) {
+                RevCommit newCommit = rw2.parseCommit(newHead);
+                System.out.println("DBLOG: Amended commit msg:\n"
+                        + newCommit.getFullMessage());
             }
-
         }
 
-        // --- 5) Look up the new Gerrit Change by commit SHA
-        System.out.println("DBLOG: Look up Gerrit Change by commit SHA: " + sha);
+        // --- 4) Push into Gerrit’s refs/for/<branch>
 
-        try {
-            List<ChangeInfo> changes = gerritApi.changes()
-                    .query("commit:" + sha)
-                    .withQuery("status=open")
-                    .get();
+        RefSpec refSpec = new RefSpec("HEAD:refs/for/" + gerritBranch);
 
-            System.out.println("DBLOG: Found " + changes.size() + " Gerrit changes for commit SHA: " + sha);
+        // Push the new head to Gerrit
+        Iterable<PushResult> results = git.push()
+                .setRemote(gerritRemote)
+                .setRefSpecs(refSpec)
+                .setCredentialsProvider(gerritCreds)
+                .call();
 
-            // return numeric Change-Id as a string
-            return String.valueOf(changes.get(0)._number);
-        } catch (RestApiException e) {
-            System.out.println("DBLOG: No Gerrit change found for commit SHA: " + sha);
-            throw new IllegalStateException("Gerrit change not found for " + sha);
+        for (PushResult pr : results) {
+            for (RemoteRefUpdate rru : pr.getRemoteUpdates()) {
+                System.out.printf(
+                        "DBLOG: push %s → %s : %s %n    server says: %s%n",
+                        rru.getSrcRef(), rru.getRemoteName(),
+                        rru.getStatus(),
+                        rru.getMessage());
+            }
         }
+
+        // --- 5) Return change id
+        return returnChangeId;
 
     }
 

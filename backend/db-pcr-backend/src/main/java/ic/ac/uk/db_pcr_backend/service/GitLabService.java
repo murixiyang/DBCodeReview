@@ -75,11 +75,4 @@ public class GitLabService {
         }
     }
 
-    /** Get Default branch for a project */
-    public String getDefaultBranch(String projectId, String oauthToken) throws GitLabApiException {
-        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
-            Project project = gitLabApi.getProjectApi().getProject(projectId);
-            return project.getDefaultBranch();
-        }
-    }
 }
