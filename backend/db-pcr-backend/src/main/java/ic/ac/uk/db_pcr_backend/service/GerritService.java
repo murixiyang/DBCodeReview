@@ -21,8 +21,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.util.ChangeIdUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gerrit.extensions.api.GerritApi;
@@ -43,10 +52,10 @@ import ic.ac.uk.db_pcr_backend.model.GerritModel.ProjectInfoModel;
 
 @Service
 public class GerritService {
-    private final String gitlabApiUrl;
     private final GitLabService gitLabSvc;
 
     private final String gerritHttpUrl;
+    private final String gerritAuthUrl;
     private final String gerritUsername;
     private final String gerritHttpPassword;
     private final String gerritBranch;
@@ -56,16 +65,16 @@ public class GerritService {
     private final RestTemplate restTemplate;
 
     public GerritService(
-            @Value("${gitlab.url}") String gitlabApiUrl,
             GitLabService gitLabService,
             @Value("${gerrit.url}") String gerritHttpUrl,
+            @Value("${gerrit.auth.url}") String gerritAuthUrl,
             @Value("${gerrit.username}") String gerritUsername,
             @Value("${gerrit.password}") String gerritHttpPassword,
             @Value("${gerrit.branch:master}") String gerritBranch) {
 
-        this.gitlabApiUrl = gitlabApiUrl;
         this.gitLabSvc = gitLabService;
         this.gerritHttpUrl = gerritHttpUrl;
+        this.gerritAuthUrl = gerritAuthUrl;
         this.gerritUsername = gerritUsername;
         this.gerritHttpPassword = gerritHttpPassword;
         this.gerritBranch = gerritBranch;
@@ -80,28 +89,23 @@ public class GerritService {
             String projectId,
             String sha,
             String gitlabToken) throws Exception {
-        System.out.println("DEBUGOUTPUT: submitForReview: " + projectId + " " + sha + " " + gitlabToken);
 
         String cloneUrl = this.gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
-        System.out.println("DEBUGOUTPUT: GitLab clone URL: " + cloneUrl);
-
         String pathWithNamespace = this.gitLabSvc.getProjectPathWithNamespace(projectId, gitlabToken);
-        System.out.println("DEBUGOUTPUT: GitLab pathWithNamespace: " + pathWithNamespace);
 
         // --- 1) Ensure the Gerrit project exists (create if missing)
-        System.out.println("DEBUGOUTPUT: Create Factory for Gerrit API");
         GerritApi gerritApi = gerritApiFactory.create(gerritAuthData);
-        System.out.println("DEBUGOUTPUT: Factory created: " + gerritApi);
         try {
             gerritApi.projects().name(pathWithNamespace).get();
-            System.out.println("DEBUGOUTPUT: Gerrit project already exists: " + pathWithNamespace);
         } catch (RuntimeException e) {
             Throwable cause = e.getCause();
             if (cause instanceof HttpStatusException hse && hse.getStatusCode() == 404) {
                 // Project not found, create it
-                System.out.println("DEBUGOUTPUT: Gerrit project not exists. Create it : " + pathWithNamespace);
-                gerritApi.projects().create(pathWithNamespace);
-                System.out.println("DEBUGOUTPUT: Gerrit project created: " + pathWithNamespace);
+                System.out.println("DBLOG: Gerrit project not exists. Create it: " + pathWithNamespace);
+                ProjectInput in = new ProjectInput();
+                in.name = pathWithNamespace;
+                in.createEmptyCommit = true;
+                gerritApi.projects().create(in);
             } else {
                 System.out.println("ERROR: Failed to check Gerrit project: " + e.getMessage());
                 throw e;
@@ -109,22 +113,20 @@ public class GerritService {
         }
 
         // --- 2) Clone the GitLab repo at that single commit
-
-        System.out.println("DEBUGOUTPUT: Create temporary directory for Git clone");
         Path tempDir = Files.createTempDirectory("review-");
 
-        System.out.println("DEBUGOUTPUT: Clone GitLab repo of URL: " + cloneUrl);
-        CloneCommand clone = org.eclipse.jgit.api.Git.cloneRepository()
+        CloneCommand clone = Git.cloneRepository()
                 .setURI(cloneUrl)
                 .setDirectory(tempDir.toFile())
                 .setNoCheckout(true);
 
-        System.out.println("DEBUGOUTPUT: GitLabOAuth2");
         // use the OAuth token as HTTPS password
         org.eclipse.jgit.transport.CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2",
                 gitlabToken);
         clone.setCredentialsProvider(gitlabCreds);
-        try (org.eclipse.jgit.api.Git git = clone.call()) {
+
+        // Run the clone
+        try (Git git = clone.call()) {
 
             // fetch just that SHA
             git.fetch()
@@ -132,25 +134,78 @@ public class GerritService {
                     .setRefSpecs(new RefSpec(sha + ":" + sha))
                     .call();
 
+            // Now this commit is head
             git.checkout().setName(sha).call();
-            System.out.println("DEBUGOUTPUT: Checked out commit " + sha);
 
-            // --- 3) Push into Gerrit’s refs/for/<branch>
-            System.out.println("DEBUGOUTPUT: Push to Gerrit: " + gerritHttpUrl + "/" + pathWithNamespace + ".git");
-            String remote = gerritHttpUrl + "/" + pathWithNamespace + ".git";
-            org.eclipse.jgit.transport.CredentialsProvider gerritCreds = new UsernamePasswordCredentialsProvider(
+            // --- 3) Generate a Change-Id for this commit
+
+            // A) Parse the current HEAD commit:
+            try (RevWalk revWalk = new RevWalk(git.getRepository())) {
+                ObjectId headId = git.getRepository().resolve("HEAD");
+                RevCommit commit = revWalk.parseCommit(headId);
+
+                // B) Check existing message for an existing Change-Id to avoid duplicates
+                String fullMsg = commit.getFullMessage();
+                if (!fullMsg.contains("Change-Id:")) {
+                    // C) Generate a Change-Id
+                    ObjectId treeId = commit.getTree().getId();
+                    ObjectId parentId = commit.getParentCount() > 0
+                            ? commit.getParent(0).getId()
+                            : ObjectId.zeroId();
+
+                    // 3) Compute the Change-Id SHA
+                    PersonIdent author = commit.getAuthorIdent();
+                    PersonIdent committer = commit.getCommitterIdent();
+                    ObjectId rawId = ChangeIdUtil.computeChangeId(
+                            treeId, parentId, author, committer, fullMsg);
+
+                    // 4) Build the “I…” string
+                    String changeId = "I" + rawId.name();
+                    String amendedMsg = fullMsg + "\n\n" + "Change-Id: " + changeId;
+
+                    // D) Set the new message
+                    git.commit().setAmend(true).setMessage(amendedMsg).call();
+
+                }
+
+                ObjectId newHead = git.getRepository().resolve("HEAD");
+                try (RevWalk rw2 = new RevWalk(git.getRepository())) {
+                    RevCommit newCommit = rw2.parseCommit(newHead);
+                    System.out.println("DBLOG: Amended commit msg:\n"
+                            + newCommit.getFullMessage());
+                }
+            }
+
+            // --- 4) Push into Gerrit’s refs/for/<branch>
+            String remote = gerritAuthUrl + "/" + pathWithNamespace + ".git";
+            CredentialsProvider gerritCreds = new UsernamePasswordCredentialsProvider(
                     gerritUsername, gerritHttpPassword);
 
-            System.out.println("DEBUGOUTPUT: Push to Gerrit: " + remote);
-            git.push()
+            System.out.println("DBLOG: Gerrit username: " + gerritUsername + ", password: " + gerritHttpPassword);
+            System.out.println("DBLOG: Push to Gerrit: " + remote);
+
+            // Push the new head to Gerrit
+            RefSpec refSpec = new RefSpec("HEAD:refs/for/" + gerritBranch);
+            Iterable<PushResult> results = git.push()
                     .setRemote(remote)
-                    .setRefSpecs(new RefSpec(sha + ":refs/for/" + gerritBranch))
+                    .setRefSpecs(refSpec)
                     .setCredentialsProvider(gerritCreds)
                     .call();
+
+            for (PushResult pr : results) {
+                for (RemoteRefUpdate rru : pr.getRemoteUpdates()) {
+                    System.out.printf(
+                            "DBLOG: push %s → %s : %s %n    server says: %s%n",
+                            rru.getSrcRef(), rru.getRemoteName(),
+                            rru.getStatus(),
+                            rru.getMessage());
+                }
+            }
+
         }
 
-        // --- 4) Look up the new Gerrit Change by commit SHA
-        System.out.println("DEBUGOUTPUT: Look up Gerrit Change by commit SHA: " + sha);
+        // --- 5) Look up the new Gerrit Change by commit SHA
+        System.out.println("DBLOG: Look up Gerrit Change by commit SHA: " + sha);
 
         try {
             List<ChangeInfo> changes = gerritApi.changes()
@@ -158,14 +213,15 @@ public class GerritService {
                     .withQuery("status=open")
                     .get();
 
-            System.out.println("DEBUGOUTPUT: Found " + changes.size() + " Gerrit changes for commit SHA: " + sha);
+            System.out.println("DBLOG: Found " + changes.size() + " Gerrit changes for commit SHA: " + sha);
 
             // return numeric Change-Id as a string
             return String.valueOf(changes.get(0)._number);
         } catch (RestApiException e) {
-            System.out.println("DEBUGOUTPUT: No Gerrit change found for commit SHA: " + sha);
+            System.out.println("DBLOG: No Gerrit change found for commit SHA: " + sha);
             throw new IllegalStateException("Gerrit change not found for " + sha);
         }
+
     }
 
     public Map<String, ProjectInfoModel> getProjectList() {
