@@ -37,6 +37,8 @@ export class DatabaseService {
       reviewStatus,
     };
 
+    console.log('Payload:', payload);
+
     return this.http.post<ReviewStatusEntity>(url, payload, {
       withCredentials: true,
     });

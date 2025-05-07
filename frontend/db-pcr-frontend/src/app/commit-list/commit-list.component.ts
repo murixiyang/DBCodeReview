@@ -41,19 +41,6 @@ export class CommitListComponent implements OnInit {
     this.getProjectCommits(this.projectId);
   }
 
-  // getProjectCommits(projectId: string) {
-  //   this.gitLabSvc.getProjectCommits(projectId).subscribe((data) => {
-  //     console.log('Project commits:', data);
-  //     this.commitList = data.map((commit) => {
-  //       const commitListItem: CommitListItem = {
-  //         status: 'Not Submitted',
-  //         commit: commit,
-  //       };
-  //       return commitListItem;
-  //     });
-  //   });
-  // }
-
   getProjectCommits(projectId: string) {
     this.authSvc.getUser().subscribe((user) => {
       const username = user;
@@ -68,20 +55,28 @@ export class CommitListComponent implements OnInit {
           .getReviewStatus(username, projectId)
           .subscribe((reviewStatusEntityList) => {
             this.commitList = gitlabCommits.map((commit) => {
+              console.log('Commit:', commit);
 
               const existingStatus = reviewStatusEntityList.filter(
                 (status) => status.commitSha === commit.id
               )[0]?.reviewStatus;
+              console.log('Existing status:', existingStatus);
 
               const commitListItem: CommitListItem = {
-                status: existingStatus ? existingStatus : 'Not Submitted',
+                status: existingStatus ? existingStatus : 'NOT_SUBMITTED',
                 commit: commit,
               };
+              console.log('Commit list item:', commitListItem);
 
               // If commit not in DB, store it
               if (!existingStatus) {
                 this.databaseSvc
-                  .getReviewStatus(projectId, commit.id)
+                  .createReviewStatus(
+                    username,
+                    projectId,
+                    commit.id,
+                    'NOT_SUBMITTED'
+                  )
                   .subscribe();
               }
 
@@ -99,7 +94,7 @@ export class CommitListComponent implements OnInit {
       .subscribe({
         next: (response) => {
           console.log('Request review response:', response);
-          listItem.status = 'Waiting for Review';
+          listItem.status = 'WAITING_FOR_REVIEW';
         },
         error: (error) => {
           console.error('Error requesting review:', error);

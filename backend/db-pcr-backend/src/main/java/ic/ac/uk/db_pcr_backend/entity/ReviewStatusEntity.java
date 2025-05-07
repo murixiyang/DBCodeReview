@@ -25,7 +25,7 @@ public class ReviewStatusEntity {
     private String commitSha; // Commit SHA
 
     @Enumerated(EnumType.STRING)
-    private ReviewStatus status;
+    private ReviewStatus reviewStatus;
 
     private LocalDateTime lastUpdated;
 
@@ -69,12 +69,12 @@ public class ReviewStatusEntity {
         this.commitSha = commitSha;
     }
 
-    public ReviewStatus getStatus() {
-        return status;
+    public ReviewStatus getReviewStatus() {
+        return reviewStatus;
     }
 
-    public void setStatus(ReviewStatus status) {
-        this.status = status;
+    public void setReviewStatus(ReviewStatus reviewStatus) {
+        this.reviewStatus = reviewStatus;
     }
 
     public LocalDateTime getLastUpdated() {

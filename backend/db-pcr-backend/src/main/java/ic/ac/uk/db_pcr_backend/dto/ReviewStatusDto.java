@@ -1,4 +1,5 @@
 package ic.ac.uk.db_pcr_backend.dto;
+
 import ic.ac.uk.db_pcr_backend.entity.ReviewStatusEntity.ReviewStatus;
 
 public class ReviewStatusDto {
@@ -6,17 +7,17 @@ public class ReviewStatusDto {
     private String username;
     private String projectId;
     private String commitSha;
-    private ReviewStatus status;
+    private ReviewStatus reviewStatus;
 
     // Constructors
     public ReviewStatusDto() {
     }
 
-    public ReviewStatusDto(String username, String projectId, String commitSha, ReviewStatus status) {
+    public ReviewStatusDto(String username, String projectId, String commitSha, ReviewStatus reviewStatus) {
         this.username = username;
         this.projectId = projectId;
         this.commitSha = commitSha;
-        this.status = status;
+        this.reviewStatus = reviewStatus;
     }
 
     // Getters and Setters
@@ -44,11 +45,11 @@ public class ReviewStatusDto {
         this.commitSha = commitSha;
     }
 
-    public ReviewStatus getStatus() {
-        return status;
+    public ReviewStatus getReviewStatus() {
+        return reviewStatus;
     }
 
-    public void setStatus(ReviewStatus status) {
-        this.status = status;
+    public void setReviewStatus(ReviewStatus reviewStatus) {
+        this.reviewStatus = reviewStatus;
     }
 }

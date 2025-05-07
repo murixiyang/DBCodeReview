@@ -1,8 +1,8 @@
 export type ReviewStatus =
-  | 'Not Submitted'
-  | 'Waiting for Review'
-  | 'Approved'
-  | 'Need Resolve';
+  | 'NOT_SUBMITTED'
+  | 'WAITING_FOR_REVIEW'
+  | 'APPROVED'
+  | 'NEED_RESOLVE';
 
 export interface ReviewStatusEntity {
   username: string;

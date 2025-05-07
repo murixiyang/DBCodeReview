@@ -21,14 +21,17 @@ public class DatabaseService {
     }
 
     public ReviewStatusEntity createReviewStatus(ReviewStatusDto dto) {
-        ReviewStatusEntity status = new ReviewStatusEntity();
-        status.setUsername(dto.getUsername());
-        status.setProjectId(dto.getProjectId());
-        status.setCommitSha(dto.getCommitSha());
-        status.setStatus(dto.getStatus());
-        status.setLastUpdated(LocalDateTime.now());
+        System.out.println("Incoming DTO: " + dto.getUsername() + ", " + dto.getProjectId() + ", " + dto.getCommitSha()
+                + ", " + dto.getReviewStatus());
 
-        return reviewStatusRepo.save(status);
+        ReviewStatusEntity statusEntity = new ReviewStatusEntity();
+        statusEntity.setUsername(dto.getUsername());
+        statusEntity.setProjectId(dto.getProjectId());
+        statusEntity.setCommitSha(dto.getCommitSha());
+        statusEntity.setReviewStatus(dto.getReviewStatus());
+        statusEntity.setLastUpdated(LocalDateTime.now());
+
+        return reviewStatusRepo.save(statusEntity);
     }
 
 }
