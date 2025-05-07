@@ -27,6 +27,8 @@ export class CommitListComponent implements OnInit {
   displayedColumns = ['status', 'hash', 'message', 'date', 'action'];
   commitList: CommitListItem[] = [];
 
+  username: string | null = null;
+
   constructor(
     private gitLabSvc: GitlabService,
     private gerritSvc: GerritService,
@@ -38,63 +40,88 @@ export class CommitListComponent implements OnInit {
 
   ngOnInit() {
     this.projectId = this.route.snapshot.params['projectId'];
-    this.getProjectCommits(this.projectId);
+
+    // Cache username
+    this.authSvc.getUser().subscribe((user) => {
+      this.username = user;
+      console.log('Username:', this.username);
+
+      this.getProjectCommits(this.projectId);
+    });
   }
 
   getProjectCommits(projectId: string) {
-    this.authSvc.getUser().subscribe((user) => {
-      const username = user;
+    if (!this.username) {
+      console.error('User not authenticated');
+      return;
+    }
 
-      if (!username) {
-        console.error('User not authenticated');
-        return;
-      }
+    // Not null username
+    const username = this.username;
 
-      this.gitLabSvc.getProjectCommits(projectId).subscribe((gitlabCommits) => {
-        this.databaseSvc
-          .getReviewStatus(username, projectId)
-          .subscribe((reviewStatusEntityList) => {
-            this.commitList = gitlabCommits.map((commit) => {
-              console.log('Commit:', commit);
+    this.gitLabSvc.getProjectCommits(projectId).subscribe((gitlabCommits) => {
+      this.databaseSvc
+        .getReviewStatus(username, projectId)
+        .subscribe((reviewStatusEntityList) => {
+          this.commitList = gitlabCommits.map((commit) => {
+            const existingStatus = reviewStatusEntityList.filter(
+              (status) => status.commitSha === commit.id
+            )[0]?.reviewStatus;
 
-              const existingStatus = reviewStatusEntityList.filter(
-                (status) => status.commitSha === commit.id
-              )[0]?.reviewStatus;
-              console.log('Existing status:', existingStatus);
+            const commitListItem: CommitListItem = {
+              status: existingStatus ? existingStatus : 'NOT_SUBMITTED',
+              commit: commit,
+            };
 
-              const commitListItem: CommitListItem = {
-                status: existingStatus ? existingStatus : 'NOT_SUBMITTED',
-                commit: commit,
-              };
-              console.log('Commit list item:', commitListItem);
+            // If commit not in DB, store it
+            if (!existingStatus) {
+              this.databaseSvc
+                .createReviewStatus(
+                  username,
+                  projectId,
+                  commit.id,
+                  'NOT_SUBMITTED'
+                )
+                .subscribe();
+            }
 
-              // If commit not in DB, store it
-              if (!existingStatus) {
-                this.databaseSvc
-                  .createReviewStatus(
-                    username,
-                    projectId,
-                    commit.id,
-                    'NOT_SUBMITTED'
-                  )
-                  .subscribe();
-              }
-
-              return commitListItem;
-            });
+            return commitListItem;
           });
-      });
+        });
     });
   }
 
   requestReview(listItem: CommitListItem) {
-    console.log('Requesting review for commit:', listItem);
+    if (!this.username) {
+      console.error('User not authenticated');
+      return;
+    }
+
+    const username = this.username;
+
     this.gerritSvc
       .postRequestReview(this.projectId, listItem.commit.id)
       .subscribe({
         next: (response) => {
           console.log('Request review response:', response);
           listItem.status = 'WAITING_FOR_REVIEW';
+
+          // Update the review status in the database
+          this.databaseSvc
+            .updateReviewStatus(
+              username,
+              this.projectId,
+              listItem.commit.id,
+              'WAITING_FOR_REVIEW'
+            )
+            .subscribe({
+              next: (updateResponse) => {
+                console.log('Review status updated:', updateResponse);
+              },
+              error: (error) => {
+                console.error('Error updating review status:', error);
+              },
+            });
         },
         error: (error) => {
           console.error('Error requesting review:', error);

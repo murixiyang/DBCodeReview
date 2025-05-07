@@ -43,7 +43,6 @@ export class CommitDetailComponent implements OnInit, AfterViewInit {
 
   getDiffList() {
     this.gitLabSvc.getCommitDiff(this.projectId, this.sha).subscribe((data) => {
-      console.log('Modified files:', data);
       this.diffList = data;
     });
   }

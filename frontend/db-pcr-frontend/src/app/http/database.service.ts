@@ -37,9 +37,27 @@ export class DatabaseService {
       reviewStatus,
     };
 
-    console.log('Payload:', payload);
-
     return this.http.post<ReviewStatusEntity>(url, payload, {
+      withCredentials: true,
+    });
+  }
+
+  updateReviewStatus(
+    username: string,
+    projectId: string,
+    commitSha: string,
+    reviewStatus: ReviewStatus
+  ): Observable<ReviewStatusEntity> {
+    const url = `${this.baseUrl}/update-review-status`;
+
+    const payload: ReviewStatusEntity = {
+      username,
+      projectId,
+      commitSha,
+      reviewStatus,
+    };
+
+    return this.http.put<ReviewStatusEntity>(url, payload, {
       withCredentials: true,
     });
   }
