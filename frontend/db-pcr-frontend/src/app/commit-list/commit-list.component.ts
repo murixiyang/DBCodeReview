@@ -17,6 +17,7 @@ import { AuthService } from '../service/auth.service';
     MatButtonModule,
     DatePipe,
     RouterLink,
+    NgIf
   ],
   templateUrl: './commit-list.component.html',
   styleUrl: './commit-list.component.css',
@@ -113,6 +114,44 @@ export class CommitListComponent implements OnInit {
               this.projectId,
               listItem.commit.id,
               'WAITING_FOR_REVIEW'
+            )
+            .subscribe({
+              next: (updateResponse) => {
+                console.log('Review status updated:', updateResponse);
+              },
+              error: (error) => {
+                console.error('Error updating review status:', error);
+              },
+            });
+        },
+        error: (error) => {
+          console.error('Error requesting review:', error);
+        },
+      });
+  }
+
+  revertSubmission(listItem: CommitListItem) {
+    if (!this.username) {
+      console.error('User not authenticated');
+      return;
+    }
+
+    const username = this.username;
+
+    this.gerritSvc
+      .postRequestReview(this.projectId, listItem.commit.id)
+      .subscribe({
+        next: (response) => {
+          console.log('Request review response:', response);
+          listItem.status = 'NOT_SUBMITTED'
+
+          // Update the review status in the database
+          this.databaseSvc
+            .updateReviewStatus(
+              username,
+              this.projectId,
+              listItem.commit.id,
+              'NOT_SUBMITTED'
             )
             .subscribe({
               next: (updateResponse) => {

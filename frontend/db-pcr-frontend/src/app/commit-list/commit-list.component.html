@@ -13,7 +13,9 @@
   <ng-container matColumnDef="hash">
     <th mat-header-cell *matHeaderCellDef>Commit Hash</th>
     <td mat-cell *matCellDef="let e">
-      <a [routerLink]="['/commit-detail', projectId, e.commit.id]">{{ e.commit.shortId }}</a>
+      <a [routerLink]="['/commit-detail', projectId, e.commit.id]">{{
+        e.commit.shortId
+      }}</a>
     </td>
   </ng-container>
 
@@ -35,9 +37,19 @@
   <ng-container matColumnDef="action">
     <th mat-header-cell *matHeaderCellDef>Action</th>
     <td mat-cell *matCellDef="let e">
-      <button mat-button color="primary" (click)="requestReview(e)">
-        Request Review
-      </button>
+      <!-- If NOT_SUBMITTED, show Request Review -->
+      <ng-container *ngIf="e.status === 'NOT_SUBMITTED'; else revertTpl">
+        <button mat-button color="primary" (click)="requestReview(e)">
+          Request Review
+        </button>
+      </ng-container>
+
+      <!-- Otherwise, show Revert Submission -->
+      <ng-template #revertTpl>
+        <button mat-button color="warn" (click)="revertSubmission(e)">
+          Revert Submission
+        </button>
+      </ng-template>
     </td>
   </ng-container>
 
