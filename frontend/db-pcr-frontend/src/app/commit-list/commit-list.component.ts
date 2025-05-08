@@ -17,7 +17,7 @@ import { AuthService } from '../service/auth.service';
     MatButtonModule,
     DatePipe,
     RouterLink,
-    NgIf
+    NgIf,
   ],
   templateUrl: './commit-list.component.html',
   styleUrl: './commit-list.component.css',
@@ -105,7 +105,6 @@ export class CommitListComponent implements OnInit {
       .subscribe({
         next: (response) => {
           console.log('Request review response:', response);
-          listItem.status = 'WAITING_FOR_REVIEW';
 
           // Update the review status in the database
           this.databaseSvc
@@ -117,6 +116,7 @@ export class CommitListComponent implements OnInit {
             )
             .subscribe({
               next: (updateResponse) => {
+                listItem.status = 'WAITING_FOR_REVIEW';
                 console.log('Review status updated:', updateResponse);
               },
               error: (error) => {
@@ -138,32 +138,21 @@ export class CommitListComponent implements OnInit {
 
     const username = this.username;
 
-    this.gerritSvc
-      .postRequestReview(this.projectId, listItem.commit.id)
+    // Update the review status in the database
+    this.databaseSvc
+      .updateReviewStatus(
+        username,
+        this.projectId,
+        listItem.commit.id,
+        'NOT_SUBMITTED'
+      )
       .subscribe({
-        next: (response) => {
-          console.log('Request review response:', response);
-          listItem.status = 'NOT_SUBMITTED'
-
-          // Update the review status in the database
-          this.databaseSvc
-            .updateReviewStatus(
-              username,
-              this.projectId,
-              listItem.commit.id,
-              'NOT_SUBMITTED'
-            )
-            .subscribe({
-              next: (updateResponse) => {
-                console.log('Review status updated:', updateResponse);
-              },
-              error: (error) => {
-                console.error('Error updating review status:', error);
-              },
-            });
+        next: (updateResponse) => {
+          listItem.status = 'NOT_SUBMITTED';
+          console.log('Review status updated:', updateResponse);
         },
         error: (error) => {
-          console.error('Error requesting review:', error);
+          console.error('Error updating review status:', error);
         },
       });
   }
