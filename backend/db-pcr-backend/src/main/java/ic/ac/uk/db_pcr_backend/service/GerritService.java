@@ -33,6 +33,9 @@ import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
+import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
+import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepository;
+
 @Service
 public class GerritService {
     private final GitLabService gitLabSvc;
@@ -46,13 +49,16 @@ public class GerritService {
     private final GerritAuthData.Basic gerritAuthData;
     private final GerritRestApiFactory gerritApiFactory;
 
+    private final SubmissionTrackerRepository submissionTrackerRepo;
+
     public GerritService(
             GitLabService gitLabService,
             @Value("${gerrit.url}") String gerritHttpUrl,
             @Value("${gerrit.auth.url}") String gerritAuthUrl,
             @Value("${gerrit.username}") String gerritUsername,
             @Value("${gerrit.password}") String gerritHttpPassword,
-            @Value("${gerrit.branch:master}") String gerritBranch) {
+            @Value("${gerrit.branch:master}") String gerritBranch,
+            SubmissionTrackerRepository submissionTrackerRepo) {
 
         this.gitLabSvc = gitLabService;
         this.gerritHttpUrl = gerritHttpUrl;
@@ -64,9 +70,10 @@ public class GerritService {
         this.gerritAuthData = new GerritAuthData.Basic(
                 gerritHttpUrl, gerritUsername, gerritHttpPassword);
         this.gerritApiFactory = new GerritRestApiFactory();
+        this.submissionTrackerRepo = submissionTrackerRepo;
     }
 
-    public String submitForReview(String projectId, String sha, String gitlabToken) throws Exception {
+    public String submitForReview(String projectId, String sha, String gitlabToken, String username) throws Exception {
         String cloneUrl = gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
         String pathWithNamespace = gitLabSvc.getProjectPathWithNamespace(projectId, gitlabToken);
 
@@ -102,6 +109,18 @@ public class GerritService {
 
         // --- 6) Push into Gerrit’s refs/for/<branch>
         pushForReview(git, pathWithNamespace);
+
+        // --- 7) Record the SHA as the new last submitted
+        SubmissionTrackerEntity tracker = submissionTrackerRepo
+                .findByUsernameAndProjectId(username, projectId)
+                .orElseGet(() -> {
+                    SubmissionTrackerEntity newTracker = new SubmissionTrackerEntity();
+                    newTracker.setUsername(username);
+                    newTracker.setProjectId(projectId);
+                    return newTracker;
+                });
+        tracker.setLastSubmittedSha(sha);
+        submissionTrackerRepo.save(tracker);
 
         System.out.println("DBLOG: Pushed commit to Gerrit: " + changeId);
         return changeId;

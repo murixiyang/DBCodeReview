@@ -1,5 +1,6 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
+import java.security.Principal;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,14 +27,16 @@ public class GerritController {
     @PostMapping("/post-request-review")
     public ResponseEntity<Map<String, String>> requestReview(
             @RequestBody ReviewRequest req,
-            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client, Principal principal)
+            throws Exception {
 
         // 1) Fetch the GitLab OAuth token for this user/session
         String accessToken = client.getAccessToken().getTokenValue();
+        String username = principal.getName();
 
         // 2) Delegate to the service
         String gerritChangeId = gerritService.submitForReview(
-                req.projectId(), req.sha(), accessToken);
+                req.projectId(), req.sha(), accessToken, username);
 
         // 3) Return the new Change number to the frontend
         return ResponseEntity.ok(Map.of("changeId", gerritChangeId));
