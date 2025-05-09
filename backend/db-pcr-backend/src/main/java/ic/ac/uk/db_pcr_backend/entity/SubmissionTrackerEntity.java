@@ -18,6 +18,15 @@ public class SubmissionTrackerEntity {
     private String projectId;
     private String lastSubmittedSha;
 
+    public SubmissionTrackerEntity() {
+    }
+
+    public SubmissionTrackerEntity(String username, String projectId, String lastSubmittedSha) {
+        this.username = username;
+        this.projectId = projectId;
+        this.lastSubmittedSha = lastSubmittedSha;
+    }
+
     // Getters and Setters
     public Long getId() {
         return id;
