@@ -2,44 +2,32 @@ package ic.ac.uk.db_pcr_backend.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.eclipse.jgit.api.ApplyCommand;
-import org.eclipse.jgit.api.CherryPickResult;
-import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
+
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
 import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
-import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
-import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import com.google.gerrit.extensions.api.GerritApi;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
-import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
@@ -195,13 +183,13 @@ public class GerritService {
             git.checkout()
                     .setName(reviewBranch)
                     .setCreateBranch(true)
-                    .setStartPoint("refs/heads/" + gerritBranch)
+                    .setStartPoint(base)
                     .call();
         } else {
             git.checkout()
                     .setName(reviewBranch)
                     .setCreateBranch(true)
-                    .setStartPoint(base)
+                    .setStartPoint("refs/heads/" + gerritBranch)
                     .call();
         }
 
@@ -237,7 +225,8 @@ public class GerritService {
             RevCommit target) throws Exception {
         Repository repo = git.getRepository();
 
-        RevCommit effectiveBase = base != null
+        // If base is null (first review), use HEAD of the branch as base
+        RevCommit effectiveBase = (base != null)
                 ? base
                 : parseCommit(git, "HEAD");
 
