@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.eclipse.jgit.api.CherryPickResult;
 import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -83,9 +84,9 @@ public class GerritService {
 
         // Store orignial msg before cherry-picking
         RevCommit source = parseCommit(git, sha);
+        String changeId = computeChangeId(source);
 
         // --- 4) Check if the commit is already under review
-        String changeId = computeChangeId(source);
         Optional<ChangeInfo> existing = findExistingChange(gerritApi, changeId);
         if (existing.isPresent()) {
             // already under review — return its Change-Id
@@ -96,7 +97,7 @@ public class GerritService {
         }
 
         // --- 5) Add Change-Id to this commit
-        cherryPickCommit(git, source);
+        squashMergeCommit(git, source);
         addChangeId(git, changeId, source.getFullMessage());
 
         // --- 6) Push into Gerrit’s refs/for/<branch>
@@ -192,27 +193,25 @@ public class GerritService {
         return "I" + raw.name();
     }
 
-    private void cherryPickCommit(Git git, RevCommit source) throws Exception {
-
-        CherryPickResult result = git.cherryPick()
-                .include(source)
-                .setStrategy(MergeStrategy.OURS)
-                .setNoCommit(true) // apply patch, don’t commit
+    private void squashMergeCommit(Git git, RevCommit source) throws GitAPIException {
+        MergeResult result = git.merge()
+                .include(source) // the target SHA you want to review
+                .setSquash(true) // stage all diffs at once
+                .setCommit(false) // we’ll do the commit manually
                 .call();
 
-        if (result.getStatus() != CherryPickStatus.OK) {
-            git.reset()
-                    .setMode(ResetType.HARD)
-                    .call();
-            throw new RuntimeException("Cherry-pick failed: " + result.getStatus());
+        if (!result.getMergeStatus().isSuccessful()) {
+            // Abort by resetting back
+            git.reset().setMode(ResetType.HARD).call();
+            throw new RuntimeException("Squash-merge failed: " + result.getMergeStatus());
         }
     }
 
     private void addChangeId(Git git, String changeId, String originalMsg) throws Exception {
-        String newMsg = originalMsg + "\n\nChange-Id: " + changeId;
-
+        String fullMsg = originalMsg + "\n\nChange-Id: " + changeId;
         git.commit()
-                .setMessage(newMsg)
+                .setAll(true) // commit the staged squash
+                .setMessage(fullMsg)
                 .call();
     }
 
