@@ -26,9 +26,16 @@ public class GitLabService {
     }
 
     /** Get the list of projects for a given user. */
-    public List<Project> listPersonalProject(String oauthToken) throws GitLabApiException {
+    public List<Project> getPersonalProject(String oauthToken) throws GitLabApiException {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
             return gitLabApi.getProjectApi().getOwnedProjects();
+        }
+    }
+
+    /** Get the list of projects for a given group */
+    public List<Project> getGroupProjects(String groupId, String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            return gitLabApi.getGroupApi().getProjects(groupId);
         }
     }
 

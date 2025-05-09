@@ -1,6 +1,7 @@
 package ic.ac.uk.db_pcr_backend.config;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -53,7 +56,7 @@ public class SecurityConfig {
     return http.build();
   }
 
-  // 6) Wire in your CORS rules for all endpoints, including /oauth2/*
+  // Wire in your CORS rules for all endpoints, including /oauth2/*
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
@@ -65,6 +68,19 @@ public class SecurityConfig {
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", config);
     return source;
+  }
+
+  // Map GitLab access levels to Spring Security roles
+  @Bean
+  public GrantedAuthoritiesMapper gitlabAuthoritiesMapper() {
+    return authorities -> authorities.stream()
+        .map(granted -> {
+          if (granted.getAuthority().contains("access_level=Maintainer")) {
+            return new SimpleGrantedAuthority("ROLE_MAINTAINER");
+          }
+          return new SimpleGrantedAuthority("ROLE_STUDENT");
+        })
+        .collect(Collectors.toList());
   }
 
 }

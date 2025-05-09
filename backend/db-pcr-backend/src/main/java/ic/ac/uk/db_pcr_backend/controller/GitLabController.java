@@ -7,6 +7,7 @@ import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Diff;
 import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
@@ -24,17 +25,31 @@ public class GitLabController {
 
     private final GitLabService gitLabService;
 
+    @Value("${gitlab.group.id}")
+    private String groupId;
+
     @Autowired
     public GitLabController(GitLabService gitLabService) {
         this.gitLabService = gitLabService;
     }
 
     @GetMapping("/projects")
-    public ResponseEntity<List<Project>> listProject(
+    public ResponseEntity<List<Project>> getProject(
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws GitLabApiException {
 
         String accessToken = client.getAccessToken().getTokenValue();
-        return ResponseEntity.ok(gitLabService.listPersonalProject(accessToken));
+        return ResponseEntity.ok(gitLabService.getPersonalProject(accessToken));
+    }
+
+    /** Get project name list in a group */
+    @GetMapping("/group-projects")
+    public ResponseEntity<List<String>> getProjectNameInGroup(
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+        String accessToken = client.getAccessToken().getTokenValue();
+        return ResponseEntity.ok(gitLabService.getGroupProjects(groupId, accessToken).stream()
+                .map(project -> project.getPathWithNamespace())
+                .toList());
+
     }
 
     @GetMapping("/get-project-commits")

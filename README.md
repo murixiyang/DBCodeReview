@@ -54,6 +54,7 @@ DELETE: `curl -X DELETE http://localhost:8080/path/to/api/`
 
 I am developing a double blinded peer code review platform, with frontend using Angular, backend using Springboot and Java. I have a local backend database using spring-boot-starter-data-jpa.
 I integerated with GitLab CE (as student code repository)and Gerrit(to use the api for code review process). I serve GitLab CE and Gerrit on Microsoft Azure Virtual Machine and frontend and backend currently on localhost docker. I have integrated OAuth login with GitLab CE.
+I am using gitlab4j-api to call gitlab api and gerrit-rest-java-client to call gerrit api in backend. Frontend I am using diff2html to show difference comparision.
 
 ## Database
 

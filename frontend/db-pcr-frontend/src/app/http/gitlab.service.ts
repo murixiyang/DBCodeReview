@@ -19,6 +19,13 @@ export class GitlabService {
     });
   }
 
+  /** Get project by group */
+  getGroupProjects(): Observable<String[]> {
+    return this.http.get<String[]>(`${this.baseUrl}/group-projects`, {
+      withCredentials: true,
+    });
+  }
+
   /** Get project commits */
   getProjectCommits(projectId: string): Observable<CommitSchema[]> {
     return this.http.get<CommitSchema[]>(
