@@ -1,0 +1,21 @@
+.page-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.change-link {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+}
+
+.change-link:hover {
+  color: darkblue;
+}
+
+.error {
+  color: red;
+}

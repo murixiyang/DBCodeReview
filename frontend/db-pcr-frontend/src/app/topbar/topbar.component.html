@@ -3,15 +3,29 @@
     <a routerLink="/">DB Code Review</a>
   </div>
   <div class="spacer"></div>
-  <div class="auth-section">
-    <!-- If there is a logged-in user, show welcome + logout -->
-    <ng-container *ngIf="user$ | async as user; else showLogin">
-      <span class="welcome">Welcome, {{ user }}!</span>
-      <button (click)="logout()">Logout</button>
-    </ng-container>
-    <!-- Otherwise, show a Login button -->
-    <ng-template #showLogin>
-      <button (click)="login()">Login</button>
-    </ng-template>
+
+  <div class="auth-section" *ngIf="user$ | async as user; else showLogin">
+    <span>Welcome, {{ user }}!</span>
+    <div class="settings-container">
+      <button class="settings-btn" (click)="toggleSettings()">
+        Settings
+        <span [class.rotated]="settingsOpen">▾</span>
+      </button>
+
+      <ul class="settings-menu" *ngIf="settingsOpen">
+        <!-- Teacher-only menu item -->
+        <li>
+          <button (click)="goToMaintenance()">Maintenance</button>
+        </li>
+        <!-- Always available once logged in -->
+        <li>
+          <button (click)="logout()">Logout</button>
+        </li>
+      </ul>
+    </div>
   </div>
+
+  <ng-template #showLogin>
+    <button (click)="login()">Login</button>
+  </ng-template>
 </nav>

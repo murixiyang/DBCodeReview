@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { Observable } from 'rxjs';
 import { GitlabService } from '../../http/gitlab.service';
 import { Router } from '@angular/router';
+import { AsyncPipe, NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-maintain-list',
-  imports: [],
+  imports: [NgFor, AsyncPipe],
   templateUrl: './maintain-list.component.html',
   styleUrl: './maintain-list.component.css',
 })

@@ -1,11 +1,11 @@
 <div class="page-container">
-  <h1>Projects</h1>
+  <h1>Group Projects</h1>
 
   <div
     *ngFor="let p of projects$ | async"
-    (click)="navigateToCommitList(p.id)"
+    (click)="navigateToCommitList(1)"
     class="change-link"
   >
-    {{ p.name }}
+    {{ p }}
   </div>
 </div>
