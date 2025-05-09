@@ -8,11 +8,14 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
+import org.eclipse.jgit.api.CherryPickResult;
+import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.transport.CredentialsProvider;
@@ -78,8 +81,11 @@ public class GerritService {
         // --- 3) Add Gitlab repo as a remote and fetch commit
         fetchGitLabCommit(git, cloneUrl, sha, gitlabToken);
 
+        // Store orignial msg before cherry-picking
+        RevCommit source = parseCommit(git, sha);
+
         // --- 4) Check if the commit is already under review
-        String changeId = computeChangeId(git, sha);
+        String changeId = computeChangeId(source);
         Optional<ChangeInfo> existing = findExistingChange(gerritApi, changeId);
         if (existing.isPresent()) {
             // already under review — return its Change-Id
@@ -90,8 +96,8 @@ public class GerritService {
         }
 
         // --- 5) Add Change-Id to this commit
-        cherryPickCommit(git, sha);
-        AddChangeId(git, changeId);
+        cherryPickCommit(git, source);
+        addChangeId(git, changeId, source.getFullMessage());
 
         // --- 6) Push into Gerrit’s refs/for/<branch>
         pushForReview(git, pathWithNamespace);
@@ -161,39 +167,53 @@ public class GerritService {
                 .call();
     }
 
-    private void cherryPickCommit(Git git, String sha) throws Exception {
+    private RevCommit parseCommit(Git git, String sha) throws IOException {
+        // Resolve the SHA string to an ObjectId
+        ObjectId id = git.getRepository().resolve(sha);
+        if (id == null) {
+            throw new IllegalArgumentException("Invalid commit SHA: " + sha);
+        }
+
+        // Parse it into a RevCommit
         try (RevWalk revWalk = new RevWalk(git.getRepository())) {
-            RevCommit commit = revWalk.parseCommit(git.getRepository().resolve(sha));
-            git.cherryPick().include(commit).call();
+            return revWalk.parseCommit(id);
         }
     }
 
-    private String computeChangeId(Git git, String originalSha) throws IOException {
-        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
-            RevCommit orig = revWalk.parseCommit(git.getRepository().resolve(originalSha));
-            ObjectId tree = orig.getTree().getId();
-            ObjectId parent = orig.getParentCount() > 0
-                    ? orig.getParent(0).getId()
-                    : ObjectId.zeroId();
-            PersonIdent author = orig.getAuthorIdent();
-            PersonIdent committer = orig.getCommitterIdent();
-            ObjectId raw = ChangeIdUtil.computeChangeId(
-                    tree, parent, author, committer, orig.getFullMessage());
-            return "I" + raw.name();
+    private String computeChangeId(RevCommit source) throws IOException {
+        ObjectId tree = source.getTree().getId();
+        ObjectId parent = source.getParentCount() > 0
+                ? source.getParent(0).getId()
+                : ObjectId.zeroId();
+        PersonIdent author = source.getAuthorIdent();
+        PersonIdent committer = source.getCommitterIdent();
+        ObjectId raw = ChangeIdUtil.computeChangeId(
+                tree, parent, author, committer, source.getFullMessage());
+        return "I" + raw.name();
+    }
+
+    private void cherryPickCommit(Git git, RevCommit source) throws Exception {
+
+        CherryPickResult result = git.cherryPick()
+                .include(source)
+                .setStrategy(MergeStrategy.OURS)
+                .setNoCommit(true) // apply patch, don’t commit
+                .call();
+
+        if (result.getStatus() != CherryPickStatus.OK) {
+            git.reset()
+                    .setMode(ResetType.HARD)
+                    .call();
+            throw new RuntimeException("Cherry-pick failed: " + result.getStatus());
         }
     }
 
-    private void AddChangeId(Git git, String changeId) throws Exception {
-        try (RevWalk revWalk = new RevWalk(git.getRepository())) {
-            RevCommit head = revWalk.parseCommit(git.getRepository().resolve("HEAD"));
-            String msg = head.getFullMessage();
-            if (!msg.contains("Change-Id:")) {
-                git.commit()
-                        .setAmend(true)
-                        .setMessage(msg + "\n\nChange-Id: " + changeId)
-                        .call();
-            }
-        }
+    private void addChangeId(Git git, String changeId, String originalMsg) throws Exception {
+        String newMsg = originalMsg + "\n\nChange-Id: " + changeId;
+
+        git.commit()
+                .setMessage(newMsg)
+                .call();
     }
 
     private void pushForReview(Git git, String projectPath) throws GitAPIException, URISyntaxException {
