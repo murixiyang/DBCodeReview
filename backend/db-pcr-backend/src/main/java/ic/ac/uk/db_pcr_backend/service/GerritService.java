@@ -1,21 +1,30 @@
 package ic.ac.uk.db_pcr_backend.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.eclipse.jgit.api.ApplyCommand;
 import org.eclipse.jgit.api.CherryPickResult;
 import org.eclipse.jgit.api.CherryPickResult.CherryPickStatus;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.ResetCommand.ResetType;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.diff.DiffEntry;
+import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.PersonIdent;
+import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevWalk;
@@ -26,6 +35,7 @@ import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
+import org.eclipse.jgit.util.io.DisabledOutputStream;
 
 import com.google.gerrit.extensions.api.GerritApi;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
@@ -75,16 +85,17 @@ public class GerritService {
         this.submissionTrackerRepo = submissionTrackerRepo;
     }
 
-    public String submitForReview(String projectId, String sha, String gitlabToken, String username) throws Exception {
+    public String submitForReview(String projectId, String targetSha, String gitlabToken, String username)
+            throws Exception {
         String cloneUrl = gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
         String pathWithNamespace = gitLabSvc.getProjectPathWithNamespace(projectId, gitlabToken);
 
         GerritApi gerritApi = gerritApiFactory.create(gerritAuthData);
         CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2", gitlabToken);
-        CredentialsProvider gerritCredits = new UsernamePasswordCredentialsProvider(
+        CredentialsProvider gerritCreds = new UsernamePasswordCredentialsProvider(
                 gerritUsername, gerritHttpPassword);
 
-        // --- 1) Ensure the Gerrit project exists (create if missing)
+        // Ensure the Gerrit project exists (create if missing)
         ensureGerritProjectExists(gerritApi, pathWithNamespace);
 
         // Load last submitted SHA from DB
@@ -95,75 +106,32 @@ public class GerritService {
         Path tempDir = Files.createTempDirectory("review-");
 
         // Clone Gerrit
-        Git git = Git.cloneRepository()
-                .setURI(gerritAuthUrl + "/" + pathWithNamespace + ".git")
-                .setDirectory(tempDir.toFile())
-                .setBranch("refs/heads/" + gerritBranch)
-                .setCredentialsProvider(
-                        new UsernamePasswordCredentialsProvider(gerritUsername, gerritHttpPassword))
-                .call();
+        Git git = cloneGerritRepo(tempDir, pathWithNamespace, gerritCreds);
+        fetchGerritChanges(git, gerritCreds);
 
-        git.fetch()
-                .setRemote("origin")
-                .setRefSpecs(new RefSpec("+refs/heads/*:refs/remotes/origin/*"), // your branch
-                        new RefSpec("+refs/changes/*:refs/remotes/gerrit-changes/*"))
-                .setCredentialsProvider(gerritCredits)
-                .call();
-
-        // 2) Fetch GitLab into that same repo
-        git.remoteAdd()
-                .setName("gitlab")
-                .setUri(new URIish(cloneUrl))
-                .call();
-
-        git.fetch()
-                .setRemote("gitlab")
-                .setCredentialsProvider(gitlabCreds)
-                .setRefSpecs(new RefSpec("+refs/heads/*:refs/remotes/gitlab/*"))
-                .call();
+        // Clone GitLab
+        fetchGitLabCommits(git, cloneUrl, gitlabCreds);
 
         // Parse the base & target commits
-        RevCommit base = (baseSha != null) ? parseCommit(git, baseSha) : null;
-        RevCommit target = parseCommit(git, sha);
+        RevCommit baseCommit = (baseSha != null) ? parseCommit(git, baseSha) : null;
+        RevCommit targetCommit = parseCommit(git, targetSha);
 
-        // 3) Create and check out a new branch at base (or start from default if no
-        // base)
-        if (base != null) {
-            git.checkout()
-                    .setCreateBranch(true)
-                    .setName("review/" + sha)
-                    .setStartPoint(base)
-                    .call();
-        } else {
-            // first review off Gerrit’s branch head
-            git.checkout()
-                    .setCreateBranch(true)
-                    .setName("review/" + sha)
-                    .setStartPoint("refs/heads/" + gerritBranch)
-                    .call();
-        }
+        // Checkout to review branch
+        String reviewBranch = "review/" + targetSha;
+        checkoutReviewBranch(git, reviewBranch, baseCommit);
 
         // Compute changeId for target
-        String changeId = computeChangeId(target);
+        String changeId = computeChangeId(targetCommit);
 
-        // --- 5) Add Change-Id to this commit
-        squashMergeCommit(git, target);
-        addChangeId(git, changeId, target.getFullMessage());
+        applyDiffAsPatch(git, baseCommit, targetCommit);
+        commitWithChangeId(git, changeId, targetCommit.getFullMessage());
 
-        // --- 6) Push into Gerrit’s refs/for/<branch>
-        pushForReview(git, pathWithNamespace);
-
-        PushResult pr = git.push()
-                .setRemote("origin")
-                .setRefSpecs(new RefSpec("HEAD:refs/for/" + gerritBranch))
-                .setCredentialsProvider(gerritCredits)
-                .call()
-                .iterator().next(); // assume single result
-
-        String gerritCommitSha = pr.getRemoteUpdates().iterator().next().getNewObjectId().getName();
+        // Push to Gerrit
+        PushResult result = pushToGerrit(git, gerritCreds);
+        String newGerritSha = extractNewSha(result);
 
         // --- 7) Record the SHA as the new last submitted
-        tracker.setLastSubmittedSha(gerritCommitSha);
+        tracker.setLastSubmittedSha(newGerritSha);
         submissionTrackerRepo.save(tracker);
 
         System.out.println("DBLOG: Pushed commit to Gerrit: " + changeId);
@@ -185,22 +153,6 @@ public class GerritService {
         }
     }
 
-    private Optional<ChangeInfo> findExistingChange(GerritApi api,
-            String changeId)
-            throws RestApiException {
-        // Gerrit supports direct lookup of a change by its Change-Id:
-        try {
-            ChangeInfo info = api.changes().id(changeId).get();
-            return Optional.of(info);
-        } catch (RestApiException e) {
-            // If not found, Gerrit will throw a 404 — meaning no such change yet
-            if (e instanceof HttpStatusException hse && hse.getStatusCode() == 404) {
-                return Optional.empty();
-            }
-            throw e;
-        }
-    }
-
     private void createEmptyGerritProject(String path, GerritApi api) throws RestApiException {
         ProjectInput in = new ProjectInput();
         in.name = path;
@@ -208,27 +160,51 @@ public class GerritService {
         api.projects().create(in);
     }
 
-    private Git cloneGerritRepo(String path, Path dest) throws GitAPIException {
-        String remote = gerritAuthUrl + "/" + path + ".git";
-        CredentialsProvider creds = new UsernamePasswordCredentialsProvider(
-                gerritUsername, gerritHttpPassword);
+    private Git cloneGerritRepo(Path tempDir, String pathWithNamespace, CredentialsProvider gerritCreds)
+            throws GitAPIException {
         return Git.cloneRepository()
-                .setURI(remote)
-                .setDirectory(dest.toFile())
+                .setURI(gerritAuthUrl + "/" + pathWithNamespace + ".git")
+                .setDirectory(tempDir.toFile())
                 .setBranch("refs/heads/" + gerritBranch)
-                .setCredentialsProvider(creds)
+                .setCredentialsProvider(gerritCreds)
                 .call();
     }
 
-    private void fetchGitLabCommit(Git git, String cloneUrl, String sha, String gitlabToken) throws Exception {
-        CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider(
-                "oauth2", gitlabToken);
+    private void fetchGerritChanges(Git git, CredentialsProvider gerritCreds) throws GitAPIException {
+        git.fetch()
+                .setRemote("origin")
+                .setCredentialsProvider(gerritCreds)
+                .setRefSpecs(
+                        new RefSpec("+refs/heads/*:refs/remotes/origin/*"),
+                        new RefSpec("+refs/changes/*:refs/remotes/gerrit-changes/*"))
+                .call();
+    }
+
+    private void fetchGitLabCommits(Git git, String cloneUrl, CredentialsProvider gitlabCreds) throws Exception {
+
         git.remoteAdd().setName("gitlab").setUri(new URIish(cloneUrl)).call();
         git.fetch()
                 .setRemote("gitlab")
                 .setCredentialsProvider(gitlabCreds)
-                .setRefSpecs(new RefSpec(sha + ":" + sha))
+                .setRefSpecs(new RefSpec("+refs/heads/*:refs/remotes/gitlab/*"))
                 .call();
+    }
+
+    private void checkoutReviewBranch(Git git, String reviewBranch, RevCommit base) throws Exception {
+        if (base != null) {
+            git.checkout()
+                    .setName(reviewBranch)
+                    .setCreateBranch(true)
+                    .setStartPoint("refs/heads/" + gerritBranch)
+                    .call();
+        } else {
+            git.checkout()
+                    .setName(reviewBranch)
+                    .setCreateBranch(true)
+                    .setStartPoint(base)
+                    .call();
+        }
+
     }
 
     private RevCommit parseCommit(Git git, String sha) throws IOException {
@@ -256,21 +232,33 @@ public class GerritService {
         return "I" + raw.name();
     }
 
-    private void squashMergeCommit(Git git, RevCommit source) throws GitAPIException {
-        MergeResult result = git.merge()
-                .include(source) // the target SHA you want to review
-                .setSquash(true) // stage all diffs at once
-                .setCommit(false) // we’ll do the commit manually
-                .call();
+    private void applyDiffAsPatch(Git git,
+            RevCommit base,
+            RevCommit target) throws Exception {
+        Repository repo = git.getRepository();
 
-        if (!result.getMergeStatus().isSuccessful()) {
-            // Abort by resetting back
-            git.reset().setMode(ResetType.HARD).call();
-            throw new RuntimeException("Squash-merge failed: " + result.getMergeStatus());
+        RevCommit effectiveBase = base != null
+                ? base
+                : parseCommit(git, "HEAD");
+
+        byte[] patch;
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream();
+                DiffFormatter df = new DiffFormatter(out)) {
+            df.setRepository(repo);
+            for (DiffEntry d : df.scan(
+                    effectiveBase.getTree(),
+                    target.getTree())) {
+                df.format(d);
+            }
+            patch = out.toByteArray();
+        }
+
+        try (InputStream in = new ByteArrayInputStream(patch)) {
+            git.apply().setPatch(in).call();
         }
     }
 
-    private void addChangeId(Git git, String changeId, String originalMsg) throws Exception {
+    private void commitWithChangeId(Git git, String changeId, String originalMsg) throws Exception {
         String fullMsg = originalMsg + "\n\nChange-Id: " + changeId;
         git.commit()
                 .setAll(true) // commit the staged squash
@@ -278,24 +266,20 @@ public class GerritService {
                 .call();
     }
 
-    private void pushForReview(Git git, String projectPath) throws GitAPIException, URISyntaxException {
-        Iterable<PushResult> results = git.push()
+    private PushResult pushToGerrit(Git git, CredentialsProvider gerritCreds) throws GitAPIException {
+        return git.push()
                 .setRemote("origin")
                 .setRefSpecs(new RefSpec("HEAD:refs/for/" + gerritBranch))
-                .setCredentialsProvider(
-                        new UsernamePasswordCredentialsProvider(gerritUsername, gerritHttpPassword))
-                .call();
+                .setCredentialsProvider(gerritCreds)
+                .call()
+                .iterator().next();
+    }
 
-        for (PushResult pr : results) {
-            for (RemoteRefUpdate rru : pr.getRemoteUpdates()) {
-                System.out.printf(
-                        "Push %s → %s: %s / %s%n",
-                        rru.getSrcRef(), rru.getRemoteName(),
-                        rru.getStatus(), // e.g. OK, REJECTED, NOT_ATTEMPTED
-                        rru.getMessage() // server-side message if any
-                );
-            }
-        }
+    private String extractNewSha(PushResult pr) {
+        return pr.getRemoteUpdates().stream()
+                .map(u -> u.getNewObjectId().getName())
+                .findFirst()
+                .orElseThrow();
     }
 
 }
