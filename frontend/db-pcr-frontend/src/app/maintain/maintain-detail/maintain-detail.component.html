@@ -1,17 +1,25 @@
 <h2>Reviewer Assignment</h2>
-<label
-  >Project:
+
+<label>
+  Project:
   <select [(ngModel)]="projectId">
-    <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+    <option *ngFor="let p of projects" [value]="p.id">{{ p["nameWithNamespace"] }}</option>
   </select>
 </label>
-<label
-  ># Reviewers per student:
-  <input type="number" [(ngModel)]="reviewerNum" min="1" />
+
+<label>
+  # Reviewers per student:
+  <input
+    type="number"
+    [(ngModel)]="reviewerNum"
+    [min]="1"
+    [max]="projects.length - 1"
+  />
 </label>
+
 <button (click)="assign()">Generate</button>
 
-<table *ngIf="assignments.length">
+<table *ngIf="reviewAssignments.length">
   <thead>
     <tr>
       <th>Reviewer</th>
@@ -19,9 +27,9 @@
     </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let a of assignments">
+    <tr *ngFor="let a of reviewAssignments">
+      <td>{{ a.authorName }}</td>
       <td>{{ a.reviewerName }}</td>
-      <td>{{ a.revieweeName }}</td>
     </tr>
   </tbody>
 </table>

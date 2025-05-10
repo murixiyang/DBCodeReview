@@ -2,11 +2,14 @@ package ic.ac.uk.db_pcr_backend.service;
 
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Diff;
+import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.models.Constants.TokenType;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,6 +82,16 @@ public class GitLabService {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
             Project project = gitLabApi.getProjectApi().getProject(projectid);
             return project.getPathWithNamespace();
+        }
+    }
+
+    /** Get student list */
+    public List<Member> getDevInGroup(String projectId, String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            List<Member> members = gitLabApi.getProjectApi().getMembers(projectId);
+            return members.stream()
+                    .filter(m -> m.getAccessLevel().value >= AccessLevel.DEVELOPER.value)
+                    .collect(Collectors.toList());
         }
     }
 
