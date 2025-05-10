@@ -1,1 +1,27 @@
-<p>maintain-detail works!</p>
+<h2>Reviewer Assignment</h2>
+<label
+  >Project:
+  <select [(ngModel)]="projectId">
+    <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+  </select>
+</label>
+<label
+  ># Reviewers per student:
+  <input type="number" [(ngModel)]="reviewerNum" min="1" />
+</label>
+<button (click)="assign()">Generate</button>
+
+<table *ngIf="assignments.length">
+  <thead>
+    <tr>
+      <th>Reviewer</th>
+      <th>Reviewee</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let a of assignments">
+      <td>{{ a.reviewerName }}</td>
+      <td>{{ a.revieweeName }}</td>
+    </tr>
+  </tbody>
+</table>

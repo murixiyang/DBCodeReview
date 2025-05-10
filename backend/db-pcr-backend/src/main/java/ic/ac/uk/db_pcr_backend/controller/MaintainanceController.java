@@ -22,7 +22,6 @@ public class MaintainanceController {
 
     @Autowired
     private MaintainanceService maintainanceSvc;
-    private GitLabService gitLabSvc;
 
 
 
