@@ -86,11 +86,12 @@ public class GitLabService {
     }
 
     /** Get student list */
-    public List<Member> getDevInGroup(String projectId, String oauthToken) throws GitLabApiException {
+    public List<Member> getDevInGroup(String groupId, String oauthToken) throws GitLabApiException {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
-            List<Member> members = gitLabApi.getProjectApi().getMembers(projectId);
+            List<Member> members = gitLabApi.getGroupApi().getMembers(groupId);
+
             return members.stream()
-                    .filter(m -> m.getAccessLevel().value >= AccessLevel.DEVELOPER.value)
+                    .filter(m -> m.getAccessLevel().value == AccessLevel.DEVELOPER.value)
                     .collect(Collectors.toList());
         }
     }

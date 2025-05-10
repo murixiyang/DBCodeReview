@@ -30,13 +30,8 @@ export class MaintainDetailComponent implements OnInit {
       next: (ps) => {
         this.projects = ps;
 
-        console.log('Projects:', ps);
-
         if (ps.length) {
           this.projectId = ps[0].id;
-
-          console.log(ps[0]);
-          console.log(ps[0].name_with_namespace);
         }
       },
       error: (err) => console.error('Failed to load projects', err),

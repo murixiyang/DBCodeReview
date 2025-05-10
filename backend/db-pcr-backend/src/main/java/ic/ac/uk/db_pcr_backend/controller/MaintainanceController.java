@@ -18,7 +18,7 @@ import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.service.MaintainanceService;
 
 @RestController
-@RequestMapping("/api/maintainance")
+@RequestMapping("/api/maintain")
 @PreAuthorize("hasRole('MAINTAINER')")
 public class MaintainanceController {
 

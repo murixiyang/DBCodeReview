@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class MaintainanceService {
@@ -23,10 +24,14 @@ public class MaintainanceService {
         this.reviewAssignmentRepo = repo;
     }
 
+    @Transactional
     public List<ReviewAssignmentEntity> assignReviewers(String groupId, String projectId, int reviewersPerStudent,
             String oauthToken) throws Exception {
+
         // Fetch all “developer” members (students)
         List<Member> students = gitlabSvc.getDevInGroup(groupId, oauthToken);
+
+        System.out.println("DBLOG: students: " + students);
 
         int studentNum = students.size();
         if (reviewersPerStudent < 1 || reviewersPerStudent >= studentNum) {
@@ -47,8 +52,8 @@ public class MaintainanceService {
                 Member reviewer = students.get((i + k) % studentNum);
                 ReviewAssignmentEntity assignment = new ReviewAssignmentEntity();
                 assignment.setProjectId(projectId);
-                assignment.setAuthorName(author.getName());
-                assignment.setReviewerName(reviewer.getName());
+                assignment.setAuthorName(author.getUsername());
+                assignment.setReviewerName(reviewer.getUsername());
                 assignments.add(assignment);
             }
         }
