@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { GitlabService } from '../../http/gitlab.service';
 import { Router } from '@angular/router';
 import { AsyncPipe, NgFor } from '@angular/common';
+import { ProjectSchema } from '@gitbeaker/rest';
 
 @Component({
   selector: 'app-maintain-list',
@@ -11,7 +12,7 @@ import { AsyncPipe, NgFor } from '@angular/common';
   styleUrl: './maintain-list.component.css',
 })
 export class MaintainListComponent {
-  projects$!: Observable<String[]>;
+  projects$!: Observable<ProjectSchema[]>;
 
   constructor(private gitLabService: GitlabService, private router: Router) {}
 
@@ -20,6 +21,6 @@ export class MaintainListComponent {
   }
 
   navigateToCommitList(projectId: number) {
-    this.router.navigate(['/commit-list', projectId]);
+    this.router.navigate(['/maintain', projectId]);
   }
 }

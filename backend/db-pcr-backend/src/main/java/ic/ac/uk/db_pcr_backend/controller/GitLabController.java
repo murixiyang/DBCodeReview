@@ -43,12 +43,10 @@ public class GitLabController {
 
     /** Get project name list in a group */
     @GetMapping("/group-projects")
-    public ResponseEntity<List<String>> getProjectNameInGroup(
+    public ResponseEntity<List<Project>> getProjectNameInGroup(
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
         String accessToken = client.getAccessToken().getTokenValue();
-        return ResponseEntity.ok(gitLabService.getGroupProjects(groupId, accessToken).stream()
-                .map(project -> project.getPathWithNamespace())
-                .toList());
+        return ResponseEntity.ok(gitLabService.getGroupProjects(groupId, accessToken));
 
     }
 

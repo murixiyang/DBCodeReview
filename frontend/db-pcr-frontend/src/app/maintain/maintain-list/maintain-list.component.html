@@ -3,9 +3,9 @@
 
   <div
     *ngFor="let p of projects$ | async"
-    (click)="navigateToCommitList(1)"
+    (click)="navigateToCommitList(p.id)"
     class="change-link"
   >
-    {{ p }}
+    {{ p.name }}
   </div>
 </div>

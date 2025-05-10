@@ -20,8 +20,8 @@ export class GitlabService {
   }
 
   /** Get project by group */
-  getGroupProjects(): Observable<String[]> {
-    return this.http.get<String[]>(`${this.baseUrl}/group-projects`, {
+  getGroupProjects(): Observable<ProjectSchema[]> {
+    return this.http.get<ProjectSchema[]>(`${this.baseUrl}/group-projects`, {
       withCredentials: true,
     });
   }
