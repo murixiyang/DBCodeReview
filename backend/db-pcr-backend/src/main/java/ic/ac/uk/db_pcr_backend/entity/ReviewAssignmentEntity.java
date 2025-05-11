@@ -17,8 +17,20 @@ public class ReviewAssignmentEntity {
     private Long id;
 
     private String projectId;
+    private String projectName;
     private String authorName;
     private String reviewerName;
+
+    // Constructors
+    public ReviewAssignmentEntity() {
+    }
+
+    public ReviewAssignmentEntity(String projectId, String projectName, String authorName, String reviewerName) {
+        this.projectId = projectId;
+        this.projectName = projectName;
+        this.authorName = authorName;
+        this.reviewerName = reviewerName;
+    }
 
     // Getters and Setters
     public Long getId() {
@@ -35,6 +47,14 @@ public class ReviewAssignmentEntity {
 
     public void setProjectId(String projectId) {
         this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getAuthorName() {

@@ -3,8 +3,12 @@ package ic.ac.uk.db_pcr_backend.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Member;
+import org.gitlab4j.api.models.Project;
 import org.springframework.stereotype.Service;
 
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
@@ -25,13 +29,12 @@ public class MaintainanceService {
     }
 
     @Transactional
-    public List<ReviewAssignmentEntity> assignReviewers(String groupId, String projectId, int reviewersPerStudent,
+    public List<ReviewAssignmentEntity> assignReviewers(String groupId, String projectId, String projectName,
+            int reviewersPerStudent,
             String oauthToken) throws Exception {
 
         // Fetch all “developer” members (students)
         List<Member> students = gitlabSvc.getDevInGroup(groupId, oauthToken);
-
-        System.out.println("DBLOG: students: " + students);
 
         int studentNum = students.size();
         if (reviewersPerStudent < 1 || reviewersPerStudent >= studentNum) {
@@ -52,6 +55,7 @@ public class MaintainanceService {
                 Member reviewer = students.get((i + k) % studentNum);
                 ReviewAssignmentEntity assignment = new ReviewAssignmentEntity();
                 assignment.setProjectId(projectId);
+                assignment.setProjectName(projectName);
                 assignment.setAuthorName(author.getUsername());
                 assignment.setReviewerName(reviewer.getUsername());
                 assignments.add(assignment);
@@ -65,5 +69,26 @@ public class MaintainanceService {
     /** Helper to fetch existing assignments as DTOs if you need them. */
     public List<ReviewAssignmentEntity> getAssignmentsForProject(String projectId) {
         return reviewAssignmentRepo.findByProjectId(projectId);
+    }
+
+    public List<Project> getProjectsToReview(String username, String groupId, String oauthToken)
+            throws GitLabApiException {
+        // Get project where the user is reviewer
+        List<ReviewAssignmentEntity> assigns = reviewAssignmentRepo.findByReviewerName(username);
+
+        // Get project Id
+        Set<String> projectIds = assigns.stream()
+                .map(ReviewAssignmentEntity::getProjectId)
+                .collect(Collectors.toSet());
+
+        // Fetch project from GitLab
+        List<Project> projects = new ArrayList<>();
+        for (String projectId : projectIds) {
+            Project project = gitlabSvc.getGroupProjectById(projectId, groupId, oauthToken);
+            projects.add(project);
+        }
+
+        return projects;
+
     }
 }

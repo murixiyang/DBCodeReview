@@ -65,6 +65,16 @@ public class GitLabService {
         }
     }
 
+    /** Get project by project id in a group */
+    public Project getGroupProjectById(String groupId, String projectId, String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            return gitLabApi.getGroupApi().getProjects(groupId).stream()
+                    .filter(project -> project.getId().toString().equals(projectId))
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
+
     /** Get git clone URL for a project id */
     public String getProjectCloneUrl(String projectId, String oauthToken) throws GitLabApiException {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {

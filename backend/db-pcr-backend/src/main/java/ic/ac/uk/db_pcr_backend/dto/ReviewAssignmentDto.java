@@ -3,12 +3,14 @@ package ic.ac.uk.db_pcr_backend.dto;
 public class ReviewAssignmentDto {
 
     private String projectId;
+    private String projectName;
     private String authorName;
     private String reviewerName;
 
     // Constructors
-    public ReviewAssignmentDto(String projectId, String authorName, String reviewerName) {
+    public ReviewAssignmentDto(String projectId, String projectName, String authorName, String reviewerName) {
         this.projectId = projectId;
+        this.projectName = projectName;
         this.authorName = authorName;
         this.reviewerName = reviewerName;
     }
@@ -21,6 +23,14 @@ public class ReviewAssignmentDto {
 
     public void setProjectId(String projectId) {
         this.projectId = projectId;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
     }
 
     public String getAuthorName() {

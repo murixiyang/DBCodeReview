@@ -13,5 +13,9 @@ public interface ReviewAssignmentRepository extends JpaRepository<ReviewAssignme
 
     List<ReviewAssignmentEntity> findByProjectId(String projectId);
 
+    List<ReviewAssignmentEntity> findByReviewerName(String reviewerName);
+
+    List<ReviewAssignmentEntity> findByAuthorName(String authorName);
+
     void deleteByProjectId(String projectId);
 }

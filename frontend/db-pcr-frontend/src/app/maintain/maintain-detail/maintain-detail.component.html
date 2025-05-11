@@ -3,7 +3,9 @@
 <label>
   Project:
   <select [(ngModel)]="projectId">
-    <option *ngFor="let p of projects" [value]="p.id">{{ p["nameWithNamespace"] }}</option>
+    <option *ngFor="let p of projects" [value]="p.id">
+      {{ p["nameWithNamespace"] }}
+    </option>
   </select>
 </label>
 
@@ -22,8 +24,8 @@
 <table *ngIf="reviewAssignments.length">
   <thead>
     <tr>
+      <th>Author</th>
       <th>Reviewer</th>
-      <th>Reviewee</th>
     </tr>
   </thead>
   <tbody>

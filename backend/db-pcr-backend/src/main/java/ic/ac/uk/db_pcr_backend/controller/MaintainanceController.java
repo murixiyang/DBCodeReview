@@ -2,6 +2,7 @@ package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
 
+import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.dto.ReviewAssignmentDto;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
+import ic.ac.uk.db_pcr_backend.service.GitLabService;
 import ic.ac.uk.db_pcr_backend.service.MaintainanceService;
 
 @RestController
@@ -22,32 +24,39 @@ import ic.ac.uk.db_pcr_backend.service.MaintainanceService;
 @PreAuthorize("hasRole('MAINTAINER')")
 public class MaintainanceController {
 
-    @Autowired
-    private MaintainanceService maintainanceSvc;
+        @Autowired
+        private MaintainanceService maintainanceSvc;
 
-    @Value("${gitlab.group.id}")
-    private String groupId;
+        @Autowired
+        private GitLabService gitlabSvc;
 
-    @PostMapping("/assign")
-    public ResponseEntity<List<ReviewAssignmentDto>> assignReviewers(
-            @RequestParam("projectId") String projectId,
-            @RequestParam("reviewerNum") int reviewerNum,
-            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+        @Value("${gitlab.group.id}")
+        private String groupId;
 
-        String accessToken = client.getAccessToken().getTokenValue();
+        @PostMapping("/assign")
+        public ResponseEntity<List<ReviewAssignmentDto>> assignReviewers(
+                        @RequestParam("projectId") String projectId,
+                        @RequestParam("reviewerNum") int reviewerNum,
+                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
 
-        List<ReviewAssignmentEntity> saved = maintainanceSvc.assignReviewers(groupId, projectId, reviewerNum,
-                accessToken);
+                String accessToken = client.getAccessToken().getTokenValue();
 
-        // map entity → DTO
-        List<ReviewAssignmentDto> dtos = saved.stream()
-                .map(a -> new ReviewAssignmentDto(
-                        a.getProjectId(),
-                        a.getAuthorName(),
-                        a.getReviewerName()))
-                .toList();
+                Project project = this.gitlabSvc.getGroupProjectById(groupId, projectId, accessToken);
+                String projectName = project.getName();
+                List<ReviewAssignmentEntity> saved = maintainanceSvc.assignReviewers(groupId, projectId, projectName,
+                                reviewerNum,
+                                accessToken);
 
-        return ResponseEntity.ok(dtos);
-    }
+                // map entity → DTO
+                List<ReviewAssignmentDto> dtos = saved.stream()
+                                .map(a -> new ReviewAssignmentDto(
+                                                a.getProjectId(),
+                                                a.getProjectName(),
+                                                a.getAuthorName(),
+                                                a.getReviewerName()))
+                                .toList();
+
+                return ResponseEntity.ok(dtos);
+        }
 
 }
