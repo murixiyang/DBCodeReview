@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { SPRING_URL_MAINTAIN } from '../service/constant.service';
 import { Observable } from 'rxjs';
-import { ReviewAssignment } from '../interface/ReviewAssignment';
+import { ReviewAssignment } from '../interface/review-assignment';
 
 @Injectable({
   providedIn: 'root',
