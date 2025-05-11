@@ -71,6 +71,7 @@ public class MaintainanceService {
         return reviewAssignmentRepo.findByProjectId(projectId);
     }
 
+    /** Get projects that a user is assigned as reviewer */
     public List<Project> getProjectsToReview(String username, String groupId, String oauthToken)
             throws GitLabApiException {
         // Get project where the user is reviewer
@@ -81,14 +82,17 @@ public class MaintainanceService {
                 .map(ReviewAssignmentEntity::getProjectId)
                 .collect(Collectors.toSet());
 
+        System.out.println("DBLOG: Project IDs: " + projectIds);
+
+        System.out.println("DBLOG: Group ID: " + groupId);
+
         // Fetch project from GitLab
         List<Project> projects = new ArrayList<>();
         for (String projectId : projectIds) {
-            Project project = gitlabSvc.getGroupProjectById(projectId, groupId, oauthToken);
+            Project project = gitlabSvc.getGroupProjectById(groupId, projectId, oauthToken);
             projects.add(project);
         }
 
         return projects;
-
     }
 }

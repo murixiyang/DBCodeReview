@@ -52,6 +52,14 @@ public class MaintainanceController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/projects-to-review")
+    public List<Project> getProjectsToReview(
+            @RequestParam("username") String username,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+
+        return maintainanceSvc.getProjectsToReview(username, groupId, client.getAccessToken().getTokenValue());
+    }
+
     @PostMapping("/assign")
     public ResponseEntity<List<ReviewAssignmentDto>> assignReviewers(
             @RequestParam("projectId") String projectId,

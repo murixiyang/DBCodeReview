@@ -4,6 +4,8 @@ import { AsyncPipe, NgFor } from '@angular/common';
 import { GitlabService } from '../http/gitlab.service';
 import { Observable } from 'rxjs';
 import { ProjectSchema } from '@gitbeaker/rest';
+import { MaintainService } from '../http/maintain.service';
+import { AuthService } from '../service/auth.service';
 
 @Component({
   imports: [NgFor, AsyncPipe],
@@ -12,11 +14,27 @@ import { ProjectSchema } from '@gitbeaker/rest';
 })
 export class ProjectListComponent implements OnInit {
   projects$!: Observable<ProjectSchema[]>;
+  projectsToReview$!: Observable<ProjectSchema[]>;
 
-  constructor(private gitLabService: GitlabService, private router: Router) {}
+  username: string | null = null;
+
+  constructor(
+    private gitLabService: GitlabService,
+    private maintainSvc: MaintainService,
+    private authSvc: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
     this.projects$ = this.gitLabService.getProjects();
+
+    this.authSvc.getUser().subscribe((user) => {
+      this.username = user;
+
+      this.projectsToReview$ = this.maintainSvc.getProjectsToReview(
+        this.username!
+      );
+    });
   }
 
   navigateToCommitList(projectId: number) {
