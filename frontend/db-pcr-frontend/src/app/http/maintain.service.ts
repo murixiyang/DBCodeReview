@@ -12,7 +12,7 @@ export class MaintainService {
 
   constructor(private http: HttpClient) {}
 
-  /** Get the list of maintainers */
+  /** To generate the list of maintainers */
   assignReviewers(
     projectId: number,
     reviewerNum: number
@@ -22,6 +22,15 @@ export class MaintainService {
       .set('reviewerNum', reviewerNum.toString());
 
     return this.http.post<ReviewAssignment[]>(`${this.baseUrl}/assign`, null, {
+      params,
+    });
+  }
+
+  /** Get the list of maintainers */
+  getAssignedList(projectId: number): Observable<ReviewAssignment[]> {
+    const params = new HttpParams().set('projectId', projectId.toString());
+
+    return this.http.get<ReviewAssignment[]>(`${this.baseUrl}/get-assigned-list`, {
       params,
     });
   }

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,39 +25,57 @@ import ic.ac.uk.db_pcr_backend.service.MaintainanceService;
 @PreAuthorize("hasRole('MAINTAINER')")
 public class MaintainanceController {
 
-        @Autowired
-        private MaintainanceService maintainanceSvc;
+    @Autowired
+    private MaintainanceService maintainanceSvc;
 
-        @Autowired
-        private GitLabService gitlabSvc;
+    @Autowired
+    private GitLabService gitlabSvc;
 
-        @Value("${gitlab.group.id}")
-        private String groupId;
+    @Value("${gitlab.group.id}")
+    private String groupId;
 
-        @PostMapping("/assign")
-        public ResponseEntity<List<ReviewAssignmentDto>> assignReviewers(
-                        @RequestParam("projectId") String projectId,
-                        @RequestParam("reviewerNum") int reviewerNum,
-                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+    @GetMapping("/get-assigned-list")
+    public ResponseEntity<List<ReviewAssignmentDto>> getAssignedList(
+            @RequestParam("projectId") String projectId) throws Exception {
 
-                String accessToken = client.getAccessToken().getTokenValue();
+        List<ReviewAssignmentEntity> saved = maintainanceSvc.getAssignmentsForProject(projectId);
 
-                Project project = this.gitlabSvc.getGroupProjectById(groupId, projectId, accessToken);
-                String projectName = project.getName();
-                List<ReviewAssignmentEntity> saved = maintainanceSvc.assignReviewers(groupId, projectId, projectName,
-                                reviewerNum,
-                                accessToken);
+        // map entity → DTO
+        List<ReviewAssignmentDto> dtos = saved.stream()
+                .map(a -> new ReviewAssignmentDto(
+                        a.getProjectId(),
+                        a.getProjectName(),
+                        a.getAuthorName(),
+                        a.getReviewerName()))
+                .toList();
 
-                // map entity → DTO
-                List<ReviewAssignmentDto> dtos = saved.stream()
-                                .map(a -> new ReviewAssignmentDto(
-                                                a.getProjectId(),
-                                                a.getProjectName(),
-                                                a.getAuthorName(),
-                                                a.getReviewerName()))
-                                .toList();
+        return ResponseEntity.ok(dtos);
+    }
 
-                return ResponseEntity.ok(dtos);
-        }
+    @PostMapping("/assign")
+    public ResponseEntity<List<ReviewAssignmentDto>> assignReviewers(
+            @RequestParam("projectId") String projectId,
+            @RequestParam("reviewerNum") int reviewerNum,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+
+        String accessToken = client.getAccessToken().getTokenValue();
+
+        Project project = this.gitlabSvc.getGroupProjectById(groupId, projectId, accessToken);
+        String projectName = project.getName();
+        List<ReviewAssignmentEntity> saved = maintainanceSvc.assignReviewers(groupId, projectId, projectName,
+                reviewerNum,
+                accessToken);
+
+        // map entity → DTO
+        List<ReviewAssignmentDto> dtos = saved.stream()
+                .map(a -> new ReviewAssignmentDto(
+                        a.getProjectId(),
+                        a.getProjectName(),
+                        a.getAuthorName(),
+                        a.getReviewerName()))
+                .toList();
+
+        return ResponseEntity.ok(dtos);
+    }
 
 }

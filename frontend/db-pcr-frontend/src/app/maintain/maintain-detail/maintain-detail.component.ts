@@ -32,6 +32,11 @@ export class MaintainDetailComponent implements OnInit {
 
         if (ps.length) {
           this.projectId = ps[0].id;
+
+          this.maintainSvc.getAssignedList(this.projectId).subscribe({
+            next: (assignments) => (this.reviewAssignments = assignments),
+            error: (err) => console.error('Failed to load reviewers', err),
+          });
         }
       },
       error: (err) => console.error('Failed to load projects', err),
@@ -47,5 +52,14 @@ export class MaintainDetailComponent implements OnInit {
         next: (assignments) => (this.reviewAssignments = assignments),
         error: (err) => console.error('Assignment failed', err),
       });
+  }
+
+  showAssigned(): void {
+    if (!this.projectId) return;
+
+    this.maintainSvc.getAssignedList(this.projectId).subscribe({
+      next: (assignments) => (this.reviewAssignments = assignments),
+      error: (err) => console.error('Failed to load reviewers', err),
+    });
   }
 }
