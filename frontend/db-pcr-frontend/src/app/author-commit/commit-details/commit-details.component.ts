@@ -10,8 +10,8 @@ import { ActivatedRoute } from '@angular/router';
 import { NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommitDiffSchema } from '@gitbeaker/rest';
-import { GitlabService } from '../http/gitlab.service';
 import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim';
+import { GitlabService } from '../../http/gitlab.service';
 
 @Component({
   selector: 'app-commit-details',

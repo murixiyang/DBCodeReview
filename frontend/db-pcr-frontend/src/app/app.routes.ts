@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { CommitDetailComponent } from './commit-details/commit-details.component';
 import { ProjectListComponent } from './project-list/project-list.component';
 
-import { CommitListComponent } from './commit-list/commit-list.component';
 import { MaintainListComponent } from './maintain/maintain-list/maintain-list.component';
 import { MaintainDetailComponent } from './maintain/maintain-detail/maintain-detail.component';
+import { CommitListComponent } from './author-commit/commit-list/commit-list.component';
+import { CommitDetailComponent } from './author-commit/commit-details/commit-details.component';
 
 export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },

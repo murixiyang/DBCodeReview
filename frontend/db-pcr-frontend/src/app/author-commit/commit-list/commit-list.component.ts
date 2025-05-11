@@ -4,11 +4,11 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { GitlabService } from '../http/gitlab.service';
-import { CommitListItem } from '../interface/commit-list-item';
-import { GerritService } from '../http/gerrit.service';
-import { DatabaseService } from '../http/database.service';
-import { AuthService } from '../service/auth.service';
+import { CommitListItem } from '../../interface/commit-list-item';
+import { GitlabService } from '../../http/gitlab.service';
+import { GerritService } from '../../http/gerrit.service';
+import { DatabaseService } from '../../http/database.service';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   imports: [

@@ -1,10 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommentInput } from '../../interface/gerrit/comment-input';
 import { FormsModule } from '@angular/forms';
-import { GerritService } from '../../http/gerrit.service';
-import { CommentRange } from '../../interface/gerrit/comment-range';
 import { NgIf } from '@angular/common';
-import { CommentInfo } from '../../interface/gerrit/comment-info';
+import { GerritService } from '../../../http/gerrit.service';
 
 @Component({
   selector: 'app-comment-box',
