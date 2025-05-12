@@ -13,7 +13,7 @@
 
   <div
     *ngFor="let p of projectsToReview$ | async"
-    (click)="navigateToCommitList(p.id)"
+    (click)="navigateToReviewList(p.name)"
     class="change-link"
   >
     {{ p.name }}

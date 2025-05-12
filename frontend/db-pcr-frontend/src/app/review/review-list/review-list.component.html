@@ -1,1 +1,10 @@
-<p>review-list works!</p>
+<div class="page-container">
+  <h1>Who’s version of “{{ projectName }}”?</h1>
+
+  <div *ngIf="assignmentMetadata$ | async as authors">
+    <button *ngFor="let a of authors" class="change-link">
+      {{ a.authorPseudoName }}’s {{ projectName }}
+    </button>
+    <p *ngIf="!authors.length">No submissions found.</p>
+  </div>
+</div>

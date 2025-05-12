@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { SPRING_URL_REVIEW } from '../service/constant.service';
 import { Observable } from 'rxjs';
 import { ProjectSchema } from '@gitbeaker/rest';
+import { AssignmentMetadata } from '../interface/assignment-metadata';
 
 @Injectable({
   providedIn: 'root',
@@ -18,6 +19,18 @@ export class ReviewService {
 
     return this.http.get<ProjectSchema[]>(
       `${this.baseUrl}/get-projects-to-review`,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Get assignment metadata for reviewers */
+  getAssignmentMetadata(username: string): Observable<AssignmentMetadata[]> {
+    const params = new HttpParams().set('reviewerName', username);
+
+    return this.http.get<AssignmentMetadata[]>(
+      `${this.baseUrl}/get-assignment-metadata`,
       {
         params,
       }

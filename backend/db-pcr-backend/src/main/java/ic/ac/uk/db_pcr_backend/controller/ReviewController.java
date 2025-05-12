@@ -34,4 +34,10 @@ public class ReviewController {
         return reviewSvc.getProjectsToReview(username, groupId, client.getAccessToken().getTokenValue());
     }
 
+    @GetMapping("/get-assignment-metadata")
+    public List<AssignmentMetadataDto> getMyAssignments(@RequestParam("reviewerName") String reviewerName,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+        return reviewSvc.findAssignmentsForReviewer(reviewerName);
+    }
+
 }
