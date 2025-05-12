@@ -1,6 +1,6 @@
 export type ReviewStatus =
   | 'NOT_SUBMITTED'
-  | 'WAITING_FOR_REVIEW'
+  | 'WAITING_FOR_REPLY'
   | 'APPROVED'
   | 'NEED_RESOLVE';
 

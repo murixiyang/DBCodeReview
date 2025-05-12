@@ -112,11 +112,11 @@ export class CommitListComponent implements OnInit {
               username,
               this.projectId,
               listItem.commit.id,
-              'WAITING_FOR_REVIEW'
+              'WAITING_FOR_REPLY'
             )
             .subscribe({
               next: (updateResponse) => {
-                listItem.status = 'WAITING_FOR_REVIEW';
+                listItem.status = 'WAITING_FOR_REPLY';
                 console.log('Review status updated:', updateResponse);
               },
               error: (error) => {

@@ -1,4 +1,5 @@
 import { Component, Input } from '@angular/core';
+import { ChangeInfo } from '../../interface/gerrit/change-info';
 
 @Component({
   selector: 'app-review-commit-list',

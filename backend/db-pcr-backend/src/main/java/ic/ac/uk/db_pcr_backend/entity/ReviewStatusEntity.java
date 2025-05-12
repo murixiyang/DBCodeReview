@@ -31,7 +31,7 @@ public class ReviewStatusEntity {
 
     public enum ReviewStatus {
         NOT_SUBMITTED,
-        WAITING_FOR_REVIEW,
+        WAITING_FOR_REPLY,
         APPROVED,
         NEED_RESOLVE
     }
