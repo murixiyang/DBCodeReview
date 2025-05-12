@@ -10,23 +10,26 @@ import org.gitlab4j.api.models.Project;
 import org.springframework.stereotype.Service;
 
 import ic.ac.uk.db_pcr_backend.dto.AssignmentMetadataDto;
+import ic.ac.uk.db_pcr_backend.entity.PseudoNameEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
+import ic.ac.uk.db_pcr_backend.repository.PseudoNameRepository;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ReviewService {
 
     private final GitLabService gitLabSvc;
-    private final PseudoNameService pseudonameSvc;
+
     private final ReviewAssignmentRepository reviewAssignmentRepo;
+    private final PseudoNameRepository nameRepo;
 
     public ReviewService(GitLabService gitLabSvc,
-            PseudoNameService pseudonameSvc,
-            ReviewAssignmentRepository reviewAssignmentRepo) {
+            ReviewAssignmentRepository reviewAssignmentRepo,
+            PseudoNameRepository nameRepo) {
         this.gitLabSvc = gitLabSvc;
-        this.pseudonameSvc = pseudonameSvc;
         this.reviewAssignmentRepo = reviewAssignmentRepo;
+        this.nameRepo = nameRepo;
     }
 
     /** Get projects that a user is assigned as reviewer */
@@ -51,28 +54,26 @@ public class ReviewService {
     }
 
     /** Get Assignment Metadata for the reviewer. Assign pseudoname if not yet */
-    @Transactional
+    @Transactional(readOnly = true)
     public List<AssignmentMetadataDto> findAssignmentsForReviewer(String reviewerName) {
 
-        // Get all assignments for the reviewer
-        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
-                .findByReviewerName(reviewerName);
-
-        // For each assignment, create pseudonames
-        List<AssignmentMetadataDto> assignmentDtos = new ArrayList<>();
-        for (ReviewAssignmentEntity asn : assignments) {
-            String authorPseudo = pseudonameSvc.getOrCreatePseudoName(asn.getAssignmentUuid(), asn.getAuthorName());
-            String reviewerPseudo = pseudonameSvc.getOrCreatePseudoName(asn.getAssignmentUuid(), asn.getReviewerName());
-
-            AssignmentMetadataDto dto = new AssignmentMetadataDto(
-                    asn.getAssignmentUuid(),
-                    asn.getProjectName(),
-                    authorPseudo,
-                    reviewerPseudo);
-            assignmentDtos.add(dto);
-        }
-
-        return assignmentDtos;
+        return reviewAssignmentRepo.findByReviewerName(reviewerName).stream()
+                .map(asn -> {
+                    String authorPseudo = nameRepo
+                            .findByAssignmentUuidAndRealName(asn.getAssignmentUuid(), asn.getAuthorName())
+                            .map(PseudoNameEntity::getPseudoName)
+                            .orElseThrow();
+                    String reviewerPseudo = nameRepo
+                            .findByAssignmentUuidAndRealName(asn.getAssignmentUuid(), asn.getReviewerName())
+                            .map(PseudoNameEntity::getPseudoName)
+                            .orElseThrow();
+                    return new AssignmentMetadataDto(
+                            asn.getAssignmentUuid(),
+                            asn.getProjectName(),
+                            authorPseudo,
+                            reviewerPseudo);
+                })
+                .toList();
     }
 
 }

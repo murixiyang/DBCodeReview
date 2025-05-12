@@ -1,5 +1,6 @@
 package ic.ac.uk.db_pcr_backend.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,6 +10,9 @@ import ic.ac.uk.db_pcr_backend.entity.PseudoNameEntity;
 
 public interface PseudoNameRepository extends JpaRepository<PseudoNameEntity, Long> {
     Optional<PseudoNameEntity> findByAssignmentUuidAndRealName(String uuid, String realName);
+
+    /** Fetch all pseudonyms for any of these assignmentUuids */
+    List<PseudoNameEntity> findByAssignmentUuidIn(Collection<String> assignmentUuids);
 
     List<PseudoNameEntity> findByAssignmentUuid(String uuid);
 

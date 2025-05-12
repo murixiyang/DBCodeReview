@@ -16,7 +16,7 @@ import { GitlabService } from '../../http/gitlab.service';
 export class MaintainDetailComponent implements OnInit {
   projects: ProjectSchema[] = [];
   projectId!: number;
-  reviewerNum: number = 1;
+  reviewerNum: number = 2;
   reviewAssignments: ReviewAssignment[] = [];
 
   constructor(

@@ -76,6 +76,14 @@
 			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 
+		<!-- Another database choice for high concurrency-->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>2.1.214</version>
+		</dependency>
+
+
 		<!-- GitLab4J-API supports both GitLab Community Edition (gitlab-ce) and GitLab Enterprise
 		Edition (gitlab-ee). -->
 		<dependency>

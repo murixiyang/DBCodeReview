@@ -3,28 +3,29 @@ package ic.ac.uk.db_pcr_backend.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.springframework.stereotype.Service;
 
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MaintainService {
 
     private final GitLabService gitlabSvc;
+    private final PseudoNameService pseudoNameSvc;
 
     private final ReviewAssignmentRepository reviewAssignmentRepo;
 
     public MaintainService(
-            GitLabService gitLabService, ReviewAssignmentRepository repo) {
+            GitLabService gitLabService,
+            PseudoNameService pseudoNameService,
+            ReviewAssignmentRepository repo) {
         this.gitlabSvc = gitLabService;
+        this.pseudoNameSvc = pseudoNameService;
         this.reviewAssignmentRepo = repo;
     }
 
@@ -71,7 +72,11 @@ public class MaintainService {
         }
 
         // Store into database
-        return reviewAssignmentRepo.saveAll(assignments);
+        assignments = reviewAssignmentRepo.saveAll(assignments);
+
+        pseudoNameSvc.batchGenerateName(assignments);
+
+        return assignments;
     }
 
     /** Helper to fetch existing assignments as DTOs if you need them. */
