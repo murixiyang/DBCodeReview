@@ -40,7 +40,6 @@ import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
 import ic.ac.uk.db_pcr_backend.dto.ReviewAssignmentDto;
-import ic.ac.uk.db_pcr_backend.dto.ReviewMetaDto;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepository;
@@ -306,18 +305,6 @@ public class GerritService {
         }
 
         return projects;
-    }
-
-    public ReviewMetaDto getReviewAssignmentByUuid(String assignmentUuid, String reviewerName, String accessToken) {
-        // 1) Fetch the GitLab OAuth token for this user/session
-        ReviewAssignmentEntity assignment = reviewAssignmentRepo
-                .findByAssignmentUuidAndReviewerName(assignmentUuid, reviewerName)
-                .orElseThrow(() -> new IllegalArgumentException("Review assignment not found"));
-
-        // Not expose the author name
-        return new ReviewMetaDto(
-                assignment.getAssignmentUuid(),
-                assignment.getProjectName());
     }
 
 }
