@@ -45,7 +45,8 @@ public class MaintainController {
                 .map(a -> new ReviewAssignmentDto(
                         a.getAssignmentUuid(),
                         a.getGroupProjectId(),
-                        a.getForkProjectId(),
+                        a.getProjectName(),
+                        a.getAuthorName(),
                         a.getReviewerName()))
                 .toList();
 
@@ -76,7 +77,8 @@ public class MaintainController {
                 .map(a -> new ReviewAssignmentDto(
                         a.getAssignmentUuid(),
                         a.getGroupProjectId(),
-                        a.getForkProjectId(),
+                        a.getProjectName(),
+                        a.getAuthorName(),
                         a.getReviewerName()))
                 .toList();
 

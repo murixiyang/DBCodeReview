@@ -4,22 +4,21 @@ public class ReviewAssignmentDto {
 
     private String assignmentUuid;
     private String groupProjectId;
-    private String forkProjectId;
+    private String projectName;
+    private String authorName;
     private String reviewerName;
-
-    /**
-     * Never exposes the authorName in URLs—only assignmentUuid and both IDs.
-     */
 
     // Constructors
     public ReviewAssignmentDto(
             String assignmentUuid,
             String groupProjectId,
-            String forkProjectId,
+            String projectName,
+            String authorName,
             String reviewerName) {
         this.assignmentUuid = assignmentUuid;
         this.groupProjectId = groupProjectId;
-        this.forkProjectId = forkProjectId;
+        this.projectName = projectName;
+        this.authorName = authorName;
         this.reviewerName = reviewerName;
     }
 
@@ -40,12 +39,20 @@ public class ReviewAssignmentDto {
         this.groupProjectId = groupProjectId;
     }
 
-    public String getForkProjectId() {
-        return forkProjectId;
+    public String getProjectName() {
+        return projectName;
     }
 
-    public void setForkProjectId(String forkProjectId) {
-        this.forkProjectId = forkProjectId;
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
     }
 
     public String getReviewerName() {

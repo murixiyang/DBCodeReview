@@ -33,10 +33,7 @@ export class MaintainDetailComponent implements OnInit {
         if (ps.length) {
           this.projectId = ps[0].id;
 
-          this.maintainSvc.getAssignedList(this.projectId).subscribe({
-            next: (assignments) => (this.reviewAssignments = assignments),
-            error: (err) => console.error('Failed to load reviewers', err),
-          });
+          this.showAssigned();
         }
       },
       error: (err) => console.error('Failed to load projects', err),

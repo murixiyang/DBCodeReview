@@ -30,7 +30,7 @@ public class ReviewAssignmentEntity {
 
     /** The individual fork that the author made */
     @Column(nullable = false, updatable = false)
-    private String forkProjectId;
+    private String projectName;
 
     @Column(nullable = false, updatable = false)
     private String authorName;
@@ -53,11 +53,11 @@ public class ReviewAssignmentEntity {
 
     public ReviewAssignmentEntity(
             String groupProjectId,
-            String forkProjectId,
+            String projectName,
             String authorName,
             String reviewerName) {
         this.groupProjectId = groupProjectId;
-        this.forkProjectId = forkProjectId;
+        this.projectName = projectName;
         this.authorName = authorName;
         this.reviewerName = reviewerName;
     }
@@ -75,8 +75,8 @@ public class ReviewAssignmentEntity {
         return groupProjectId;
     }
 
-    public String getForkProjectId() {
-        return forkProjectId;
+    public String getProjectName() {
+        return projectName;
     }
 
     public String getAuthorName() {

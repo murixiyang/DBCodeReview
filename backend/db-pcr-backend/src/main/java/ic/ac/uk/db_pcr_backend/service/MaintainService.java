@@ -47,6 +47,9 @@ public class MaintainService {
         // Shuffle students for randomness
         Collections.shuffle(students);
 
+        Project groupProject = gitlabSvc.getGroupProjectById(groupId, groupProjectId, oauthToken);
+        String projectName = groupProject.getName();
+
         // Build assignments
         List<ReviewAssignmentEntity> assignments = new ArrayList<>();
         for (int i = 0; i < studentNum; i++) {
@@ -54,13 +57,12 @@ public class MaintainService {
 
             // Find author's fork project id
             String authorName = author.getUsername();
-            String forkProjectId = gitlabSvc.getForkProjectId(groupProjectId, authorName, oauthToken);
 
             for (int k = 1; k <= reviewersPerStudent; k++) {
                 Member reviewer = students.get((i + k) % studentNum);
                 ReviewAssignmentEntity assignment = new ReviewAssignmentEntity(
                         groupProjectId,
-                        forkProjectId,
+                        projectName,
                         authorName,
                         reviewer.getUsername());
 
@@ -87,10 +89,6 @@ public class MaintainService {
         Set<String> groupProjectIds = assigns.stream()
                 .map(ReviewAssignmentEntity::getGroupProjectId)
                 .collect(Collectors.toSet());
-
-        System.out.println("DBLOG: Project IDs: " + groupProjectIds);
-
-        System.out.println("DBLOG: Group ID: " + groupId);
 
         // Fetch project from GitLab
         List<Project> projects = new ArrayList<>();

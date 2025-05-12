@@ -75,23 +75,6 @@ public class GitLabService {
         }
     }
 
-    /** Get the fork id for a user for a group project */
-    public String getForkProjectId(String groupProjectId, String username, String oauthToken)
-            throws GitLabApiException {
-        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
-            List<Project> forks = gitLabApi.getProjectApi()
-                    .getForks(groupProjectId);
-
-            return forks.stream()
-                    .filter(f -> f.getNamespace().getPath().equalsIgnoreCase(username))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "No fork found for " + username))
-                    .getId().toString();
-
-        }
-    }
-
     /** Get git clone URL for a project id */
     public String getProjectCloneUrl(String projectId, String oauthToken) throws GitLabApiException {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
