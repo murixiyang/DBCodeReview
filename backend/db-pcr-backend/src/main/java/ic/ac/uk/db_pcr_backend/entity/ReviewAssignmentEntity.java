@@ -1,33 +1,63 @@
 package ic.ac.uk.db_pcr_backend.entity;
 
+import java.time.Instant;
+import java.util.UUID;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "review_assignments", uniqueConstraints = @UniqueConstraint(columnNames = { "projectId", "authorName",
-        "reviewerName" }))
+@Table(name = "review_assignments", uniqueConstraints = @UniqueConstraint(columnNames = "assignment_uuid"))
 public class ReviewAssignmentEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String projectId;
-    private String projectName;
+    /** Opaque UUID used in reviewer URLs */
+    @Column(name = "assignment_uuid", nullable = false, unique = true, updatable = false)
+    private String assignmentUuid;
+
+    /** The “template” project that everyone forked from */
+    @Column(nullable = false, updatable = false)
+    private String groupProjectId;
+
+    /** The individual fork that the author made */
+    @Column(nullable = false, updatable = false)
+    private String forkProjectId;
+
+    @Column(nullable = false, updatable = false)
     private String authorName;
+
+    @Column(nullable = false, updatable = false)
     private String reviewerName;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.assignmentUuid = UUID.randomUUID().toString();
+        this.createdAt = Instant.now();
+    }
 
     // Constructors
     public ReviewAssignmentEntity() {
     }
 
-    public ReviewAssignmentEntity(String projectId, String projectName, String authorName, String reviewerName) {
-        this.projectId = projectId;
-        this.projectName = projectName;
+    public ReviewAssignmentEntity(
+            String groupProjectId,
+            String forkProjectId,
+            String authorName,
+            String reviewerName) {
+        this.groupProjectId = groupProjectId;
+        this.forkProjectId = forkProjectId;
         this.authorName = authorName;
         this.reviewerName = reviewerName;
     }
@@ -37,40 +67,31 @@ public class ReviewAssignmentEntity {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public String getAssignmentUuid() {
+        return assignmentUuid;
     }
 
-    public String getProjectId() {
-        return projectId;
+    public String getGroupProjectId() {
+        return groupProjectId;
     }
 
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
-    }
-
-    public String getProjectName() {
-        return projectName;
-    }
-
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
+    public String getForkProjectId() {
+        return forkProjectId;
     }
 
     public String getAuthorName() {
         return authorName;
     }
 
-    public void setAuthorName(String authorName) {
-        this.authorName = authorName;
-    }
-
     public String getReviewerName() {
         return reviewerName;
     }
 
-    public void setReviewerName(String reviewerName) {
-        this.reviewerName = reviewerName;
+    public Instant getCreatedAt() {
+        return createdAt;
     }
+
+    // (No setters for immutable fields: all fields except id are set in constructor
+    // or @PrePersist)
 
 }

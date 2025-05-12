@@ -29,7 +29,7 @@ public class MaintainService {
     }
 
     @Transactional
-    public List<ReviewAssignmentEntity> assignReviewers(String groupId, String projectId, String projectName,
+    public List<ReviewAssignmentEntity> assignReviewers(String groupId, String groupProjectId,
             int reviewersPerStudent,
             String oauthToken) throws Exception {
 
@@ -42,7 +42,7 @@ public class MaintainService {
         }
 
         // Clear any existing assignments for this project
-        reviewAssignmentRepo.deleteByProjectId(projectId);
+        reviewAssignmentRepo.deleteByGroupProjectId(groupProjectId);
 
         // Shuffle students for randomness
         Collections.shuffle(students);
@@ -51,13 +51,19 @@ public class MaintainService {
         List<ReviewAssignmentEntity> assignments = new ArrayList<>();
         for (int i = 0; i < studentNum; i++) {
             Member author = students.get(i);
+
+            // Find author's fork project id
+            String authorName = author.getUsername();
+            String forkProjectId = gitlabSvc.getForkProjectId(groupProjectId, authorName, oauthToken);
+
             for (int k = 1; k <= reviewersPerStudent; k++) {
                 Member reviewer = students.get((i + k) % studentNum);
-                ReviewAssignmentEntity assignment = new ReviewAssignmentEntity();
-                assignment.setProjectId(projectId);
-                assignment.setProjectName(projectName);
-                assignment.setAuthorName(author.getUsername());
-                assignment.setReviewerName(reviewer.getUsername());
+                ReviewAssignmentEntity assignment = new ReviewAssignmentEntity(
+                        groupProjectId,
+                        forkProjectId,
+                        authorName,
+                        reviewer.getUsername());
+
                 assignments.add(assignment);
             }
         }
@@ -67,8 +73,8 @@ public class MaintainService {
     }
 
     /** Helper to fetch existing assignments as DTOs if you need them. */
-    public List<ReviewAssignmentEntity> getAssignmentsForProject(String projectId) {
-        return reviewAssignmentRepo.findByProjectId(projectId);
+    public List<ReviewAssignmentEntity> getAssignmentsForProject(String groupProjectId) {
+        return reviewAssignmentRepo.findByGroupProjectId(groupProjectId);
     }
 
     /** Get projects that a user is assigned as reviewer */
@@ -77,18 +83,18 @@ public class MaintainService {
         // Get project where the user is reviewer
         List<ReviewAssignmentEntity> assigns = reviewAssignmentRepo.findByReviewerName(username);
 
-        // Get project Id
-        Set<String> projectIds = assigns.stream()
-                .map(ReviewAssignmentEntity::getProjectId)
+        // Get group project Id
+        Set<String> groupProjectIds = assigns.stream()
+                .map(ReviewAssignmentEntity::getGroupProjectId)
                 .collect(Collectors.toSet());
 
-        System.out.println("DBLOG: Project IDs: " + projectIds);
+        System.out.println("DBLOG: Project IDs: " + groupProjectIds);
 
         System.out.println("DBLOG: Group ID: " + groupId);
 
         // Fetch project from GitLab
         List<Project> projects = new ArrayList<>();
-        for (String projectId : projectIds) {
+        for (String projectId : groupProjectIds) {
             Project project = gitlabSvc.getGroupProjectById(groupId, projectId, oauthToken);
             projects.add(project);
         }

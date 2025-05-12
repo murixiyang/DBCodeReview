@@ -43,9 +43,9 @@ public class MaintainController {
         // map entity → DTO
         List<ReviewAssignmentDto> dtos = saved.stream()
                 .map(a -> new ReviewAssignmentDto(
-                        a.getProjectId(),
-                        a.getProjectName(),
-                        a.getAuthorName(),
+                        a.getAssignmentUuid(),
+                        a.getGroupProjectId(),
+                        a.getForkProjectId(),
                         a.getReviewerName()))
                 .toList();
 
@@ -68,18 +68,15 @@ public class MaintainController {
 
         String accessToken = client.getAccessToken().getTokenValue();
 
-        Project project = this.gitlabSvc.getGroupProjectById(groupId, projectId, accessToken);
-        String projectName = project.getName();
-        List<ReviewAssignmentEntity> saved = maintainSvc.assignReviewers(groupId, projectId, projectName,
-                reviewerNum,
-                accessToken);
+        List<ReviewAssignmentEntity> saved = maintainSvc.assignReviewers(groupId, projectId,
+                reviewerNum, accessToken);
 
         // map entity → DTO
         List<ReviewAssignmentDto> dtos = saved.stream()
                 .map(a -> new ReviewAssignmentDto(
-                        a.getProjectId(),
-                        a.getProjectName(),
-                        a.getAuthorName(),
+                        a.getAssignmentUuid(),
+                        a.getGroupProjectId(),
+                        a.getForkProjectId(),
                         a.getReviewerName()))
                 .toList();
 

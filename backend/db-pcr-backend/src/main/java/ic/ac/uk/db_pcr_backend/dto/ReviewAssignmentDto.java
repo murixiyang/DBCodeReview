@@ -2,43 +2,50 @@ package ic.ac.uk.db_pcr_backend.dto;
 
 public class ReviewAssignmentDto {
 
-    private String projectId;
-    private String projectName;
-    private String authorName;
+    private String assignmentUuid;
+    private String groupProjectId;
+    private String forkProjectId;
     private String reviewerName;
 
+    /**
+     * Never exposes the authorName in URLs—only assignmentUuid and both IDs.
+     */
+
     // Constructors
-    public ReviewAssignmentDto(String projectId, String projectName, String authorName, String reviewerName) {
-        this.projectId = projectId;
-        this.projectName = projectName;
-        this.authorName = authorName;
+    public ReviewAssignmentDto(
+            String assignmentUuid,
+            String groupProjectId,
+            String forkProjectId,
+            String reviewerName) {
+        this.assignmentUuid = assignmentUuid;
+        this.groupProjectId = groupProjectId;
+        this.forkProjectId = forkProjectId;
         this.reviewerName = reviewerName;
     }
 
     // Getters and Setters
-
-    public String getProjectId() {
-        return projectId;
+    public String getAssignmentUuid() {
+        return assignmentUuid;
     }
 
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
+    public void setAssignmentUuid(String assignmentUuid) {
+        this.assignmentUuid = assignmentUuid;
     }
 
-    public String getProjectName() {
-        return projectName;
+    public String getGroupProjectId() {
+        return groupProjectId;
     }
 
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
+    public void setGroupProjectId(String groupProjectId) {
+        this.groupProjectId = groupProjectId;
     }
 
-    public String getAuthorName() {
-        return authorName;
+    public String getForkProjectId() {
+        return forkProjectId;
     }
 
-    public void setAuthorName(String authorName) {
-        this.authorName = authorName;
+    public void setForkProjectId(String forkProjectId) {
+        this.forkProjectId = forkProjectId;
     }
 
     public String getReviewerName() {
