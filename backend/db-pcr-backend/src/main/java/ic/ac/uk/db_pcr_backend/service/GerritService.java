@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,8 @@ import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
+import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.models.Project;
 
 import com.google.gerrit.extensions.api.GerritApi;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
@@ -33,7 +39,11 @@ import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
+import ic.ac.uk.db_pcr_backend.dto.ReviewAssignmentDto;
+import ic.ac.uk.db_pcr_backend.dto.ReviewMetaDto;
+import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
+import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepository;
 import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepository;
 
 @Service
@@ -50,6 +60,7 @@ public class GerritService {
     private final GerritRestApiFactory gerritApiFactory;
 
     private final SubmissionTrackerRepository submissionTrackerRepo;
+    private final ReviewAssignmentRepository reviewAssignmentRepo;
 
     public GerritService(
             GitLabService gitLabService,
@@ -58,7 +69,8 @@ public class GerritService {
             @Value("${gerrit.username}") String gerritUsername,
             @Value("${gerrit.password}") String gerritHttpPassword,
             @Value("${gerrit.branch:master}") String gerritBranch,
-            SubmissionTrackerRepository submissionTrackerRepo) {
+            SubmissionTrackerRepository submissionTrackerRepo,
+            ReviewAssignmentRepository reviewAssignmentRepo) {
 
         this.gitLabSvc = gitLabService;
         this.gerritHttpUrl = gerritHttpUrl;
@@ -71,8 +83,10 @@ public class GerritService {
                 gerritHttpUrl, gerritUsername, gerritHttpPassword);
         this.gerritApiFactory = new GerritRestApiFactory();
         this.submissionTrackerRepo = submissionTrackerRepo;
+        this.reviewAssignmentRepo = reviewAssignmentRepo;
     }
 
+    // ** Submit one/several gitlab commits to gerrit */ */
     public String submitForReview(String projectId, String targetSha, String gitlabToken, String username)
             throws Exception {
         String cloneUrl = gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
@@ -269,6 +283,41 @@ public class GerritService {
                 .map(u -> u.getNewObjectId().getName())
                 .findFirst()
                 .orElseThrow();
+    }
+
+    /** ----- Submission helper ends here ----- */
+
+    /** Get projects that a user is assigned as reviewer */
+    public List<Project> getProjectsToReview(String username, String groupId, String oauthToken)
+            throws GitLabApiException {
+        // Get project where the user is reviewer
+        List<ReviewAssignmentEntity> assigns = reviewAssignmentRepo.findByReviewerName(username);
+
+        // Get group project Id
+        Set<String> groupProjectIds = assigns.stream()
+                .map(ReviewAssignmentEntity::getGroupProjectId)
+                .collect(Collectors.toSet());
+
+        // Fetch project from GitLab
+        List<Project> projects = new ArrayList<>();
+        for (String projectId : groupProjectIds) {
+            Project project = gitLabSvc.getGroupProjectById(groupId, projectId, oauthToken);
+            projects.add(project);
+        }
+
+        return projects;
+    }
+
+    public ReviewMetaDto getReviewAssignmentByUuid(String assignmentUuid, String reviewerName, String accessToken) {
+        // 1) Fetch the GitLab OAuth token for this user/session
+        ReviewAssignmentEntity assignment = reviewAssignmentRepo
+                .findByAssignmentUuidAndReviewerName(assignmentUuid, reviewerName)
+                .orElseThrow(() -> new IllegalArgumentException("Review assignment not found"));
+
+        // Not expose the author name
+        return new ReviewMetaDto(
+                assignment.getAssignmentUuid(),
+                assignment.getProjectName());
     }
 
 }

@@ -1,16 +1,21 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
+import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import ic.ac.uk.db_pcr_backend.dto.ReviewAssignmentDto;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -19,11 +24,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 public class GerritController {
 
     @Autowired
-    private GerritService gerritService;
+    private GerritService gerritSvc;
 
     public static record ReviewRequest(String projectId, String sha) {
     }
 
+    /** Get the projects that the user needs to review */
+    @GetMapping("/get-projects-to-review")
+    public List<Project> getProjectsToReview(
+            @RequestParam("username") String username,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+
+        return gerritSvc.getProjectsToReview(username, groupId, client.getAccessToken().getTokenValue());
+    }
+
+    /** Push some gitlab commits to gerrit */
     @PostMapping("/post-request-review")
     public ResponseEntity<Map<String, String>> requestReview(
             @RequestBody ReviewRequest req,
@@ -35,7 +50,7 @@ public class GerritController {
         String username = principal.getName();
 
         // 2) Delegate to the service
-        String gerritChangeId = gerritService.submitForReview(
+        String gerritChangeId = gerritSvc.submitForReview(
                 req.projectId(), req.sha(), accessToken, username);
 
         // 3) Return the new Change number to the frontend

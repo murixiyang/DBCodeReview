@@ -38,16 +38,4 @@ export class MaintainService {
       }
     );
   }
-
-  /** Get the list of projects that user being assigned as reviewer */
-  getProjectsToReview(username: string): Observable<ProjectSchema[]> {
-    const params = new HttpParams().set('username', username);
-
-    return this.http.get<ProjectSchema[]>(
-      `${this.baseUrl}/projects-to-review`,
-      {
-        params,
-      }
-    );
-  }
 }

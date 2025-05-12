@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { ProjectSchema } from '@gitbeaker/rest';
 import { MaintainService } from '../http/maintain.service';
 import { AuthService } from '../service/auth.service';
+import { GerritService } from '../http/gerrit.service';
 
 @Component({
   imports: [NgFor, AsyncPipe],
@@ -19,19 +20,19 @@ export class ProjectListComponent implements OnInit {
   username: string | null = null;
 
   constructor(
-    private gitLabService: GitlabService,
-    private maintainSvc: MaintainService,
+    private gitLabSvc: GitlabService,
+    private gerritSvc: GerritService,
     private authSvc: AuthService,
     private router: Router
   ) {}
 
   ngOnInit() {
-    this.projects$ = this.gitLabService.getProjects();
+    this.projects$ = this.gitLabSvc.getProjects();
 
     this.authSvc.getUser().subscribe((user) => {
       this.username = user;
 
-      this.projectsToReview$ = this.maintainSvc.getProjectsToReview(
+      this.projectsToReview$ = this.gerritSvc.getProjectsToReview(
         this.username!
       );
     });
