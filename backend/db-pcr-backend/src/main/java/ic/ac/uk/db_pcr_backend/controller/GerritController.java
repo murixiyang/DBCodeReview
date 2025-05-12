@@ -29,15 +29,6 @@ public class GerritController {
     public static record ReviewRequest(String projectId, String sha) {
     }
 
-    /** Get the projects that the user needs to review */
-    @GetMapping("/get-projects-to-review")
-    public List<Project> getProjectsToReview(
-            @RequestParam("username") String username,
-            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
-
-        return gerritSvc.getProjectsToReview(username, groupId, client.getAccessToken().getTokenValue());
-    }
-
     /** Push some gitlab commits to gerrit */
     @PostMapping("/post-request-review")
     public ResponseEntity<Map<String, String>> requestReview(

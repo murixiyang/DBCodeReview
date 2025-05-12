@@ -7,6 +7,7 @@ import { ProjectSchema } from '@gitbeaker/rest';
 import { MaintainService } from '../http/maintain.service';
 import { AuthService } from '../service/auth.service';
 import { GerritService } from '../http/gerrit.service';
+import { ReviewService } from '../http/review.service';
 
 @Component({
   imports: [NgFor, AsyncPipe],
@@ -21,7 +22,7 @@ export class ProjectListComponent implements OnInit {
 
   constructor(
     private gitLabSvc: GitlabService,
-    private gerritSvc: GerritService,
+    private reviewSvc: ReviewService,
     private authSvc: AuthService,
     private router: Router
   ) {}
@@ -32,7 +33,7 @@ export class ProjectListComponent implements OnInit {
     this.authSvc.getUser().subscribe((user) => {
       this.username = user;
 
-      this.projectsToReview$ = this.gerritSvc.getProjectsToReview(
+      this.projectsToReview$ = this.reviewSvc.getProjectsToReview(
         this.username!
       );
     });
@@ -40,5 +41,9 @@ export class ProjectListComponent implements OnInit {
 
   navigateToCommitList(projectId: number) {
     this.router.navigate(['/commit-list', projectId]);
+  }
+
+  navigateToReviewList(projectId: number) {
+    this.router.navigate(['/review-list', projectId]);
   }
 }
