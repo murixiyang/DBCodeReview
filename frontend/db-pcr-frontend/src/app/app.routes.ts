@@ -10,6 +10,7 @@ export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
   { path: 'commit-list/:projectId', component: CommitListComponent },
   { path: 'commit-detail/:projectId/:sha', component: CommitDetailComponent },
+  { path: 'review/commit-list/:projectId', component: CommitListComponent },
   { path: 'maintain/project-list', component: MaintainListComponent },
   { path: 'maintain/:projectId', component: MaintainDetailComponent },
   { path: '', redirectTo: '/project-list', pathMatch: 'full' },
