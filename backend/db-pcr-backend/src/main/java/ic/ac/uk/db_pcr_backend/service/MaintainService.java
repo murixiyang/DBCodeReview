@@ -72,11 +72,7 @@ public class MaintainService {
         }
 
         // Store into database
-        assignments = reviewAssignmentRepo.saveAll(assignments);
-
-        pseudoNameSvc.batchGenerateName(assignments);
-
-        return assignments;
+        return reviewAssignmentRepo.saveAll(assignments);
     }
 
     /** Helper to fetch existing assignments as DTOs if you need them. */
