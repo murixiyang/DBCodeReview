@@ -1,10 +1,26 @@
-<div class="page-container">
-  <h1>Who’s version of “{{ projectName }}”?</h1>
+<div class="review-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2>{{ projectName }}</h2>
+    <ul>
+      <li
+        *ngFor="let a of assignmentMetadata"
+        [class.active]="a.assignmentUuid === selectedAssignment?.assignmentUuid"
+        (click)="select(a)"
+      >
+        {{ a.authorPseudoName }}
+      </li>
+    </ul>
+  </aside>
 
-  <div *ngIf="assignmentMetadata$ | async as authors">
-    <button *ngFor="let a of authors" class="change-link">
-      {{ a.authorPseudoName }}’s {{ projectName }}
-    </button>
-    <p *ngIf="!authors.length">No submissions found.</p>
-  </div>
+  <!-- Detail pane -->
+  <section class="detail" *ngIf="selectedAssignment">
+    <h3>
+      Reviewing {{ projectName }} by {{ selectedAssignment.authorPseudoName }}
+    </h3>
+    <app-review-commit-list
+      [assignmentUuid]="selectedAssignment.assignmentUuid"
+    >
+    </app-review-commit-list>
+  </section>
 </div>

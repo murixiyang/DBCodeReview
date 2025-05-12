@@ -5,10 +5,11 @@ import { AssignmentMetadata } from '../../interface/assignment-metadata';
 import { map, Observable } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { ReviewCommitListComponent } from '../review-commit-list/review-commit-list.component';
 
 @Component({
   selector: 'app-review-list',
-  imports: [NgIf, NgFor, AsyncPipe],
+  imports: [NgIf, NgFor, ReviewCommitListComponent],
   templateUrl: './review-list.component.html',
   styleUrl: './review-list.component.css',
 })
@@ -16,7 +17,8 @@ export class ReviewListComponent {
   projectName!: string;
   username: string | null = null;
 
-  assignmentMetadata$!: Observable<AssignmentMetadata[]>;
+  assignmentMetadata!: AssignmentMetadata[];
+  selectedAssignment?: AssignmentMetadata;
 
   constructor(
     private reviewSvc: ReviewService,
@@ -32,11 +34,22 @@ export class ReviewListComponent {
       this.username = user;
       console.log('Username:', this.username);
 
-      this.assignmentMetadata$ = this.reviewSvc
+      this.reviewSvc
         .getAssignmentMetadata(this.username!)
         .pipe(
           map((list) => list.filter((a) => a.projectName === this.projectName))
-        );
+        )
+        .subscribe((list) => {
+          this.assignmentMetadata = list;
+
+          if (list.length) {
+            this.select(list[0]);
+          }
+        });
     });
+  }
+
+  select(a: AssignmentMetadata) {
+    this.selectedAssignment = a;
   }
 }
