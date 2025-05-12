@@ -18,15 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 import ic.ac.uk.db_pcr_backend.dto.ReviewAssignmentDto;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.service.GitLabService;
-import ic.ac.uk.db_pcr_backend.service.MaintainanceService;
+import ic.ac.uk.db_pcr_backend.service.MaintainService;
 
 @RestController
 @RequestMapping("/api/maintain")
 @PreAuthorize("hasRole('MAINTAINER')")
-public class MaintainanceController {
+public class MaintainController {
 
     @Autowired
-    private MaintainanceService maintainanceSvc;
+    private MaintainService maintainSvc;
 
     @Autowired
     private GitLabService gitlabSvc;
@@ -38,7 +38,7 @@ public class MaintainanceController {
     public ResponseEntity<List<ReviewAssignmentDto>> getAssignedList(
             @RequestParam("projectId") String projectId) throws Exception {
 
-        List<ReviewAssignmentEntity> saved = maintainanceSvc.getAssignmentsForProject(projectId);
+        List<ReviewAssignmentEntity> saved = maintainSvc.getAssignmentsForProject(projectId);
 
         // map entity → DTO
         List<ReviewAssignmentDto> dtos = saved.stream()
@@ -57,7 +57,7 @@ public class MaintainanceController {
             @RequestParam("username") String username,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
 
-        return maintainanceSvc.getProjectsToReview(username, groupId, client.getAccessToken().getTokenValue());
+        return maintainSvc.getProjectsToReview(username, groupId, client.getAccessToken().getTokenValue());
     }
 
     @PostMapping("/assign")
@@ -70,7 +70,7 @@ public class MaintainanceController {
 
         Project project = this.gitlabSvc.getGroupProjectById(groupId, projectId, accessToken);
         String projectName = project.getName();
-        List<ReviewAssignmentEntity> saved = maintainanceSvc.assignReviewers(groupId, projectId, projectName,
+        List<ReviewAssignmentEntity> saved = maintainSvc.assignReviewers(groupId, projectId, projectName,
                 reviewerNum,
                 accessToken);
 

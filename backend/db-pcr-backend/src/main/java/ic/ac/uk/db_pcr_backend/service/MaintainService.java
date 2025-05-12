@@ -16,13 +16,13 @@ import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepository;
 import jakarta.transaction.Transactional;
 
 @Service
-public class MaintainanceService {
+public class MaintainService {
 
     private final GitLabService gitlabSvc;
 
     private final ReviewAssignmentRepository reviewAssignmentRepo;
 
-    public MaintainanceService(
+    public MaintainService(
             GitLabService gitLabService, ReviewAssignmentRepository repo) {
         this.gitlabSvc = gitLabService;
         this.reviewAssignmentRepo = repo;
