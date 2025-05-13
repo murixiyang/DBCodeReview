@@ -117,8 +117,8 @@ public class ReviewService {
     }
 
     // * Get ChangeDiff by changeId */
-    public List<ChangeDiffDto> getDiffs(String changeId) throws RestApiException {
-        return gerritSvc.getDiffs(changeId);
+    public String getDiffs(String changeId) throws RestApiException {
+        return gerritSvc.fetchRawPatch(changeId, "current");
     }
 
 }

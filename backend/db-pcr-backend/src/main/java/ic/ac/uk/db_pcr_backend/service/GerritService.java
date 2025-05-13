@@ -4,15 +4,19 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
-
+import org.springframework.web.client.RestTemplate;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -47,6 +51,8 @@ import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepository;
 
 @Service
 public class GerritService {
+    private final RestTemplateBuilder builder;
+
     private final GitLabService gitLabSvc;
 
     private final String gerritHttpUrl;
@@ -62,6 +68,7 @@ public class GerritService {
     private final SubmissionTrackerRepository submissionTrackerRepo;
 
     public GerritService(
+            RestTemplateBuilder builder,
             GitLabService gitLabService,
             @Value("${gerrit.url}") String gerritHttpUrl,
             @Value("${gerrit.auth.url}") String gerritAuthUrl,
@@ -69,6 +76,8 @@ public class GerritService {
             @Value("${gerrit.password}") String gerritHttpPassword,
             @Value("${gerrit.branch:master}") String gerritBranch,
             SubmissionTrackerRepository submissionTrackerRepo) {
+
+        this.builder = builder;
 
         this.gitLabSvc = gitLabService;
         this.gerritHttpUrl = gerritHttpUrl;
@@ -91,6 +100,35 @@ public class GerritService {
         return gerritApi.changes()
                 .query("project:" + path)
                 .get();
+    }
+
+    public String fetchRawPatch(String changeId, String revisionId) {
+        String url = "/changes/" + URLEncoder.encode(changeId, StandardCharsets.UTF_8)
+                + "/revisions/" + revisionId
+                + "/patch?download=true";
+
+        RestTemplate rest = builder
+                .rootUri(gerritAuthUrl)
+                .basicAuthentication(gerritUsername, gerritHttpPassword)
+                .build();
+
+        String rawB64 = rest.getForObject(url, String.class);
+        System.out.println("DBLOG: Raw patch: " + rawB64);
+        // Gerrit may still prepend the XSSI guard; strip up to the first letter of the
+        // patch
+        String stripped = rawB64.replaceFirst("(?s)^.*?(?=RnVmZik|ZGlmZik|diff)", "");
+
+        // Now decode the base64 to get the real unified diff text
+        byte[] decoded = Base64.getDecoder().decode(stripped);
+        String patch = new String(decoded, StandardCharsets.UTF_8);
+        System.out.println("DBLOG: Decoded patch: " + patch);
+
+        int idx = patch.indexOf("diff --git");
+        if (idx > 0) {
+            patch = patch.substring(idx);
+        }
+
+        return patch;
     }
 
     // * Get ChangeDiff by changeId */

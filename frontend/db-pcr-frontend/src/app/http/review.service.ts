@@ -68,19 +68,14 @@ export class ReviewService {
   }
 
   /** Get ChangeDiff for */
-  getChangeDiffs(
-    assignmentUuid: string,
-    changeId: string
-  ): Observable<ChangeDiff[]> {
+  getChangeDiffs(assignmentUuid: string, changeId: string): Observable<string> {
     const params = new HttpParams()
       .set('assignmentUuid', assignmentUuid)
       .set('changeId', changeId);
 
-    return this.http.get<ChangeDiff[]>(
-      `${this.baseUrl}/get-change-diff`,
-      {
-        params,
-      }
-    );
+    return this.http.get(`${this.baseUrl}/get-change-diff`, {
+      params,
+      responseType: 'text',
+    });
   }
 }

@@ -1,23 +1,39 @@
-import { Component, ElementRef, QueryList, ViewChildren } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+} from '@angular/core';
 import { ChangeDiff } from '../../interface/gerrit/change-diff.ts';
-import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-base.js';
+import {
+  Diff2HtmlUI,
+  Diff2HtmlUIConfig,
+} from 'diff2html/lib/ui/js/diff2html-ui-base.js';
 import { ActivatedRoute } from '@angular/router';
 import { ReviewService } from '../../http/review.service.js';
 import { NgFor, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-review-detail',
-  imports: [NgIf, NgFor],
+  imports: [],
   templateUrl: './review-detail.component.html',
   styleUrl: './review-detail.component.css',
 })
 export class ReviewDetailComponent {
   assignmentUuid!: string;
   changeId!: string;
-  diffs: ChangeDiff[] = [];
 
-  @ViewChildren('diffContainer', { read: ElementRef })
-  diffContainers!: QueryList<ElementRef<HTMLDivElement>>;
+  rawDiff: string = '';
+  private config: Diff2HtmlUIConfig = {
+    drawFileList: false,
+    outputFormat: 'side-by-side',
+    matching: 'lines',
+    highlight: true,
+  };
+
+  @ViewChild('diffContainer', { read: ElementRef })
+  diffContainer!: ElementRef<HTMLDivElement>;
 
   constructor(
     private route: ActivatedRoute,
@@ -33,31 +49,27 @@ export class ReviewDetailComponent {
   private loadDiffs() {
     this.reviewSvc
       .getChangeDiffs(this.assignmentUuid, this.changeId)
-      .subscribe((diffs) => {
-        this.diffs = diffs;
+      .subscribe((diff) => {
+        this.rawDiff = diff;
+        console.log('rawDiff', diff);
         // trigger a re-render
-        setTimeout(() => this.renderAll(), 0);
+        setTimeout(() => this.render(), 0);
       });
   }
 
   ngAfterViewInit() {
-    this.diffContainers.changes.subscribe(() => this.renderAll());
+    this.render();
   }
 
-  private renderAll() {
-    this.diffContainers.forEach((elRef, idx) => {
-      const diff = this.diffs[idx];
-      if (!diff) return;
-
-      console.log('Rendering diff:', diff);
-
-      const ui = new Diff2HtmlUI(elRef.nativeElement, diff.diff, {
-        outputFormat: 'side-by-side',
-        drawFileList: false,
-        matching: 'lines',
-        highlight: true,
-      });
-      ui.draw();
-    });
+  private render() {
+    if (!this.rawDiff || !this.diffContainer) return;
+    // clear any previous content
+    this.diffContainer.nativeElement.innerHTML = '';
+    // instantiate and draw only the diffs
+    new Diff2HtmlUI(
+      this.diffContainer.nativeElement,
+      this.rawDiff,
+      this.config
+    ).draw();
   }
 }

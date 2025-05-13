@@ -59,7 +59,7 @@ public class ReviewController {
 
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
     @GetMapping("/get-change-diff")
-    public List<ChangeDiffDto> getChangeDiff(@RequestParam("assignmentUuid") String assignmentUuid,
+    public String getChangeDiff(@RequestParam("assignmentUuid") String assignmentUuid,
             @RequestParam("changeId") String changeId) throws Exception {
         return reviewSvc.getDiffs(changeId);
     }
