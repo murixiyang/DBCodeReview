@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.dto.AssignmentMetadataDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeDiffDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeInfoDto;
 import ic.ac.uk.db_pcr_backend.service.ReviewService;
 
@@ -54,6 +55,13 @@ public class ReviewController {
     public List<ChangeInfoDto> getCommitListByUuid(@RequestParam("assignmentUuid") String assignmentUuid)
             throws Exception {
         return reviewSvc.fetchCommitsForAssignment(assignmentUuid);
+    }
+
+    /** Get Gerrit ChangeDiff via Uuid and ChangeId */
+    @GetMapping("/get-change-diff")
+    public List<ChangeDiffDto> getChangeDiff(@RequestParam("assignmentUuid") String assignmentUuid,
+            @RequestParam("changeId") String changeId) throws Exception {
+        return reviewSvc.getDiffs(changeId);
     }
 
 }

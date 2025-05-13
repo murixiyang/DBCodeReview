@@ -1,0 +1,15 @@
+/* review-detail.component.css */
+.page-container {
+  padding: 1rem;
+}
+
+.diff-container {
+  margin-bottom: 2rem;
+  border: 1px solid #ddd;
+}
+
+.empty-state {
+  margin-top: 1rem;
+  color: #666;
+  font-style: italic;
+}

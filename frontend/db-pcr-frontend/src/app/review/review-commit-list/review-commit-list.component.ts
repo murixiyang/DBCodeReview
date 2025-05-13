@@ -73,7 +73,7 @@ export class ReviewCommitListComponent {
   /** Navigate to your diff/review screen */
   startReview(item: GerritChangeListItem) {
     this.router.navigate([
-      '/review-detail',
+      '/review',
       this.assignmentUuid,
       item.change.changeId,
     ]);

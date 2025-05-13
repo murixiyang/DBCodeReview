@@ -6,12 +6,17 @@ import { MaintainDetailComponent } from './maintain/maintain-detail/maintain-det
 import { CommitListComponent } from './author-commit/commit-list/commit-list.component';
 import { CommitDetailComponent } from './author-commit/commit-details/commit-details.component';
 import { ReviewListComponent } from './review/review-list/review-list.component';
+import { ReviewDetailComponent } from './review/review-detail/review-detail.component';
 
 export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
   { path: 'commit-list/:projectId', component: CommitListComponent },
   { path: 'commit-detail/:projectId/:sha', component: CommitDetailComponent },
   { path: 'review/:projectName', component: ReviewListComponent },
+  {
+    path: 'review/:assignmentUuid/:changeId',
+    component: ReviewDetailComponent,
+  },
   { path: 'maintain/project-list', component: MaintainListComponent },
   { path: 'maintain/:projectId', component: MaintainDetailComponent },
   { path: '', redirectTo: '/project-list', pathMatch: 'full' },

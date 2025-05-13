@@ -67,6 +67,9 @@ public class PseudoNameService {
 
                     PseudoNameEntity p = new PseudoNameEntity(assignmentUuid, realName, pick);
 
+                    System.out
+                            .println("DBLOG: Create pseudonym " + pick + " for " + realName + " in " + assignmentUuid);
+
                     nameRepo.save(p);
                     return pick;
                 });

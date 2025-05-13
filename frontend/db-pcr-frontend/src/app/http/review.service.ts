@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { ProjectSchema } from '@gitbeaker/rest';
 import { AssignmentMetadata } from '../interface/assignment-metadata';
 import { ChangeInfo } from '../interface/gerrit/change-info';
+import { ChangeDiff } from '../interface/gerrit/change-diff.ts';
 
 @Injectable({
   providedIn: 'root',
@@ -58,8 +59,28 @@ export class ReviewService {
   getGerritChangeInfoByUuid(assignmentUuid: string): Observable<ChangeInfo[]> {
     const params = new HttpParams().set('assignmentUuid', assignmentUuid);
 
-    return this.http.get<ChangeInfo[]>(`${this.baseUrl}/get-commit-list-by-uuid`, {
-      params,
-    });
+    return this.http.get<ChangeInfo[]>(
+      `${this.baseUrl}/get-commit-list-by-uuid`,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Get ChangeDiff for */
+  getChangeDiffs(
+    assignmentUuid: string,
+    changeId: string
+  ): Observable<ChangeDiff[]> {
+    const params = new HttpParams()
+      .set('assignmentUuid', assignmentUuid)
+      .set('changeId', changeId);
+
+    return this.http.get<ChangeDiff[]>(
+      `${this.baseUrl}/get-change-diff`,
+      {
+        params,
+      }
+    );
   }
 }

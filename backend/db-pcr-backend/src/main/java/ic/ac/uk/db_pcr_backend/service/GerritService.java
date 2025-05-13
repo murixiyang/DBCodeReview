@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,11 +34,14 @@ import com.google.gerrit.extensions.api.projects.ProjectInput;
 import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommitInfo;
+import com.google.gerrit.extensions.common.DiffInfo;
+import com.google.gerrit.extensions.common.FileInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeDiffDto;
 import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
 import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepository;
 
@@ -52,6 +57,7 @@ public class GerritService {
 
     private final GerritAuthData.Basic gerritAuthData;
     private final GerritRestApiFactory gerritApiFactory;
+    private final GerritApi gerritApi;
 
     private final SubmissionTrackerRepository submissionTrackerRepo;
 
@@ -75,15 +81,68 @@ public class GerritService {
                 gerritHttpUrl, gerritUsername, gerritHttpPassword);
         this.gerritApiFactory = new GerritRestApiFactory();
         this.submissionTrackerRepo = submissionTrackerRepo;
+
+        this.gerritApi = gerritApiFactory.create(gerritAuthData);
     }
 
     // * Fetch commits list using repo Path */
     public List<ChangeInfo> getCommitsFromProjectPath(String path) throws Exception {
-        GerritApi gerritApi = gerritApiFactory.create(gerritAuthData);
 
         return gerritApi.changes()
                 .query("project:" + path)
                 .get();
+    }
+
+    // * Get ChangeDiff by changeId */
+    public List<ChangeDiffDto> getDiffs(String changeId) throws RestApiException {
+        // 1) Fetch the map of files changed in the current patchset
+        Map<String, FileInfo> files = gerritApi
+                .changes()
+                .id(changeId)
+                .current() // shorthand for .revision("current")
+                .files();
+
+        // 2) For each file (skip the pseudo-file "/COMMIT_MSG"), fetch its DiffInfo
+        return files.keySet().stream()
+                .filter(path -> !path.equals("/COMMIT_MSG"))
+                .map(path -> {
+                    try {
+                        DiffInfo diffInfo = gerritApi
+                                .changes()
+                                .id(changeId)
+                                .revision("current")
+                                .file(path)
+                                .diff();
+                        // 3) Render a unified‐diff header + body
+                        String header = String.join("\n",
+                                "diff --git a/" + path + " b/" + path,
+                                "--- a/" + path,
+                                "+++ b/" + path);
+                        String body = diffInfo.content.stream()
+                                .flatMap(ci -> {
+                                    // Determine which list is non-null
+                                    List<String> lines;
+                                    String prefix;
+                                    if (ci.ab != null) {
+                                        lines = ci.ab;
+                                        prefix = " ";
+                                    } else if (ci.a != null) {
+                                        lines = ci.a;
+                                        prefix = "-";
+                                    } else {
+                                        lines = ci.b;
+                                        prefix = "+";
+                                    }
+                                    // Prefix each line and return as a stream
+                                    return lines.stream().map(line -> prefix + line);
+                                })
+                                .collect(Collectors.joining("\n"));
+                        return new ChangeDiffDto(path, path, header + "\n" + body);
+                    } catch (RestApiException e) {
+                        throw new RuntimeException("Error fetching diff for " + path, e);
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
     // ** Submit one/several gitlab commits to gerrit */ */

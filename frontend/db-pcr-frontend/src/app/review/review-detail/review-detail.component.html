@@ -1,1 +1,12 @@
-<p>review-detail works!</p>
+<!-- review-detail.component.html -->
+<div class="page-container">
+  <h2>Change {{ changeId }}</h2>
+
+  <div *ngFor="let diff of diffs; let i = index">
+    <div #diffContainer class="diff-container"></div>
+  </div>
+
+  <p *ngIf="!diffs.length" class="empty-state">
+    No diffs found for change {{ changeId }}.
+  </p>
+</div>

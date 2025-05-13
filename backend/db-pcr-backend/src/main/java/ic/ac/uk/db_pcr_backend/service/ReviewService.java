@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import ic.ac.uk.db_pcr_backend.dto.AssignmentMetadataDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeDiffDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeInfoDto;
 import ic.ac.uk.db_pcr_backend.entity.PseudoNameEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
@@ -113,6 +114,11 @@ public class ReviewService {
                             change.updated.toInstant());
                 })
                 .collect(Collectors.toList());
+    }
+
+    // * Get ChangeDiff by changeId */
+    public List<ChangeDiffDto> getDiffs(String changeId) throws RestApiException {
+        return gerritSvc.getDiffs(changeId);
     }
 
 }
