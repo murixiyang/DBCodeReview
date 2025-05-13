@@ -35,7 +35,7 @@ export class ReviewListComponent {
       console.log('Username:', this.username);
 
       this.reviewSvc
-        .getAssignmentMetadata(this.username!)
+        .getAssignmentMetaForReviewer(this.username!)
         .pipe(
           map((list) => list.filter((a) => a.projectName === this.projectName))
         )

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.dto.AssignmentMetadataDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeInfoDto;
 import ic.ac.uk.db_pcr_backend.service.ReviewService;
 
 @RestController
@@ -34,10 +35,25 @@ public class ReviewController {
         return reviewSvc.getProjectsToReview(username, groupId, client.getAccessToken().getTokenValue());
     }
 
-    @GetMapping("/get-assignment-metadata")
-    public List<AssignmentMetadataDto> getMyAssignments(@RequestParam("reviewerName") String reviewerName,
+    /** Get assignment metadata for reviewer */
+    @GetMapping("/get-metadata-by-reviewer")
+    public List<AssignmentMetadataDto> getMyAssignmentsForReviewer(@RequestParam("reviewerName") String reviewerName,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
         return reviewSvc.findAssignmentsForReviewer(reviewerName);
+    }
+
+    /** Get assignment metadata for uuid */
+    @GetMapping("/get-metadata-by-uuid")
+    public List<AssignmentMetadataDto> getMyAssignmentsByUuid(@RequestParam("assignmentUuid") String assignmentUuid)
+            throws Exception {
+        return reviewSvc.findAssignmentsForReviewer(assignmentUuid);
+    }
+
+    /** Get Gerrit ChangeInfo List via Uuid */
+    @GetMapping("/get-commit-list-by-uuid")
+    public List<ChangeInfoDto> getCommitListByUuid(@RequestParam("assignmentUuid") String assignmentUuid)
+            throws Exception {
+        return reviewSvc.fetchCommitsForAssignment(assignmentUuid);
     }
 
 }

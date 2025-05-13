@@ -4,6 +4,7 @@ import { SPRING_URL_REVIEW } from '../service/constant.service';
 import { Observable } from 'rxjs';
 import { ProjectSchema } from '@gitbeaker/rest';
 import { AssignmentMetadata } from '../interface/assignment-metadata';
+import { ChangeInfo } from '../interface/gerrit/change-info';
 
 @Injectable({
   providedIn: 'root',
@@ -26,14 +27,39 @@ export class ReviewService {
   }
 
   /** Get assignment metadata for reviewers */
-  getAssignmentMetadata(username: string): Observable<AssignmentMetadata[]> {
+  getAssignmentMetaForReviewer(
+    username: string
+  ): Observable<AssignmentMetadata[]> {
     const params = new HttpParams().set('reviewerName', username);
 
     return this.http.get<AssignmentMetadata[]>(
-      `${this.baseUrl}/get-assignment-metadata`,
+      `${this.baseUrl}/get-metadata-by-reviewer`,
       {
         params,
       }
     );
+  }
+
+  /** Get assignment metadata for Uuid */
+  getAssignmentMetaByUuid(
+    assignmentUuid: string
+  ): Observable<AssignmentMetadata> {
+    const params = new HttpParams().set('assignmentUuid', assignmentUuid);
+
+    return this.http.get<AssignmentMetadata>(
+      `${this.baseUrl}/get-metadata-by-uuid`,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Get Gerrit ChangeInfo list by Uuid */
+  getGerritChangeInfoByUuid(assignmentUuid: string): Observable<ChangeInfo[]> {
+    const params = new HttpParams().set('assignmentUuid', assignmentUuid);
+
+    return this.http.get<ChangeInfo[]>(`${this.baseUrl}/get-commit-list-by-uuid`, {
+      params,
+    });
   }
 }

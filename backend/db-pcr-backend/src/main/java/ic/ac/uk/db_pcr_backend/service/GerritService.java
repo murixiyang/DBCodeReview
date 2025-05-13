@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ import org.eclipse.jgit.util.ChangeIdUtil;
 
 import com.google.gerrit.extensions.api.GerritApi;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
+import com.google.gerrit.extensions.client.ListChangesOption;
+import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.extensions.common.CommitInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
@@ -71,6 +75,15 @@ public class GerritService {
                 gerritHttpUrl, gerritUsername, gerritHttpPassword);
         this.gerritApiFactory = new GerritRestApiFactory();
         this.submissionTrackerRepo = submissionTrackerRepo;
+    }
+
+    // * Fetch commits list using repo Path */
+    public List<ChangeInfo> getCommitsFromProjectPath(String path) throws Exception {
+        GerritApi gerritApi = gerritApiFactory.create(gerritAuthData);
+
+        return gerritApi.changes()
+                .query("project:" + path)
+                .get();
     }
 
     // ** Submit one/several gitlab commits to gerrit */ */
@@ -271,7 +284,5 @@ public class GerritService {
                 .findFirst()
                 .orElseThrow();
     }
-
-    /** ----- Submission helper ends here ----- */
 
 }
