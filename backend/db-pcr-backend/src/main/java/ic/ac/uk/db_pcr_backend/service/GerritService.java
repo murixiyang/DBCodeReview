@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
@@ -46,14 +47,13 @@ import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeDiffDto;
-import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
-import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepository;
 
 @Service
 public class GerritService {
     private final RestTemplateBuilder builder;
 
-    private final GitLabService gitLabSvc;
+    @Autowired
+    private GitLabService gitLabSvc;
 
     private final String gerritHttpUrl;
     private final String gerritAuthUrl;
@@ -65,21 +65,16 @@ public class GerritService {
     private final GerritRestApiFactory gerritApiFactory;
     private final GerritApi gerritApi;
 
-    private final SubmissionTrackerRepository submissionTrackerRepo;
-
     public GerritService(
             RestTemplateBuilder builder,
-            GitLabService gitLabService,
             @Value("${gerrit.url}") String gerritHttpUrl,
             @Value("${gerrit.auth.url}") String gerritAuthUrl,
             @Value("${gerrit.username}") String gerritUsername,
             @Value("${gerrit.password}") String gerritHttpPassword,
-            @Value("${gerrit.branch:master}") String gerritBranch,
-            SubmissionTrackerRepository submissionTrackerRepo) {
+            @Value("${gerrit.branch:master}") String gerritBranch,) {
 
         this.builder = builder;
 
-        this.gitLabSvc = gitLabService;
         this.gerritHttpUrl = gerritHttpUrl;
         this.gerritAuthUrl = gerritAuthUrl;
         this.gerritUsername = gerritUsername;
@@ -89,7 +84,6 @@ public class GerritService {
         this.gerritAuthData = new GerritAuthData.Basic(
                 gerritHttpUrl, gerritUsername, gerritHttpPassword);
         this.gerritApiFactory = new GerritRestApiFactory();
-        this.submissionTrackerRepo = submissionTrackerRepo;
 
         this.gerritApi = gerritApiFactory.create(gerritAuthData);
     }

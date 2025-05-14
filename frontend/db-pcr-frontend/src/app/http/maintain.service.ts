@@ -4,6 +4,7 @@ import { SPRING_URL_MAINTAIN } from '../service/constant.service';
 import { Observable } from 'rxjs';
 import { ReviewAssignment } from '../interface/review-assignment';
 import { ProjectSchema } from '@gitbeaker/rest';
+import { ReviewAssignmentDto } from '../interface/database/review-assignment-dto';
 
 @Injectable({
   providedIn: 'root',
@@ -17,21 +18,25 @@ export class MaintainService {
   assignReviewers(
     projectId: number,
     reviewerNum: number
-  ): Observable<ReviewAssignment[]> {
+  ): Observable<ReviewAssignmentDto[]> {
     const params = new HttpParams()
       .set('projectId', projectId.toString())
       .set('reviewerNum', reviewerNum.toString());
 
-    return this.http.post<ReviewAssignment[]>(`${this.baseUrl}/assign`, null, {
-      params,
-    });
+    return this.http.post<ReviewAssignmentDto[]>(
+      `${this.baseUrl}/assign`,
+      null,
+      {
+        params,
+      }
+    );
   }
 
   /** Get the list of assignments for a project */
-  getAssignedList(projectId: number): Observable<ReviewAssignment[]> {
+  getAssignedList(projectId: number): Observable<ReviewAssignmentDto[]> {
     const params = new HttpParams().set('projectId', projectId.toString());
 
-    return this.http.get<ReviewAssignment[]>(
+    return this.http.get<ReviewAssignmentDto[]>(
       `${this.baseUrl}/get-assigned-list`,
       {
         params,

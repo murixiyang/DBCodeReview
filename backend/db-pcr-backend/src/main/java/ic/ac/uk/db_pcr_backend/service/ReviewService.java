@@ -9,16 +9,16 @@ import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Project;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import ic.ac.uk.db_pcr_backend.dto.AssignmentMetadataDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeDiffDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeInfoDto;
-import ic.ac.uk.db_pcr_backend.entity.PseudoNameEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
-import ic.ac.uk.db_pcr_backend.repository.PseudoNameRepository;
-import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepository;
+import ic.ac.uk.db_pcr_backend.repository.PseudonymRepo;
+import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
+
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -29,45 +29,20 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 @Service
 public class ReviewService {
 
-    private final GitLabService gitLabSvc;
-    private final GerritService gerritSvc;
-    private final PseudoNameService pseudoNameSvc;
+    @Autowired
+    private GitLabService gitLabSvc;
 
-    private final ReviewAssignmentRepository reviewAssignmentRepo;
-    private final PseudoNameRepository nameRepo;
+    @Autowired
+    private GerritService gerritSvc;
 
-    public ReviewService(GitLabService gitLabSvc,
-            GerritService gerritSvc,
-            PseudoNameService pseudoNameService,
-            ReviewAssignmentRepository reviewAssignmentRepo,
-            PseudoNameRepository nameRepo) {
-        this.gitLabSvc = gitLabSvc;
-        this.gerritSvc = gerritSvc;
-        this.pseudoNameSvc = pseudoNameService;
-        this.reviewAssignmentRepo = reviewAssignmentRepo;
-        this.nameRepo = nameRepo;
-    }
+    @Autowired
+    private PseudoNameService pseudoNameSvc;
 
-    /** Get projects that a user is assigned as reviewer */
-    public List<Project> getProjectsToReview(String username, String groupId, String oauthToken)
-            throws GitLabApiException {
-        // Get project where the user is reviewer
-        List<ReviewAssignmentEntity> assigns = reviewAssignmentRepo.findByReviewerName(username);
+    @Autowired
+    private ReviewAssignmentRepo reviewAssignmentRepo;
 
-        // Get group project Id
-        Set<String> groupProjectIds = assigns.stream()
-                .map(ReviewAssignmentEntity::getGroupProjectId)
-                .collect(Collectors.toSet());
-
-        // Fetch project from GitLab
-        List<Project> projects = new ArrayList<>();
-        for (String projectId : groupProjectIds) {
-            Project project = gitLabSvc.getGroupProjectById(groupId, projectId, oauthToken);
-            projects.add(project);
-        }
-
-        return projects;
-    }
+    @Autowired
+    private PseudonymRepo nameRepo;
 
     /** Get Assignment Metadata for the reviewer. Assign pseudoname if not yet */
     @Transactional
