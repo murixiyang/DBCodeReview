@@ -55,7 +55,7 @@ public class GitLabController {
         String accessToken = client.getAccessToken().getTokenValue();
         Long gitlabUserId = Long.valueOf(oauth2User.getAttribute("id").toString());
 
-        databaseSvc.syncPersonalProjects(gitlabUserId, accessToken);
+        databaseSvc.syncPersonalProjects(oauth2User, accessToken);
 
         List<ProjectEntity> projects = projectRepo.findByOwnerId(gitlabUserId);
 
@@ -71,6 +71,10 @@ public class GitLabController {
     public ResponseEntity<List<Project>> getProjectNameInGroup(
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
         String accessToken = client.getAccessToken().getTokenValue();
+
+        // 1) Sync the group’s projects into the DB
+        databaseSvc.syncGroupProjects(groupId, accessToken);
+
         return ResponseEntity.ok(gitLabService.getGroupProjects(groupId, accessToken));
 
     }

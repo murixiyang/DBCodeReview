@@ -8,6 +8,7 @@ import { MaintainService } from '../http/maintain.service';
 import { AuthService } from '../service/auth.service';
 import { GerritService } from '../http/gerrit.service';
 import { ReviewService } from '../http/review.service';
+import { ProjectDto } from '../interface/database/project-dto';
 
 @Component({
   imports: [NgFor, AsyncPipe],
@@ -15,8 +16,8 @@ import { ReviewService } from '../http/review.service';
   styleUrl: './project-list.component.css',
 })
 export class ProjectListComponent implements OnInit {
-  projects$!: Observable<ProjectSchema[]>;
-  projectsToReview$!: Observable<ProjectSchema[]>;
+  projects$!: Observable<ProjectDto[]>;
+  projectsToReview$!: Observable<ProjectDto[]>;
 
   username: string | null = null;
 

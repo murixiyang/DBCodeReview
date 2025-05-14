@@ -3,14 +3,18 @@ package ic.ac.uk.db_pcr_backend.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.gitlab4j.api.GitLabApi;
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
+import ic.ac.uk.db_pcr_backend.entity.GitlabGroupEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
@@ -22,74 +26,117 @@ import jakarta.persistence.EntityNotFoundException;
 @Service
 public class DatabaseService {
 
-    @Autowired
-    private GitLabService gitLabSvc;
+        @Autowired
+        private GitLabService gitLabSvc;
 
-    @Autowired
-    private ChangeRequestRepo changeRequestRepo;
+        @Autowired
+        private ChangeRequestRepo changeRequestRepo;
 
-    @Autowired
-    private ProjectRepo projectRepo;
+        @Autowired
+        private ProjectRepo projectRepo;
 
-    @Autowired
-    private GitlabGroupRepo groupRepo;
+        @Autowired
+        private GitlabGroupRepo groupRepo;
 
-    @Autowired
-    private UserRepo userRepo;
+        @Autowired
+        private UserRepo userRepo;
 
-    @Transactional
-    public void syncPersonalProjects(Long gitlabUserId, String accessToken)
-            throws GitLabApiException {
-        // 1) Ensure the User record exists
-        UserEntity user = userRepo.findByGitlabUserId(gitlabUserId)
-                .orElseGet(() -> userRepo.save(new UserEntity(gitlabUserId, "", null)));
+        /* Synchronize the personal project list to database */
+        @Transactional
+        public void syncPersonalProjects(@AuthenticationPrincipal OAuth2User oauth2User, String accessToken)
+                        throws GitLabApiException {
 
-        // 2) Call GitLab’s API for personal projects
-        List<Project> forks = gitLabSvc.getPersonalProject(accessToken);
+                Long userId = Long.valueOf(oauth2User.getAttribute("id").toString());
+                String username = oauth2User.getAttribute("username").toString();
 
-        // Check if project exists in the database
-        for (var dto : forks) {
-            ProjectEntity p = projectRepo.findByGitlabProjectId(dto.getId())
-                    .orElseGet(() -> new ProjectEntity(dto.getId(), dto.getName(), dto.getNamespace().toString()));
+                // 1) Ensure the User record exists
+                UserEntity user = userRepo.findByGitlabUserId(userId)
+                                .orElseGet(() -> userRepo.save(new UserEntity(userId, username, null)));
 
-            p.setOwner(user);
+                // 2) Call GitLab’s API for personal projects
+                List<Project> forks = gitLabSvc.getPersonalProject(accessToken);
 
-            projectRepo.save(p);
+                // Check if project exists in the database
+                for (var dto : forks) {
+                        ProjectEntity p = projectRepo.findByGitlabProjectId(dto.getId())
+                                        .orElseGet(() -> new ProjectEntity(dto.getId(), dto.getName(),
+                                                        dto.getNamespace().toString()));
+
+                        p.setOwner(user);
+
+                        projectRepo.save(p);
+                }
         }
-    }
 
-    public List<ChangeRequestEntity> getChangeRequesets(String username, String projectId) {
-        return changeRequestRepo.findByUsernameAndProjectId(username, projectId);
-    }
+        /* Synchronize the group project list to database */
+        @Transactional
+        public void syncGroupProjects(String groupIdStr, String oauthToken)
+                        throws GitLabApiException {
 
-    public ReviewStatusEntity createReviewStatus(ReviewStatusDto dto) {
-        System.out.println(
-                "DBLOG: Creating DTO: " + dto.getUsername() + ", " + dto.getProjectId() + ", " + dto.getCommitSha()
-                        + ", " + dto.getReviewStatus());
+                Long gitlabGroupId = Long.valueOf(groupIdStr);
+                // A) Ensure the GitlabGroup record exists
+                GitlabGroupEntity group = groupRepo.findByGitlabGroupId(gitlabGroupId)
+                                .orElseGet(() -> groupRepo
+                                                .save(new GitlabGroupEntity(gitlabGroupId, "Group " + gitlabGroupId)));
 
-        ReviewStatusEntity statusEntity = new ReviewStatusEntity();
-        statusEntity.setUsername(dto.getUsername());
-        statusEntity.setProjectId(dto.getProjectId());
-        statusEntity.setCommitSha(dto.getCommitSha());
-        statusEntity.setReviewStatus(dto.getReviewStatus());
-        statusEntity.setLastUpdated(LocalDateTime.now());
+                // B) Fetch group projects from Gitlab
+                List<Project> groupProjects = gitLabSvc.getGroupProjects(groupIdStr, oauthToken);
 
-        return reviewStatusRepo.save(statusEntity);
-    }
+                for (var project : groupProjects) {
+                        // Upsert the owner (it may be the “template” project’s creator)
+                        Long ownerId = project.getOwner().getId();
+                        UserEntity owner = userRepo.findByGitlabUserId(ownerId)
+                                        .orElseGet(() -> userRepo.save(
+                                                        new UserEntity(ownerId, project.getOwner().getUsername(),
+                                                                        null)));
 
-    public ReviewStatusEntity updateReviewStatus(ReviewStatusDto dto) {
-        System.out.println(
-                "DBLOG: Updating DTO: " + dto.getUsername() + ", " + dto.getProjectId() + ", " + dto.getCommitSha()
-                        + ", " + dto.getReviewStatus());
+                        // Upsert the Project
+                        ProjectEntity p = projectRepo.findByGitlabProjectId(project.getId())
+                                        .orElseGet(() -> new ProjectEntity(project.getId(), project.getName(),
+                                                        project.getNamespace().getFullPath()));
 
-        ReviewStatusEntity statusEntity = reviewStatusRepo
-                .findByUsernameAndProjectIdAndCommitSha(
-                        dto.getUsername(), dto.getProjectId(), dto.getCommitSha())
-                .orElseThrow(() -> new EntityNotFoundException("No status to update"));
-        statusEntity.setReviewStatus(dto.getReviewStatus());
-        statusEntity.setLastUpdated(LocalDateTime.now());
-        return reviewStatusRepo.save(statusEntity);
+                        p.setGroup(group);
+                        p.setOwner(owner);
 
-    }
+                        projectRepo.save(p);
+                }
+
+        }
+
+        public List<ChangeRequestEntity> getChangeRequesets(String username, String projectId) {
+                return changeRequestRepo.findByUsernameAndProjectId(username, projectId);
+        }
+
+        public ReviewStatusEntity createReviewStatus(ReviewStatusDto dto) {
+                System.out.println(
+                                "DBLOG: Creating DTO: " + dto.getUsername() + ", " + dto.getProjectId() + ", "
+                                                + dto.getCommitSha()
+                                                + ", " + dto.getReviewStatus());
+
+                ReviewStatusEntity statusEntity = new ReviewStatusEntity();
+                statusEntity.setUsername(dto.getUsername());
+                statusEntity.setProjectId(dto.getProjectId());
+                statusEntity.setCommitSha(dto.getCommitSha());
+                statusEntity.setReviewStatus(dto.getReviewStatus());
+                statusEntity.setLastUpdated(LocalDateTime.now());
+
+                return reviewStatusRepo.save(statusEntity);
+        }
+
+        public ReviewStatusEntity updateReviewStatus(ReviewStatusDto dto) {
+                System.out.println(
+                                "DBLOG: Updating DTO: " + dto.getUsername() + ", " + dto.getProjectId() + ", "
+                                                + dto.getCommitSha()
+                                                + ", " + dto.getReviewStatus());
+
+                ReviewStatusEntity statusEntity = reviewStatusRepo
+                                .findByUsernameAndProjectIdAndCommitSha(
+                                                dto.getUsername(), dto.getProjectId(), dto.getCommitSha())
+                                .orElseThrow(() -> new EntityNotFoundException("No status to update"));
+                statusEntity.setReviewStatus(dto.getReviewStatus());
+                statusEntity.setLastUpdated(LocalDateTime.now());
+                return reviewStatusRepo.save(statusEntity);
+
+        }
 
 }

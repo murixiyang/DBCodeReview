@@ -6,6 +6,7 @@ import { ProjectSchema } from '@gitbeaker/rest';
 import { AssignmentMetadata } from '../interface/assignment-metadata';
 import { ChangeInfo } from '../interface/gerrit/change-info';
 import { ChangeDiff } from '../interface/gerrit/change-diff.ts';
+import { ProjectDto } from '../interface/database/project-dto';
 
 @Injectable({
   providedIn: 'root',
@@ -16,10 +17,10 @@ export class ReviewService {
   constructor(private http: HttpClient) {}
 
   /** Get the list of projects that user being assigned as reviewer */
-  getProjectsToReview(username: string): Observable<ProjectSchema[]> {
+  getProjectsToReview(username: string): Observable<ProjectDto[]> {
     const params = new HttpParams().set('username', username);
 
-    return this.http.get<ProjectSchema[]>(
+    return this.http.get<ProjectDto[]>(
       `${this.baseUrl}/get-projects-to-review`,
       {
         params,
