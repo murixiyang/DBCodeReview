@@ -24,15 +24,15 @@ public class PseudonymEntity {
     private RoleType role;
 
     @Column(nullable = false, unique = true)
-    private String pseudonym;
+    private String name;
 
     /** When the pseudonym was created */
     public PseudonymEntity() {
     }
 
-    public PseudonymEntity(RoleType role, String pseudonym) {
+    public PseudonymEntity(RoleType role, String name) {
         this.role = role;
-        this.pseudonym = pseudonym;
+        this.name = name;
     }
 
     // --- Getters & Setters ---
@@ -48,11 +48,11 @@ public class PseudonymEntity {
         this.role = role;
     }
 
-    public String getPseudonym() {
-        return pseudonym;
+    public String getName() {
+        return name;
     }
 
-    public void setPseudonym(String pseudonym) {
-        this.pseudonym = pseudonym;
+    public void setName(String name) {
+        this.name = name;
     }
 }

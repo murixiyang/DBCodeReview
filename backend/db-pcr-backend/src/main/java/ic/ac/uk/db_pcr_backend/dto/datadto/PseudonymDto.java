@@ -6,7 +6,7 @@ import ic.ac.uk.db_pcr_backend.model.RoleType;
 public class PseudonymDto {
     private Long id;
     private RoleType role;
-    private String pseudonym;
+    private String name;
 
     public PseudonymDto() {
     }
@@ -14,7 +14,7 @@ public class PseudonymDto {
     public PseudonymDto(PseudonymEntity p) {
         this.id = p.getId();
         this.role = p.getRole();
-        this.pseudonym = p.getPseudonym();
+        this.name = p.getName();
     }
 
     // --- Getters & Setters ---
@@ -34,11 +34,11 @@ public class PseudonymDto {
         this.role = role;
     }
 
-    public String getPseudonym() {
-        return pseudonym;
+    public String getName() {
+        return name;
     }
 
-    public void setPseudonym(String pseudonym) {
-        this.pseudonym = pseudonym;
+    public void setName(String name) {
+        this.name = name;
     }
 }

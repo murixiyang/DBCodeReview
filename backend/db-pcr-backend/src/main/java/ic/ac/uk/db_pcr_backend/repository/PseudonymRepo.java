@@ -11,5 +11,5 @@ import ic.ac.uk.db_pcr_backend.model.RoleType;
 public interface PseudonymRepo extends JpaRepository<PseudonymEntity, Long> {
     List<PseudonymEntity> findByRole(RoleType role);
 
-    Optional<PseudonymEntity> findByPseudonym(String pseudonym);
+    Optional<PseudonymEntity> findByName(String name);
 }

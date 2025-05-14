@@ -15,4 +15,5 @@ public interface ProjectUserPseudonymRepo extends JpaRepository<ProjectUserPseud
 
     Optional<ProjectUserPseudonymEntity> findByProjectAndUserAndRole(ProjectEntity project, UserEntity user,
             RoleType role);
+
 }
