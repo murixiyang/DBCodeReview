@@ -3,7 +3,6 @@ package ic.ac.uk.db_pcr_backend.dto.datadto;
 import java.time.Instant;
 
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
-import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.ChangeStatus;
 
 public class ReviewAssignmentDto {
