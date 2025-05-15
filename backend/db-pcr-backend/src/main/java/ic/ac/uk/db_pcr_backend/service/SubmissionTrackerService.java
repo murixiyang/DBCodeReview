@@ -3,6 +3,7 @@ package ic.ac.uk.db_pcr_backend.service;
 import java.time.Instant;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
@@ -12,6 +13,7 @@ import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 
+@Service
 public class SubmissionTrackerService {
 
     @Autowired

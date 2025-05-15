@@ -31,9 +31,6 @@ public class DatabaseService {
         private GitLabService gitLabSvc;
 
         @Autowired
-        private ChangeRequestRepo changeRequestRepo;
-
-        @Autowired
         private ProjectRepo projectRepo;
 
         @Autowired
@@ -45,72 +42,7 @@ public class DatabaseService {
         @Autowired
         private GitlabCommitRepo commitRepo;
 
-        @Autowired
-        private SubmissionTrackerRepo submissionTrackerRepo;
-
-        /* ------- Project -------- */
-
-        /* Synchronize the personal project list to database */
-        @Transactional
-        public void syncPersonalProjects(@AuthenticationPrincipal OAuth2User oauth2User, String accessToken)
-                        throws GitLabApiException {
-
-                Long userId = Long.valueOf(oauth2User.getAttribute("id").toString());
-                String username = oauth2User.getAttribute("username").toString();
-
-                // 1) Ensure the User record exists
-                UserEntity user = userRepo.findByGitlabUserId(userId)
-                                .orElseGet(() -> userRepo.save(new UserEntity(userId, username, null)));
-
-                // 2) Call GitLab’s API for personal projects
-                List<Project> forks = gitLabSvc.getPersonalProject(accessToken);
-
-                // Check if project exists in the database
-                for (var dto : forks) {
-                        ProjectEntity p = projectRepo.findByGitlabProjectId(dto.getId())
-                                        .orElseGet(() -> new ProjectEntity(dto.getId(), dto.getName(),
-                                                        dto.getNamespace().toString()));
-
-                        p.setOwner(user);
-
-                        projectRepo.save(p);
-                }
-        }
-
-        /* Synchronize the group project list to database */
-        @Transactional
-        public void syncGroupProjects(String groupIdStr, String oauthToken)
-                        throws GitLabApiException {
-
-                Long gitlabGroupId = Long.valueOf(groupIdStr);
-                // A) Ensure the GitlabGroup record exists
-                GitlabGroupEntity group = groupRepo.findByGitlabGroupId(gitlabGroupId)
-                                .orElseGet(() -> groupRepo
-                                                .save(new GitlabGroupEntity(gitlabGroupId, "Group " + gitlabGroupId)));
-
-                // B) Fetch group projects from Gitlab
-                List<Project> groupProjects = gitLabSvc.getGroupProjects(groupIdStr, oauthToken);
-
-                for (var project : groupProjects) {
-                        // Upsert the owner (it may be the “template” project’s creator)
-                        Long ownerId = project.getOwner().getId();
-                        UserEntity owner = userRepo.findByGitlabUserId(ownerId)
-                                        .orElseGet(() -> userRepo.save(
-                                                        new UserEntity(ownerId, project.getOwner().getUsername(),
-                                                                        null)));
-
-                        // Upsert the Project
-                        ProjectEntity p = projectRepo.findByGitlabProjectId(project.getId())
-                                        .orElseGet(() -> new ProjectEntity(project.getId(), project.getName(),
-                                                        project.getNamespace().getFullPath()));
-
-                        p.setGroup(group);
-                        p.setOwner(owner);
-
-                        projectRepo.save(p);
-                }
-
-        }
+        
 
         /* ------- Gitlab Commit -------- */
         @Transactional
@@ -142,6 +74,5 @@ public class DatabaseService {
                         commitRepo.save(entity);
                 }
         }
-
 
 }

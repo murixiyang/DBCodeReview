@@ -1,30 +1,23 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Diff;
-import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.CommitWithStatusDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.GitlabCommitDto;
-import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.model.CommitStatus;
@@ -59,46 +52,6 @@ public class GitLabController {
 
         @Value("${gitlab.group.id}")
         private String groupId;
-
-        /* Get list of personal projects */
-        @GetMapping("/projects")
-        public ResponseEntity<List<ProjectDto>> getProject(
-                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
-                        @AuthenticationPrincipal OAuth2User oauth2User) throws GitLabApiException {
-
-                String accessToken = client.getAccessToken().getTokenValue();
-                Long gitlabUserId = Long.valueOf(oauth2User.getAttribute("id").toString());
-
-                databaseSvc.syncPersonalProjects(oauth2User, accessToken);
-
-                List<ProjectEntity> projects = projectRepo.findByOwnerId(gitlabUserId);
-
-                List<ProjectDto> dtos = projects.stream()
-                                .map(ProjectDto::fromEntity)
-                                .collect(Collectors.toList());
-
-                return ResponseEntity.ok(dtos);
-        }
-
-        /** Get project name list in a group */
-        @GetMapping("/group-projects")
-        public ResponseEntity<List<ProjectDto>> getProjectNameInGroup(
-                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
-                String accessToken = client.getAccessToken().getTokenValue();
-
-                // 1) Sync the group’s projects into the DB
-                databaseSvc.syncGroupProjects(groupId, accessToken);
-
-                // 2) Get the list of projects in the group
-                List<ProjectEntity> projects = projectRepo.findByGroupId(Long.valueOf(groupId));
-
-                List<ProjectDto> dtos = projects.stream()
-                                .map(ProjectDto::fromEntity)
-                                .collect(Collectors.toList());
-
-                return ResponseEntity.ok(dtos);
-
-        }
 
         @GetMapping("/get-project-commits")
         public ResponseEntity<List<GitlabCommitDto>> getProjectCommits(@RequestParam("projectId") String projectId,

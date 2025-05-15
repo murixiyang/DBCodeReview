@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SPRING_URL_GITLAB } from '../service/constant.service';
+import { SPRING_URL, SPRING_URL_GITLAB } from '../service/constant.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CommitDiffSchema, CommitSchema, ProjectSchema } from '@gitbeaker/rest';
@@ -11,7 +11,7 @@ import { CommitWithStatusDto } from '../interface/database/commit-with-status-dt
   providedIn: 'root',
 })
 export class GitlabService {
-  private baseUrl = SPRING_URL_GITLAB;
+  private baseUrl = SPRING_URL;
 
   constructor(private http: HttpClient) {}
 

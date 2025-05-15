@@ -4,8 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.gerrit.extensions.client.ChangeStatus;
+import org.springframework.stereotype.Service;
 
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
@@ -14,6 +13,7 @@ import ic.ac.uk.db_pcr_backend.model.ReviewStatus;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 
+@Service
 public class CommitStatusService {
 
     @Autowired
