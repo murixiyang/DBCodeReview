@@ -28,12 +28,10 @@ export class ProjectListComponent implements OnInit {
   ngOnInit() {
     this.gitLabSvc.getProjects().subscribe((projects) => {
       this.projects = projects;
-      console.log('Projects:', this.projects);
     });
 
     this.reviewSvc.getProjectsToReview().subscribe((projects) => {
       this.projectsToReview = projects;
-      console.log('Projects to review:', this.projectsToReview);
     });
   }
 

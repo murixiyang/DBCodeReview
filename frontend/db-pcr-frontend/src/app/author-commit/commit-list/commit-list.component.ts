@@ -43,22 +43,14 @@ export class CommitListComponent implements OnInit {
   ngOnInit() {
     this.projectId = this.route.snapshot.params['projectId'];
 
-    // Cache username
-    this.authSvc.getUser().subscribe((user) => {
-      this.username = user;
-      console.log('Username:', this.username);
-
-      this.getProjectCommitsWithStatus(this.projectId);
-    });
-  }
-
-  getProjectCommitsWithStatus(projectId: string) {
     this.gitLabSvc
-      .getCommitsWithStatus(projectId)
+      .getCommitsWithStatus(this.projectId)
       .subscribe((gitlabCommits) => {
         this.commitList = gitlabCommits;
       });
   }
+
+  getProjectCommitsWithStatus(projectId: string) {}
 
   requestReview(commit: GitlabCommitDto) {
     this.gerritSvc
