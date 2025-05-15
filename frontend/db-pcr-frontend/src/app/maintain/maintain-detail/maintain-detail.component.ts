@@ -31,7 +31,8 @@ export class MaintainDetailComponent implements OnInit {
         this.projects = ps;
 
         if (ps.length) {
-          this.projectId = ps[0].id;
+          this.projectId = ps[0].gitlabProjectId;
+          console.log('Project ID:', this.projectId);
 
           this.showAssigned();
         }

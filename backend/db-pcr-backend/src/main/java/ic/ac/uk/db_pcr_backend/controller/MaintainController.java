@@ -33,7 +33,7 @@ public class MaintainController {
         private PseudoNameService pseudoNameSvc;
 
         @Value("${gitlab.group.id}")
-        private String groupId;
+        private String gitlabGroupId;
 
         @GetMapping("/get-assigned-list")
         public ResponseEntity<List<ReviewAssignmentUsernameDto>> getAssignedList(
@@ -58,7 +58,10 @@ public class MaintainController {
 
                 String accessToken = client.getAccessToken().getTokenValue();
 
-                List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(groupId, projectId, reviewerNum,
+                System.out.println("DBLOG: Start to assign project for " + projectId);
+
+                List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(gitlabGroupId, projectId,
+                                reviewerNum,
                                 accessToken);
 
                 List<ReviewAssignmentUsernameDto> dtos = assignments.stream().map(ra -> {

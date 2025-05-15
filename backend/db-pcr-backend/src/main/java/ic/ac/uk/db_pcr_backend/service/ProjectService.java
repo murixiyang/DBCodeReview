@@ -65,14 +65,14 @@ public class ProjectService {
 
         for (var project : groupProjects) {
             // Upsert the owner (it may be the “template” project’s creator)
-            Long ownerId = project.getCreatorId();
+            Long gitlabOwnerId = project.getCreatorId();
 
-            UserEntity owner = userRepo.findByGitlabUserId(ownerId)
+            UserEntity owner = userRepo.findByGitlabUserId(gitlabOwnerId)
                     .orElseGet(() -> {
                         try {
-                            User user = gitLabSvc.getUserById(ownerId, oauthToken);
+                            User user = gitLabSvc.getUserById(gitlabOwnerId, oauthToken);
 
-                            return userRepo.save(new UserEntity(ownerId, user.getUsername(),
+                            return userRepo.save(new UserEntity(gitlabOwnerId, user.getUsername(),
                                     null));
                         } catch (GitLabApiException e) {
                             throw new RuntimeException("Failed to fetch user from GitLab", e);

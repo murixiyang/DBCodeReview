@@ -36,12 +36,12 @@ public class MaintainService {
     private ReviewAssignmentRepo reviewAssignmentRepo;
 
     @Transactional
-    public List<ReviewAssignmentEntity> assignReviewers(String groupId, String groupProjectId,
+    public List<ReviewAssignmentEntity> assignReviewers(String gitlabGroupId, String projectId,
             int reviewersPerStudent,
             String oauthToken) throws Exception {
 
         // Fetch all “developer” members (students)
-        List<Member> students = gitlabSvc.getDevInGroup(groupId, oauthToken);
+        List<Member> students = gitlabSvc.getDevInGroup(gitlabGroupId, oauthToken);
 
         // Check assignment number is valid
         int studentNum = students.size();
@@ -50,13 +50,13 @@ public class MaintainService {
         }
 
         // Get the associated project and users
-        ProjectEntity project = projectRepo.findByGitlabProjectId(Long.valueOf(groupProjectId))
+        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
                 .orElseThrow();
         List<UserEntity> users = students.stream()
-                .map(m -> userRepo
-                        .findByGitlabUserId(m.getId())
+                .map(student -> userRepo
+                        .findByGitlabUserId(student.getId())
                         .orElseGet(() -> userRepo.save(
-                                new UserEntity(m.getId(), m.getUsername(), null))))
+                                new UserEntity(student.getId(), student.getUsername(), null))))
                 .toList();
 
         // Clear any existing assignments for this project

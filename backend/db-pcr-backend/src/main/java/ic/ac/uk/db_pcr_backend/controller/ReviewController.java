@@ -100,15 +100,11 @@ public class ReviewController {
                 // Find the review assignment
                 List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByProject(project);
 
-                System.out.println("DBLOG: Assignment: " + assignments);
-
                 // Find the change requests
                 List<ChangeRequestDto> changeRequests = assignments.stream()
                                 .flatMap(asn -> changeRequestRepo.findByAssignment(asn).stream())
                                 .map(ChangeRequestDto::fromEntity)
                                 .collect(Collectors.toList());
-
-                System.out.println("DBLOG: Change Requests: " + changeRequests);
 
                 return ResponseEntity.ok(changeRequests);
         }
