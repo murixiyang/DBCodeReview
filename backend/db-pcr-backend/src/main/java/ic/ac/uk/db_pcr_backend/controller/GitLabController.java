@@ -32,80 +32,91 @@ import ic.ac.uk.db_pcr_backend.service.GitLabService;
 @RequestMapping("/api/gitlab")
 public class GitLabController {
 
-        @Autowired
-        private GitLabService gitLabService;
+    @Autowired
+    private GitLabService gitLabService;
 
-        @Autowired
-        private DatabaseService databaseSvc;
+    @Autowired
+    private DatabaseService databaseSvc;
 
-        @Autowired
-        private CommitStatusService commitStatusSvc;
+    @Autowired
+    private CommitStatusService commitStatusSvc;
 
-        @Autowired
-        private ProjectRepo projectRepo;
+    @Autowired
+    private ProjectRepo projectRepo;
 
-        @Autowired
-        private GitlabCommitRepo commitRepo;
+    @Autowired
+    private GitlabCommitRepo commitRepo;
 
-        @Autowired
-        private ChangeRequestRepo changeRequestRepo;
+    @Autowired
+    private ChangeRequestRepo changeRequestRepo;
 
-        @Value("${gitlab.group.id}")
-        private String groupId;
+    @Value("${gitlab.group.id}")
+    private String groupId;
 
-        @GetMapping("/get-project-commits")
-        public ResponseEntity<List<GitlabCommitDto>> getProjectCommits(@RequestParam("projectId") String projectId,
-                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
-                        throws GitLabApiException {
-                String accessToken = client.getAccessToken().getTokenValue();
+    @GetMapping("/get-project-commits")
+    public ResponseEntity<List<GitlabCommitDto>> getProjectCommits(@RequestParam("projectId") String projectId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            throws GitLabApiException {
+        String accessToken = client.getAccessToken().getTokenValue();
 
-                Long projectIdLong = Long.valueOf(projectId);
+        Long projectIdLong = Long.valueOf(projectId);
 
-                // Sync the project’s commits into the DB
-                databaseSvc.syncCommitsForProject(projectIdLong, accessToken);
+        // Sync the project’s commits into the DB
+        databaseSvc.syncCommitsForProject(projectIdLong, accessToken);
 
-                // Find project
-                ProjectEntity project = projectRepo.findByGitlabProjectId(projectIdLong)
-                                .orElseThrow(() -> new IllegalArgumentException("Unknown project id " + projectId));
+        // Find project
+        ProjectEntity project = projectRepo.findByGitlabProjectId(projectIdLong)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown project id " + projectId));
 
-                // Find commits for the project
-                List<GitlabCommitEntity> commits = commitRepo.findByProject(project);
+        // Find commits for the project
+        List<GitlabCommitEntity> commits = commitRepo.findByProject(project);
 
-                // Convert to DTOs
-                List<GitlabCommitDto> commitDtos = commits.stream()
-                                .map(GitlabCommitDto::fromEntity)
-                                .collect(Collectors.toList());
+        // Convert to DTOs
+        List<GitlabCommitDto> commitDtos = commits.stream()
+                .map(GitlabCommitDto::fromEntity)
+                .collect(Collectors.toList());
 
-                return ResponseEntity.ok(commitDtos);
-        }
+        return ResponseEntity.ok(commitDtos);
+    }
 
-        /* Return commit list with mapping to change status */
-        @GetMapping("/get-commits-with-status")
-        public ResponseEntity<List<CommitWithStatusDto>> getProjectCommitsWithStatus(
-                        @RequestParam("projectId") String projectId,
-                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
-                        throws GitLabApiException {
-                // Will also do synchronization of commits
-                List<GitlabCommitDto> commitDtos = getProjectCommits(projectId, client).getBody();
+    /* Return commit list with mapping to change status */
+    @GetMapping("/get-commits-with-status")
+    public ResponseEntity<List<CommitWithStatusDto>> getProjectCommitsWithStatus(
+            @RequestParam("projectId") String projectId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            throws GitLabApiException {
 
-                List<CommitWithStatusDto> result = commitDtos.stream()
-                                .map(commit -> {
-                                        CommitStatus summary = commitStatusSvc.summarizeCommit(commit.getId(),
-                                                        commit.getAuthorId(), commit.getProjectId());
-                                        return new CommitWithStatusDto(commit, summary);
-                                })
-                                .toList();
+        String accessToken = client.getAccessToken().getTokenValue();
 
-                return ResponseEntity.ok(result);
-        }
+        Long projectIdLong = Long.valueOf(projectId);
 
-        @GetMapping("/get-commit-diff")
-        public ResponseEntity<List<Diff>> getCommitDiff(@RequestParam("projectId") String projectId,
-                        @RequestParam("sha") String sha,
-                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
-                        throws GitLabApiException {
-                String accessToken = client.getAccessToken().getTokenValue();
-                return ResponseEntity.ok(gitLabService.getCommitDiff(projectId, sha, accessToken));
-        }
+        // Sync the project’s commits into the DB
+        databaseSvc.syncCommitsForProject(projectIdLong, accessToken);
+
+        // Find project
+        ProjectEntity project = projectRepo.findByGitlabProjectId(projectIdLong)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown project id " + projectId));
+
+        // Find commits for the project
+        List<GitlabCommitEntity> commits = commitRepo.findByProject(project);
+
+        List<CommitWithStatusDto> result = commits.stream()
+                .map(commit -> {
+                    CommitStatus summary = commitStatusSvc.summarizeCommit(commit);
+                    return new CommitWithStatusDto(GitlabCommitDto.fromEntity(commit), summary);
+                })
+                .toList();
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/get-commit-diff")
+    public ResponseEntity<List<Diff>> getCommitDiff(@RequestParam("projectId") String projectId,
+            @RequestParam("sha") String sha,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            throws GitLabApiException {
+        String accessToken = client.getAccessToken().getTokenValue();
+        return ResponseEntity.ok(gitLabService.getCommitDiff(projectId, sha, accessToken));
+    }
 
 }

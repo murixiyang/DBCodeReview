@@ -16,8 +16,8 @@ import { ProjectDto } from '../interface/database/project-dto';
   styleUrl: './project-list.component.css',
 })
 export class ProjectListComponent implements OnInit {
-  projects$!: Observable<ProjectDto[]>;
-  projectsToReview$!: Observable<ProjectDto[]>;
+  projects!: ProjectDto[];
+  projectsToReview!: ProjectDto[];
 
   username: string | null = null;
 
@@ -29,14 +29,19 @@ export class ProjectListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.projects$ = this.gitLabSvc.getProjects();
+    this.gitLabSvc.getProjects().subscribe((projects) => {
+      this.projects = projects;
+      console.log('Projects:', this.projects);
+    });
 
     this.authSvc.getUser().subscribe((user) => {
       this.username = user;
 
-      this.projectsToReview$ = this.reviewSvc.getProjectsToReview(
-        this.username!
-      );
+      this.reviewSvc
+        .getProjectsToReview(this.username!)
+        .subscribe((projects) => {
+          this.projectsToReview = projects;
+        });
     });
   }
 

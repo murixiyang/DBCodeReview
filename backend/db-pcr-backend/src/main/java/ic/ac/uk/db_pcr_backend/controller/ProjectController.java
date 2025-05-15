@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
+import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
+import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.ProjectService;
 
 @Controller
@@ -29,6 +31,9 @@ public class ProjectController {
     @Autowired
     private ProjectRepo projectRepo;
 
+    @Autowired
+    private UserRepo userRepo;
+
     @Value("${gitlab.group.id}")
     private String groupId;
 
@@ -39,15 +44,23 @@ public class ProjectController {
             @AuthenticationPrincipal OAuth2User oauth2User) throws GitLabApiException {
 
         String accessToken = client.getAccessToken().getTokenValue();
+
         Long gitlabUserId = Long.valueOf(oauth2User.getAttribute("id").toString());
+        String username = oauth2User.getAttribute("username").toString();
 
-        projectSvc.syncPersonalProjects(oauth2User, accessToken);
+        // Ensure the User record exists
+        UserEntity user = userRepo.findByGitlabUserId(gitlabUserId)
+                .orElseGet(() -> userRepo.save(new UserEntity(gitlabUserId, username, null)));
 
-        List<ProjectEntity> projects = projectRepo.findByOwnerId(gitlabUserId);
+        projectSvc.syncPersonalProjects(user, accessToken);
+
+        List<ProjectEntity> projects = projectRepo.findByOwnerId(user.getId());
 
         List<ProjectDto> dtos = projects.stream()
                 .map(ProjectDto::fromEntity)
                 .collect(Collectors.toList());
+
+        System.out.println("DBLOG: projects size: " + projects.size());
 
         return ResponseEntity.ok(dtos);
     }

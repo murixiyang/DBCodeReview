@@ -36,15 +36,8 @@ public class ProjectService {
 
     /* Synchronize the personal project list to database */
     @Transactional
-    public void syncPersonalProjects(@AuthenticationPrincipal OAuth2User oauth2User, String accessToken)
+    public void syncPersonalProjects(UserEntity user, String accessToken)
             throws GitLabApiException {
-
-        Long userId = Long.valueOf(oauth2User.getAttribute("id").toString());
-        String username = oauth2User.getAttribute("username").toString();
-
-        // Ensure the User record exists
-        UserEntity user = userRepo.findByGitlabUserId(userId)
-                .orElseGet(() -> userRepo.save(new UserEntity(userId, username, null)));
 
         // Call GitLab’s API for personal projects
         List<Project> forks = gitLabSvc.getPersonalProject(accessToken);
@@ -53,7 +46,7 @@ public class ProjectService {
         for (var dto : forks) {
             ProjectEntity p = projectRepo.findByGitlabProjectId(dto.getId())
                     .orElseGet(() -> new ProjectEntity(dto.getId(), dto.getName(),
-                            dto.getNamespace().toString()));
+                            dto.getNamespace().getFullPath()));
 
             p.setOwner(user);
 

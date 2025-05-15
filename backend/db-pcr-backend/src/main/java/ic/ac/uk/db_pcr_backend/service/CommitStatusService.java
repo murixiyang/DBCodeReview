@@ -25,11 +25,10 @@ public class CommitStatusService {
     @Autowired
     private SubmissionTrackerService submissionTrackerSvc;
 
-    public CommitStatus summarizeCommit(Long commitId, Long authorId, Long projectId) {
+    public CommitStatus summarizeCommit(GitlabCommitEntity commit) {
         // A) Has the author ever submitted beyond this commit?
-        Instant lastSubAt = submissionTrackerSvc.getLastSubmittedTimestamp(authorId, projectId);
-        GitlabCommitEntity commit = commitRepo.findById(commitId)
-                .orElseThrow(() -> new IllegalArgumentException("Commit not found: " + commitId));
+        Instant lastSubAt = submissionTrackerSvc.getLastSubmittedTimestamp(commit.getAuthor().getId(),
+                commit.getProject().getId());
 
         if (lastSubAt == null) {
             return CommitStatus.NOT_SUBMITTED;
@@ -43,7 +42,7 @@ public class CommitStatusService {
         }
 
         // B) If it’s been submitted, look at the review requests:
-        List<ReviewStatus> reviews = changeRequestRepo.findByCommit_GitlabCommitId(commitId)
+        List<ReviewStatus> reviews = changeRequestRepo.findByCommit(commit)
                 .stream()
                 .map(ChangeRequestEntity::getStatus)
                 .toList();
