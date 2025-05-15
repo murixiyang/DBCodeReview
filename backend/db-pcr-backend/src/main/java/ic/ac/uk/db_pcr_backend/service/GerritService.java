@@ -10,8 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,17 +34,11 @@ import org.eclipse.jgit.util.ChangeIdUtil;
 
 import com.google.gerrit.extensions.api.GerritApi;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
-import com.google.gerrit.extensions.client.ListChangesOption;
 import com.google.gerrit.extensions.common.ChangeInfo;
-import com.google.gerrit.extensions.common.CommitInfo;
-import com.google.gerrit.extensions.common.DiffInfo;
-import com.google.gerrit.extensions.common.FileInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
-
-import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeDiffDto;
 
 @Service
 public class GerritService {
@@ -54,6 +46,9 @@ public class GerritService {
 
     @Autowired
     private GitLabService gitLabSvc;
+
+    @Autowired
+    private DatabaseService databaseSvc;
 
     private final String gerritHttpUrl;
     private final String gerritAuthUrl;
@@ -71,7 +66,7 @@ public class GerritService {
             @Value("${gerrit.auth.url}") String gerritAuthUrl,
             @Value("${gerrit.username}") String gerritUsername,
             @Value("${gerrit.password}") String gerritHttpPassword,
-            @Value("${gerrit.branch:master}") String gerritBranch,) {
+            @Value("${gerrit.branch:master}") String gerritBranch) {
 
         this.builder = builder;
 
@@ -139,10 +134,9 @@ public class GerritService {
         // Ensure the Gerrit project exists (create if missing)
         ensureGerritProjectExists(gerritApi, pathWithNamespace);
 
+        Long projectIdLong = Long.parseLong(projectId);
         // Load last submitted SHA from DB
-        SubmissionTrackerEntity tracker = submissionTrackerRepo.findByUsernameAndProjectId(username, projectId)
-                .orElseGet(() -> new SubmissionTrackerEntity(username, projectId, null));
-        String baseSha = tracker.getLastSubmittedSha();
+        String baseSha = databaseSvc.getLastSubmittedSha(username, projectIdLong);
 
         Path tempDir = Files.createTempDirectory("review-");
 
@@ -171,9 +165,8 @@ public class GerritService {
         PushResult result = pushToGerrit(git, gerritCreds);
         String newGerritSha = extractNewSha(result);
 
-        // --- 7) Record the SHA as the new last submitted
-        tracker.setLastSubmittedSha(newGerritSha);
-        submissionTrackerRepo.save(tracker);
+        // --- Record the SHA as the new last submitted
+        databaseSvc.recordSubmission(username, projectIdLong, newGerritSha);
 
         System.out.println("DBLOG: Pushed commit to Gerrit: " + changeId);
         return changeId;
