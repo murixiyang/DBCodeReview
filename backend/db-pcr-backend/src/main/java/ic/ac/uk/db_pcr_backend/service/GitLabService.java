@@ -11,6 +11,7 @@ import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Diff;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
+import org.gitlab4j.api.models.User;
 import org.gitlab4j.models.Constants.TokenType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -39,6 +40,13 @@ public class GitLabService {
     public List<Project> getGroupProjects(String groupId, String oauthToken) throws GitLabApiException {
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
             return gitLabApi.getGroupApi().getProjects(groupId);
+        }
+    }
+
+    /** Get user by user id */
+    public User getUserById(Long userId, String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            return gitLabApi.getUserApi().getUser(userId);
         }
     }
 

@@ -6,8 +6,10 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,11 +62,14 @@ public class ReviewController {
         @Transactional(readOnly = true)
         @GetMapping("/get-projects-to-review")
         public ResponseEntity<List<ProjectDto>> getProjectsToReview(
-                        @RequestParam("username") String username,
-                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+                        @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
+
+                Long gitlabUserId = Long.valueOf(oauth2User.getAttribute("id").toString());
+                String username = oauth2User.getAttribute("username").toString();
 
                 UserEntity reviewer = userRepo.findByUsername(username)
-                                .orElseThrow(() -> new IllegalArgumentException("Unknown user: " + username));
+                                .orElseGet(() -> userRepo.save(new UserEntity(gitlabUserId, username, null)));
 
                 List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByReviewer(reviewer);
 

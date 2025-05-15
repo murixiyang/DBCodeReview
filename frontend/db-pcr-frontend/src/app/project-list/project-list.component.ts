@@ -19,12 +19,9 @@ export class ProjectListComponent implements OnInit {
   projects!: ProjectDto[];
   projectsToReview!: ProjectDto[];
 
-  username: string | null = null;
-
   constructor(
     private gitLabSvc: GitlabService,
     private reviewSvc: ReviewService,
-    private authSvc: AuthService,
     private router: Router
   ) {}
 
@@ -34,14 +31,9 @@ export class ProjectListComponent implements OnInit {
       console.log('Projects:', this.projects);
     });
 
-    this.authSvc.getUser().subscribe((user) => {
-      this.username = user;
-
-      this.reviewSvc
-        .getProjectsToReview(this.username!)
-        .subscribe((projects) => {
-          this.projectsToReview = projects;
-        });
+    this.reviewSvc.getProjectsToReview().subscribe((projects) => {
+      this.projectsToReview = projects;
+      console.log('Projects to review:', this.projectsToReview);
     });
   }
 

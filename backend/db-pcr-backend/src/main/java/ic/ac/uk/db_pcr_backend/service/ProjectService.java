@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Project;
+import org.gitlab4j.api.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -56,25 +57,27 @@ public class ProjectService {
 
     /* Synchronize the group project list to database */
     @Transactional
-    public void syncGroupProjects(String groupIdStr, String oauthToken)
+    public void syncGroupProjects(GitlabGroupEntity group, String oauthToken)
             throws GitLabApiException {
 
-        Long gitlabGroupId = Long.valueOf(groupIdStr);
-        // A) Ensure the GitlabGroup record exists
-        GitlabGroupEntity group = groupRepo.findByGitlabGroupId(gitlabGroupId)
-                .orElseGet(() -> groupRepo
-                        .save(new GitlabGroupEntity(gitlabGroupId, "Group " + gitlabGroupId)));
-
         // B) Fetch group projects from Gitlab
-        List<Project> groupProjects = gitLabSvc.getGroupProjects(groupIdStr, oauthToken);
+        List<Project> groupProjects = gitLabSvc.getGroupProjects(group.getGitlabGroupId().toString(), oauthToken);
 
         for (var project : groupProjects) {
             // Upsert the owner (it may be the “template” project’s creator)
-            Long ownerId = project.getOwner().getId();
+            Long ownerId = project.getCreatorId();
+
             UserEntity owner = userRepo.findByGitlabUserId(ownerId)
-                    .orElseGet(() -> userRepo.save(
-                            new UserEntity(ownerId, project.getOwner().getUsername(),
-                                    null)));
+                    .orElseGet(() -> {
+                        try {
+                            User user = gitLabSvc.getUserById(ownerId, oauthToken);
+
+                            return userRepo.save(new UserEntity(ownerId, user.getUsername(),
+                                    null));
+                        } catch (GitLabApiException e) {
+                            throw new RuntimeException("Failed to fetch user from GitLab", e);
+                        }
+                    });
 
             // Upsert the Project
             ProjectEntity p = projectRepo.findByGitlabProjectId(project.getId())

@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
+import ic.ac.uk.db_pcr_backend.entity.GitlabGroupEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.repository.GitlabGroupRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.ProjectService;
@@ -33,6 +35,9 @@ public class ProjectController {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private GitlabGroupRepo groupRepo;
 
     @Value("${gitlab.group.id}")
     private String groupId;
@@ -60,8 +65,6 @@ public class ProjectController {
                 .map(ProjectDto::fromEntity)
                 .collect(Collectors.toList());
 
-        System.out.println("DBLOG: projects size: " + projects.size());
-
         return ResponseEntity.ok(dtos);
     }
 
@@ -71,11 +74,17 @@ public class ProjectController {
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
         String accessToken = client.getAccessToken().getTokenValue();
 
+        Long gitlabGroupId = Long.valueOf(groupId);
+        // A) Ensure the GitlabGroup record exists
+        GitlabGroupEntity group = groupRepo.findByGitlabGroupId(gitlabGroupId)
+                .orElseGet(() -> groupRepo
+                        .save(new GitlabGroupEntity(gitlabGroupId, "Group " + gitlabGroupId)));
+
         // 1) Sync the group’s projects into the DB
-        projectSvc.syncGroupProjects(groupId, accessToken);
+        projectSvc.syncGroupProjects(group, accessToken);
 
         // 2) Get the list of projects in the group
-        List<ProjectEntity> projects = projectRepo.findByGroupId(Long.valueOf(groupId));
+        List<ProjectEntity> projects = projectRepo.findByGroupId(group.getId());
 
         List<ProjectDto> dtos = projects.stream()
                 .map(ProjectDto::fromEntity)

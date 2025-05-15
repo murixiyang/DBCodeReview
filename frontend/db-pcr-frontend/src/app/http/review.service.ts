@@ -15,14 +15,9 @@ export class ReviewService {
   constructor(private http: HttpClient) {}
 
   /** Get the list of projects that user being assigned as reviewer */
-  getProjectsToReview(username: string): Observable<ProjectDto[]> {
-    const params = new HttpParams().set('username', username);
-
+  getProjectsToReview(): Observable<ProjectDto[]> {
     return this.http.get<ProjectDto[]>(
-      `${this.baseUrl}/get-projects-to-review`,
-      {
-        params,
-      }
+      `${this.baseUrl}/get-projects-to-review`
     );
   }
 
