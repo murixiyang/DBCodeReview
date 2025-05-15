@@ -3,7 +3,7 @@ package ic.ac.uk.db_pcr_backend.dto.datadto;
 import java.time.Instant;
 
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
-import ic.ac.uk.db_pcr_backend.model.ChangeStatus;
+import ic.ac.uk.db_pcr_backend.model.ReviewStatus;
 
 public class ChangeRequestDto {
     private Long id;
@@ -11,14 +11,14 @@ public class ChangeRequestDto {
     private Long commitId;
     private String gerritChangeId;
     private Instant submittedAt;
-    private ChangeStatus status;
+    private ReviewStatus status;
     private Instant lastStatusAt;
 
     public ChangeRequestDto() {
     }
 
     public ChangeRequestDto(Long id, Long assignmentId, Long commitId, String gerritChangeId,
-            Instant submittedAt, ChangeStatus status, Instant lastStatusAt) {
+            Instant submittedAt, ReviewStatus status, Instant lastStatusAt) {
         this.id = id;
         this.assignmentId = assignmentId;
         this.commitId = commitId;
@@ -81,11 +81,11 @@ public class ChangeRequestDto {
         this.submittedAt = submittedAt;
     }
 
-    public ChangeStatus getStatus() {
+    public ReviewStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ChangeStatus status) {
+    public void setStatus(ReviewStatus status) {
         this.status = status;
     }
 

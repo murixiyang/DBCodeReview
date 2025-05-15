@@ -1,5 +1,3 @@
-import { ChangeStatus } from '../change-status';
-
 export interface ProjectDto {
   id: number;
   gitlabProjectId: number;

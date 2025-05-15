@@ -1,4 +1,4 @@
-import { ChangeStatus } from '../change-status';
+import { ProjectStatus } from '../status/project-status';
 
 export interface ReviewAssignmentUsernameDto {
   id: number;
@@ -6,6 +6,6 @@ export interface ReviewAssignmentUsernameDto {
   reviewerName: string;
   projectId: number;
   assignedAt: string;
-  projectStatus: ChangeStatus;
+  projectStatus: ProjectStatus;
   projectStatusAt: string;
 }

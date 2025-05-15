@@ -1,4 +1,4 @@
-import { ChangeStatus } from "../change-status";
+import { ReviewStatus } from '../status/review-status';
 
 export interface ChangeRequestDto {
   id: number;
@@ -6,6 +6,6 @@ export interface ChangeRequestDto {
   commitId: number;
   gerritChangeId: string;
   submittedAt: string;
-  status: ChangeStatus;
+  status: ReviewStatus;
   lastStatusAt: string;
 }

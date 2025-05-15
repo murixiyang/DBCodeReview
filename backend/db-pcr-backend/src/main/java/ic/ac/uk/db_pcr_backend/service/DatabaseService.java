@@ -143,48 +143,5 @@ public class DatabaseService {
                 }
         }
 
-        /* ------ Submssion Tracker ------ */
 
-        /**
-         * Record the last submitted SHA for a user and project.
-         * 
-         * @param username     The username of the user
-         * @param projectId    The ID of the project
-         * @param newGerritSha The new SHA to record
-         * @return The last submitted SHA
-         */
-        @Transactional
-        public String recordSubmission(String username, Long projectId, String newGerritSha) {
-                // Find User
-                UserEntity user = userRepo.findByUsername(username)
-                                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-
-                // Find project
-                ProjectEntity project = projectRepo.findByGitlabProjectId(projectId)
-                                .orElseThrow(() -> new IllegalArgumentException("Project not found: " + projectId));
-
-                // Upsert the SubmissionTracker record
-                var submissionTracker = submissionTrackerRepo
-                                .findByAuthorAndProject(user, project)
-                                .orElseGet(() -> new SubmissionTrackerEntity(user, project, newGerritSha));
-
-                submissionTracker.setLastSubmittedSha(newGerritSha);
-                submissionTracker.setUpdatedAt(Instant.now());
-
-                return submissionTrackerRepo.save(submissionTracker).getLastSubmittedSha();
-        }
-
-        @Transactional(readOnly = true)
-        public String getLastSubmittedSha(String gitlabUsername,
-                        Long gitlabProjectId) {
-                UserEntity author = userRepo.findByUsername(gitlabUsername)
-                                .orElseThrow(() -> new IllegalArgumentException("Unknown user: " + gitlabUsername));
-                ProjectEntity project = projectRepo.findByGitlabProjectId(gitlabProjectId)
-                                .orElseThrow(() -> new IllegalArgumentException("Unknown project: " + gitlabProjectId));
-
-                return submissionTrackerRepo
-                                .findByAuthorAndProject(author, project)
-                                .map(SubmissionTrackerEntity::getLastSubmittedSha)
-                                .orElse(null); // or throw if you prefer
-        }
 }

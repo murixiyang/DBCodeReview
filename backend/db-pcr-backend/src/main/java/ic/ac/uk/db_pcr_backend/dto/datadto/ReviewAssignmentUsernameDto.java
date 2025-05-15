@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
-import ic.ac.uk.db_pcr_backend.model.ChangeStatus;
+import ic.ac.uk.db_pcr_backend.model.ProjectStatus;
 
 public class ReviewAssignmentUsernameDto {
     private Long id;
@@ -12,7 +12,7 @@ public class ReviewAssignmentUsernameDto {
     private String reviewerName;
     private Long projectId;
     private Instant assignedAt;
-    private ChangeStatus projectStatus;
+    private ProjectStatus projectStatus;
     private Instant projectStatusAt;
 
     // Constructor
@@ -21,7 +21,7 @@ public class ReviewAssignmentUsernameDto {
 
     public ReviewAssignmentUsernameDto(Long id, String authorName, String reviewerName, Long projectId,
             Instant assignedAt,
-            ChangeStatus projectStatus, Instant projectStatusAt) {
+            ProjectStatus projectStatus, Instant projectStatusAt) {
         this.id = id;
         this.authorName = authorName;
         this.reviewerName = reviewerName;
@@ -83,11 +83,11 @@ public class ReviewAssignmentUsernameDto {
         this.assignedAt = assignedAt;
     }
 
-    public ChangeStatus getProjectStatus() {
+    public ProjectStatus getProjectStatus() {
         return projectStatus;
     }
 
-    public void setProjectStatus(ChangeStatus projectStatus) {
+    public void setProjectStatus(ProjectStatus projectStatus) {
         this.projectStatus = projectStatus;
     }
 

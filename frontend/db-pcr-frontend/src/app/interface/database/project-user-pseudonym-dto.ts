@@ -1,5 +1,3 @@
-import { ChangeStatus } from '../change-status';
-
 export interface ProjectUserPseudonymDto {
   id: number;
   projectId: number;
@@ -8,4 +6,3 @@ export interface ProjectUserPseudonymDto {
   pseudonymName: string;
   assignedAt: string;
 }
-

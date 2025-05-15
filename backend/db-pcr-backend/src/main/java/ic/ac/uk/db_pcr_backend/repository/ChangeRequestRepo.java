@@ -16,6 +16,8 @@ public interface ChangeRequestRepo extends JpaRepository<ChangeRequestEntity, Lo
 
     List<ChangeRequestEntity> findByCommit(GitlabCommitEntity commit);
 
+    List<ChangeRequestEntity> findByCommit_GitlabCommitId(Long commitId);
+
     Optional<ChangeRequestEntity> findByAssignmentAndCommit(
             ReviewAssignmentEntity assignment,
             GitlabCommitEntity commit);

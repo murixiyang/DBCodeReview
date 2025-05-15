@@ -1,4 +1,4 @@
-export type ReviewStatusType =
+export type ReviewStatus =
   | 'NOT_REVIEWED'
   | 'WAITING_RESOLVE'
   | 'NEED_RESOLVE'

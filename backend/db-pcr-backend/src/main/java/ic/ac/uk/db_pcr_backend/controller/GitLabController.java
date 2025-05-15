@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.CommitWithStatusDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.GitlabCommitDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
@@ -30,6 +31,7 @@ import ic.ac.uk.db_pcr_backend.model.CommitStatus;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
+import ic.ac.uk.db_pcr_backend.service.CommitStatusService;
 import ic.ac.uk.db_pcr_backend.service.DatabaseService;
 import ic.ac.uk.db_pcr_backend.service.GitLabService;
 
@@ -42,6 +44,9 @@ public class GitLabController {
 
         @Autowired
         private DatabaseService databaseSvc;
+
+        @Autowired
+        private CommitStatusService commitStatusSvc;
 
         @Autowired
         private ProjectRepo projectRepo;
@@ -123,23 +128,22 @@ public class GitLabController {
 
         /* Return commit list with mapping to change status */
         @GetMapping("/get-project-commits-with-status")
-        public ResponseEntity<Map<GitlabCommitDto, CommitStatus>> getProjectCommitsWithStatus(
+        public ResponseEntity<List<CommitWithStatusDto>> getProjectCommitsWithStatus(
                         @RequestParam("projectId") String projectId,
                         @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
                         throws GitLabApiException {
+                // Will also do synchronization of commits
                 List<GitlabCommitDto> commitDtos = getProjectCommits(projectId, client).getBody();
 
-                commitDtos.forEach(commitDto -> {
-                        GitlabCommitEntity commit = commitRepo.findByGitlabCommitId(commitDto.getGitlabCommitId())
-                                        .orElseThrow(() -> new IllegalArgumentException(
-                                                        "Unknown commit id " + commitDto.getGitlabCommitId()));
+                List<CommitWithStatusDto> result = commitDtos.stream()
+                                .map(commit -> {
+                                        CommitStatus summary = commitStatusSvc.summarizeCommit(commit.getId(),
+                                                        commit.getAuthorId(), commit.getProjectId());
+                                        return new CommitWithStatusDto(commit, summary);
+                                })
+                                .toList();
 
-
-
-                        nullCommitDto.setChangeStatus(commit.getChangeStatus());
-                });
-
-                return ResponseEntity.ok(commitDtos);
+                return ResponseEntity.ok(result);
         }
 
         @GetMapping("/get-commit-diff")

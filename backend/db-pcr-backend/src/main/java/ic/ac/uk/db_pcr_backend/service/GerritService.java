@@ -48,7 +48,7 @@ public class GerritService {
     private GitLabService gitLabSvc;
 
     @Autowired
-    private DatabaseService databaseSvc;
+    private SubmissionTrackerService submissionTrackerSvc;
 
     private final String gerritHttpUrl;
     private final String gerritAuthUrl;
@@ -136,7 +136,7 @@ public class GerritService {
 
         Long projectIdLong = Long.parseLong(projectId);
         // Load last submitted SHA from DB
-        String baseSha = databaseSvc.getLastSubmittedSha(username, projectIdLong);
+        String baseSha = submissionTrackerSvc.getLastSubmittedSha(username, projectIdLong);
 
         Path tempDir = Files.createTempDirectory("review-");
 
@@ -166,7 +166,7 @@ public class GerritService {
         String newGerritSha = extractNewSha(result);
 
         // --- Record the SHA as the new last submitted
-        databaseSvc.recordSubmission(username, projectIdLong, newGerritSha);
+        submissionTrackerSvc.recordSubmission(username, projectIdLong, newGerritSha);
 
         System.out.println("DBLOG: Pushed commit to Gerrit: " + changeId);
         return changeId;

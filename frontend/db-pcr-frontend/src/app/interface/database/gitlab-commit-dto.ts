@@ -1,5 +1,3 @@
-import { ChangeStatus } from '../change-status';
-
 export interface GitlabCommitDto {
   id: number;
   gitlabCommitId: string;

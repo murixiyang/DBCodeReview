@@ -3,9 +3,8 @@ package ic.ac.uk.db_pcr_backend.dto.datadto;
 import java.time.Instant;
 
 import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
-import ic.ac.uk.db_pcr_backend.entity.PseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
-import ic.ac.uk.db_pcr_backend.model.ChangeStatus;
+import ic.ac.uk.db_pcr_backend.model.ProjectStatus;
 
 public class ReviewAssignmentPseudonymDto {
     private Long id;
@@ -13,7 +12,7 @@ public class ReviewAssignmentPseudonymDto {
     private String reviewerPseudonym;
     private Long projectId;
     private Instant assignedAt;
-    private ChangeStatus projectStatus;
+    private ProjectStatus projectStatus;
     private Instant projectStatusAt;
 
     // Constructor
@@ -72,11 +71,11 @@ public class ReviewAssignmentPseudonymDto {
         this.assignedAt = assignedAt;
     }
 
-    public ChangeStatus getProjectStatus() {
+    public ProjectStatus getProjectStatus() {
         return projectStatus;
     }
 
-    public void setProjectStatus(ChangeStatus projectStatus) {
+    public void setProjectStatus(ProjectStatus projectStatus) {
         this.projectStatus = projectStatus;
     }
 
