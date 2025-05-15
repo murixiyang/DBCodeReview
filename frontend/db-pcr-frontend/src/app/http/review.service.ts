@@ -7,6 +7,7 @@ import { AssignmentMetadata } from '../interface/assignment-metadata';
 import { ChangeInfo } from '../interface/gerrit/change-info';
 import { ChangeDiff } from '../interface/gerrit/change-diff.ts';
 import { ProjectDto } from '../interface/database/project-dto';
+import { ChangeRequestDto } from '../interface/database/change-request-dto';
 
 @Injectable({
   providedIn: 'root',
@@ -28,14 +29,14 @@ export class ReviewService {
     );
   }
 
-  /** Get assignment metadata for reviewers */
-  getAssignmentMetaForReviewer(
-    username: string
-  ): Observable<AssignmentMetadata[]> {
-    const params = new HttpParams().set('reviewerName', username);
+  /** Get ChangeRequest Dto for a project */
+  getChangeRequestForProject(
+    projectId: string
+  ): Observable<ChangeRequestDto[]> {
+    const params = new HttpParams().set('projectId', projectId);
 
-    return this.http.get<AssignmentMetadata[]>(
-      `${this.baseUrl}/get-metadata-by-reviewer`,
+    return this.http.get<ChangeRequestDto[]>(
+      `${this.baseUrl}//get-review-project-commits`,
       {
         params,
       }
@@ -57,22 +58,20 @@ export class ReviewService {
   }
 
   /** Get Gerrit ChangeInfo list by Uuid */
-  getGerritChangeInfoByUuid(assignmentUuid: string): Observable<ChangeInfo[]> {
-    const params = new HttpParams().set('assignmentUuid', assignmentUuid);
+  // getGerritChangeInfoByUuid(assignmentUuid: string): Observable<ChangeInfo[]> {
+  //   const params = new HttpParams().set('assignmentUuid', assignmentUuid);
 
-    return this.http.get<ChangeInfo[]>(
-      `${this.baseUrl}/get-commit-list-by-uuid`,
-      {
-        params,
-      }
-    );
-  }
+  //   return this.http.get<ChangeInfo[]>(
+  //     `${this.baseUrl}/get-commit-list-by-uuid`,
+  //     {
+  //       params,
+  //     }
+  //   );
+  // }
 
   /** Get ChangeDiff for */
-  getChangeDiffs(assignmentUuid: string, changeId: string): Observable<string> {
-    const params = new HttpParams()
-      .set('assignmentUuid', assignmentUuid)
-      .set('changeId', changeId);
+  getChangeDiffs(gerritChangeId: string): Observable<string> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
     return this.http.get(`${this.baseUrl}/get-change-diff`, {
       params,

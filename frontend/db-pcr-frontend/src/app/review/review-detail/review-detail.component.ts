@@ -21,8 +21,7 @@ import { NgFor, NgIf } from '@angular/common';
   styleUrl: './review-detail.component.css',
 })
 export class ReviewDetailComponent {
-  assignmentUuid!: string;
-  changeId!: string;
+  gerritChangeId!: string;
 
   rawDiff: string = '';
   private config: Diff2HtmlUIConfig = {
@@ -41,14 +40,13 @@ export class ReviewDetailComponent {
   ) {}
 
   ngOnInit() {
-    this.assignmentUuid = this.route.snapshot.paramMap.get('assignmentUuid')!;
-    this.changeId = this.route.snapshot.paramMap.get('changeId')!;
+    this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
     this.loadDiffs();
   }
 
   private loadDiffs() {
     this.reviewSvc
-      .getChangeDiffs(this.assignmentUuid, this.changeId)
+      .getChangeDiffs(this.gerritChangeId)
       .subscribe((diff) => {
         this.rawDiff = diff;
         console.log('rawDiff', diff);

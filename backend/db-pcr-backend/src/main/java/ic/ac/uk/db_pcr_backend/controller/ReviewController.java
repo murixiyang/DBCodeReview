@@ -1,9 +1,9 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +15,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ic.ac.uk.db_pcr_backend.dto.AssignmentMetadataDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
-import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeDiffDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeInfoDto;
+import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
+import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.ReviewService;
@@ -36,7 +38,13 @@ public class ReviewController {
     private UserRepo userRepo;
 
     @Autowired
+    private ProjectRepo projectRepo;
+
+    @Autowired
     private ReviewAssignmentRepo reviewAssignmentRepo;
+
+    @Autowired
+    private ChangeRequestRepo changeRequestRepo;
 
     @Value("${gitlab.group.id}")
     private String groupId;
@@ -65,18 +73,53 @@ public class ReviewController {
         return ResponseEntity.ok(projects);
     }
 
+    /**
+     * Return commit list for a project author submitted to review
+     */
+    @Transactional(readOnly = true)
+    @GetMapping("/get-review-project-commits")
+    public ResponseEntity<List<ChangeRequestDto>> getReviewProjectCommits(
+            @RequestParam("projectId") String projectId,
+            @RequestParam("username") String username,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+
+        // Find the project
+        ProjectEntity project = projectRepo.findByGitlabProjectId(Long.valueOf(projectId))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Project not found: " + projectId));
+
+        // Find the review assignment
+        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByProject(project);
+
+        System.out.println("DBLOG: Assignment: " + assignments);
+
+        // Find the change requests
+        List<ChangeRequestDto> changeRequests = assignments.stream()
+                .flatMap(asn -> changeRequestRepo.findByAssignment(asn).stream())
+                .map(ChangeRequestDto::fromEntity)
+                .collect(Collectors.toList());
+
+        System.out.println("DBLOG: Change Requests: " + changeRequests);
+
+        return ResponseEntity.ok(changeRequests);
+    }
+
     /** Get assignment metadata for reviewer */
     // @GetMapping("/get-metadata-by-reviewer")
-    // public List<AssignmentMetadataDto> getMyAssignmentsForReviewer(@RequestParam("reviewerName") String reviewerName,
-    //         @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
-    //     return reviewSvc.findAssignmentsForReviewer(reviewerName);
+    // public List<AssignmentMetadataDto>
+    // getMyAssignmentsForReviewer(@RequestParam("reviewerName") String
+    // reviewerName,
+    // @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+    // throws Exception {
+    // return reviewSvc.findAssignmentsForReviewer(reviewerName);
     // }
 
     /** Get assignment metadata for uuid */
     // @GetMapping("/get-metadata-by-uuid")
-    // public List<AssignmentMetadataDto> getMyAssignmentsByUuid(@RequestParam("assignmentUuid") String assignmentUuid)
-    //         throws Exception {
-    //     return reviewSvc.findAssignmentsForReviewer(assignmentUuid);
+    // public List<AssignmentMetadataDto>
+    // getMyAssignmentsByUuid(@RequestParam("assignmentUuid") String assignmentUuid)
+    // throws Exception {
+    // return reviewSvc.findAssignmentsForReviewer(assignmentUuid);
     // }
 
     /** Get Gerrit ChangeInfo List via Uuid */

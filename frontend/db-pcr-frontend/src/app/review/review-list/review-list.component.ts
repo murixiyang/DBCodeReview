@@ -6,6 +6,8 @@ import { map, Observable } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AsyncPipe, NgFor, NgIf } from '@angular/common';
 import { ReviewCommitListComponent } from '../review-commit-list/review-commit-list.component';
+import { ChangeRequestDto } from '../../interface/database/change-request-dto';
+import { ProjectUserPseudonymDto } from '../../interface/database/project-user-pseudonym-dto';
 
 @Component({
   selector: 'app-review-list',
@@ -14,42 +16,32 @@ import { ReviewCommitListComponent } from '../review-commit-list/review-commit-l
   styleUrl: './review-list.component.css',
 })
 export class ReviewListComponent {
-  projectName!: string;
-  username: string | null = null;
+  projectId!: string;
 
-  assignmentMetadata!: AssignmentMetadata[];
-  selectedAssignment?: AssignmentMetadata;
+  changeRequests!: ChangeRequestDto[];
+  selectedChangeRequest?: ChangeRequestDto;
+
+  PseudoNameMapping!: ProjectUserPseudonymDto[];
 
   constructor(
     private reviewSvc: ReviewService,
-    private authSvc: AuthService,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.projectName = this.route.snapshot.paramMap.get('projectName')!;
+    this.projectId = this.route.snapshot.paramMap.get('projectId')!;
 
-    // Cache username
-    this.authSvc.getUser().subscribe((user) => {
-      this.username = user;
-      console.log('Username:', this.username);
+    this.reviewSvc
+      .getChangeRequestForProject(this.projectId!)
+      .subscribe((data) => {
+        this.changeRequests = data;
+        console.log('Change Requests:', this.changeRequests);
 
-      this.reviewSvc
-        .getAssignmentMetaForReviewer(this.username!)
-        .pipe(
-          map((list) => list.filter((a) => a.projectName === this.projectName))
-        )
-        .subscribe((list) => {
-          this.assignmentMetadata = list;
-
-          if (list.length) {
-            this.select(list[0]);
-          }
-        });
-    });
+        this.selectedChangeRequest = this.changeRequests[0];
+      });
   }
 
-  select(a: AssignmentMetadata) {
-    this.selectedAssignment = a;
+  select(c: ChangeRequestDto) {
+    this.selectedChangeRequest = c;
   }
 }

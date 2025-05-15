@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ic.ac.uk.db_pcr_backend.dto.ReviewStatusDto;
-import ic.ac.uk.db_pcr_backend.entity.ReviewStatusEntity;
 import ic.ac.uk.db_pcr_backend.service.DatabaseService;
 
 @RestController

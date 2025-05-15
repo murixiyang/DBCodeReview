@@ -12,9 +12,9 @@ export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
   { path: 'commit-list/:projectId', component: CommitListComponent },
   { path: 'commit-detail/:projectId/:sha', component: CommitDetailComponent },
-  { path: 'review/:projectName', component: ReviewListComponent },
+  { path: 'review/:projectId', component: ReviewListComponent },
   {
-    path: 'review/:assignmentUuid/:changeId',
+    path: 'review/:gerritChangeId',
     component: ReviewDetailComponent,
   },
   { path: 'maintain/project-list', component: MaintainListComponent },

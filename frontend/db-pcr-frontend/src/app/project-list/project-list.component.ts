@@ -44,7 +44,7 @@ export class ProjectListComponent implements OnInit {
     this.router.navigate(['/commit-list', projectId]);
   }
 
-  navigateToReviewList(projectName: string) {
-    this.router.navigate(['/review', projectName]);
+  navigateToReviewList(projectId: number) {
+    this.router.navigate(['/review', projectId]);
   }
 }

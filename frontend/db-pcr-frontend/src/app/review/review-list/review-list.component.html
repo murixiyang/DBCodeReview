@@ -1,25 +1,30 @@
 <div class="review-container">
   <!-- Sidebar -->
   <aside class="sidebar">
-    <h2>{{ projectName }}</h2>
+    <h2>{{ projectId }}</h2>
     <ul>
       <li
-        *ngFor="let a of assignmentMetadata"
-        [class.active]="a.assignmentUuid === selectedAssignment?.assignmentUuid"
-        (click)="select(a)"
+        *ngFor="let c of changeRequests"
+        [class.active]="
+          c.gerritChangeId === selectedChangeRequest?.gerritChangeId
+        "
+        (click)="select(c)"
       >
-        {{ a.authorPseudoName }}
+        <!-- {{ c.authorPseudoName }} -->
+        Author PseudoName
       </li>
     </ul>
   </aside>
 
   <!-- Detail pane -->
-  <section class="detail" *ngIf="selectedAssignment">
+  <section class="detail" *ngIf="selectedChangeRequest">
     <h3>
-      Reviewing {{ projectName }} by {{ selectedAssignment.authorPseudoName }}
+      <!-- Reviewing {{ projectId }} by {{ selectedChangeRequest.authorPseudoName }}
+        -->
+      Reviewing {{ projectId }} by Author PseudoName
     </h3>
     <app-review-commit-list
-      [assignmentUuid]="selectedAssignment.assignmentUuid"
+      [gerritChangeId]="selectedChangeRequest.gerritChangeId"
     >
     </app-review-commit-list>
   </section>

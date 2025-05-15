@@ -1,4 +1,4 @@
-<div *ngIf="assignmentUuid">
+<div *ngIf="gerritChangeId">
   <!-- Commit Table -->
   <table mat-table [dataSource]="commitList" class="mat-elevation-z1">
     <!-- Status Column -->
@@ -16,7 +16,7 @@
       <th mat-header-cell *matHeaderCellDef>Change Id</th>
       <td mat-cell *matCellDef="let e">
         <a (click)="startReview(e)" class="change-link">
-          {{ e.change.changeId }}
+          {{ e.gerritChangeId }}
         </a>
       </td>
     </ng-container>

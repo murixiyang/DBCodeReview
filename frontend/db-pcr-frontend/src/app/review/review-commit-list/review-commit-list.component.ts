@@ -12,6 +12,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { DatePipe, NgIf } from '@angular/common';
+import { ChangeRequestDto } from '../../interface/database/change-request-dto';
 
 @Component({
   selector: 'app-review-commit-list',
@@ -20,7 +21,7 @@ import { DatePipe, NgIf } from '@angular/common';
   styleUrl: './review-commit-list.component.css',
 })
 export class ReviewCommitListComponent {
-  @Input() assignmentUuid!: string;
+  @Input() gerritChangeId!: string;
 
   // Metadata
   projectName!: string;
@@ -28,54 +29,36 @@ export class ReviewCommitListComponent {
 
   // Table
   displayedColumns = ['status', 'hash', 'message', 'date', 'action'];
-  commitList: GerritChangeListItem[] = [];
+  commitList: ChangeRequestDto[] = [];
 
-  private authorName!: string;
-  private username!: string;
-
-  constructor(
-    private reviewSvc: ReviewService,
-    private gerritSvc: GerritService,
-    private databaseSvc: DatabaseService,
-    private authSvc: AuthService,
-    private router: Router
-  ) {}
+  constructor(private reviewSvc: ReviewService, private router: Router) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['assignmentUuid'] && this.assignmentUuid) {
+    if (changes['gerritChangeId'] && this.gerritChangeId) {
       this.getGerritCommitList();
     }
   }
 
-  private getAssignmentMeta() {
-    this.reviewSvc
-      .getAssignmentMetaByUuid(this.assignmentUuid)
-      .subscribe((meta) => {
-        this.projectName = meta.projectName;
-        this.authorPseudoName = meta.authorPseudoName;
-      });
-  }
+  // private getAssignmentMeta() {
+  //   this.reviewSvc
+  //     .getAssignmentMetaByUuid(this.gerritChangeId)
+  //     .subscribe((meta) => {
+  //       this.projectName = meta.projectName;
+  //       this.authorPseudoName = meta.authorPseudoName;
+  //     });
+  // }
 
   private getGerritCommitList() {
     this.reviewSvc
-      .getGerritChangeInfoByUuid(this.assignmentUuid)
+      .getChangeRequestForProject(this.gerritChangeId)
       .subscribe((list) => {
         console.log('Gerrit ChangeInfo List:', list);
-        this.commitList = list.map((change) => {
-          return {
-            status: 'WAITING_FOR_REPLY',
-            change: change,
-          } as GerritChangeListItem;
-        });
+        this.commitList = list;
       });
   }
 
   /** Navigate to your diff/review screen */
-  startReview(item: GerritChangeListItem) {
-    this.router.navigate([
-      '/review',
-      this.assignmentUuid,
-      item.change.changeId,
-    ]);
+  startReview(item: ChangeRequestDto) {
+    this.router.navigate(['/review', item.gerritChangeId]);
   }
 }

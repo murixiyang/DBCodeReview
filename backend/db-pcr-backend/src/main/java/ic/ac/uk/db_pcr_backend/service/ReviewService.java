@@ -43,31 +43,7 @@ public class ReviewService {
 
     @Autowired
     private PseudonymRepo nameRepo;
-
-    /** Get Assignment Metadata for the reviewer. Assign pseudoname if not yet */
-    @Transactional
-    public List<AssignmentMetadataDto> findAssignmentsForReviewer(String reviewerName) {
-
-        // Get all assignments for the reviewer
-        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
-                .findByReviewerName(reviewerName);
-
-        // For each assignment, create pseudonames
-        List<AssignmentMetadataDto> assignmentDtos = new ArrayList<>();
-        for (ReviewAssignmentEntity asn : assignments) {
-            String authorPseudo = pseudoNameSvc.getOrCreatePseudoName(asn.getAssignmentUuid(), asn.getAuthorName());
-            String reviewerPseudo = pseudoNameSvc.getOrCreatePseudoName(asn.getAssignmentUuid(), asn.getReviewerName());
-
-            AssignmentMetadataDto dto = new AssignmentMetadataDto(
-                    asn.getAssignmentUuid(),
-                    asn.getProjectName(),
-                    authorPseudo,
-                    reviewerPseudo);
-            assignmentDtos.add(dto);
-        }
-
-        return assignmentDtos;
-    }
+xa
 
     /** Fetch commits list using Uuid */
     public List<ChangeInfoDto> fetchCommitsForAssignment(String assignmentUuid) throws Exception {

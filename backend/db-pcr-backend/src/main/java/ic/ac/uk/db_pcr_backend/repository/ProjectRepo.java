@@ -13,4 +13,5 @@ public interface ProjectRepo extends JpaRepository<ProjectEntity, Long> {
     List<ProjectEntity> findByOwnerId(Long ownerId);
 
     List<ProjectEntity> findByGroupId(Long groupId);
+
 }
