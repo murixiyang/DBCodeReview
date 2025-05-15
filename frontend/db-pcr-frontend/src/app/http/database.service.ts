@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
-import { ReviewStatus, ReviewStatusEntity } from '../interface/review-status';
 import { SPRING_URL } from '../service/constant.service';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',

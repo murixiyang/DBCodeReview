@@ -1,15 +1,14 @@
-import { DatePipe, NgFor, NgIf } from '@angular/common';
+import { DatePipe, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { CommitListItem } from '../../interface/commit-list-item';
 import { GitlabService } from '../../http/gitlab.service';
 import { GerritService } from '../../http/gerrit.service';
 import { DatabaseService } from '../../http/database.service';
 import { AuthService } from '../../service/auth.service';
-import { ChangeRequestDto } from '../../interface/database/change-request-dto';
+import { CommitWithStatusDto } from '../../interface/database/commit-with-status-dto';
 import { GitlabCommitDto } from '../../interface/database/gitlab-commit-dto';
 
 @Component({
@@ -28,7 +27,7 @@ export class CommitListComponent implements OnInit {
   projectId: string = '';
 
   displayedColumns = ['status', 'hash', 'message', 'date', 'action'];
-  commitList: GitlabCommitDto[] = [];
+  commitList: CommitWithStatusDto[] = [];
 
   username: string | null = null;
 
@@ -49,89 +48,26 @@ export class CommitListComponent implements OnInit {
       this.username = user;
       console.log('Username:', this.username);
 
-      this.getProjectCommits(this.projectId);
+      this.getProjectCommitsWithStatus(this.projectId);
     });
   }
 
-  getProjectCommits(projectId: string) {
-    if (!this.username) {
-      console.error('User not authenticated');
-      return;
-    }
-
-    // Not null username
-    const username = this.username;
-
-    this.gitLabSvc.getProjectCommits(projectId).subscribe((gitlabCommits) => {
-      
+  getProjectCommitsWithStatus(projectId: string) {
+    this.gitLabSvc
+      .getCommitsWithStatus(projectId)
+      .subscribe((gitlabCommits) => {
         this.commitList = gitlabCommits;
-
-
       });
-
-      // this.gitLabSvc.getProjectCommits(projectId).subscribe((gitlabCommits) => {
-      //   this.databaseSvc
-      //     .getReviewStatus(username, projectId)
-      //     .subscribe((reviewStatusEntityList) => {
-      //       this.changeRequests = gitlabCommits.map((commit) => {
-      //         const existingStatus = reviewStatusEntityList.filter(
-      //           (status) => status.commitSha === commit.id
-      //         )[0]?.reviewStatus;
-
-      //         const commitListItem: CommitListItem = {
-      //           status: existingStatus ? existingStatus : 'NOT_SUBMITTED',
-      //           commit: commit,
-      //         };
-
-      //         // If commit not in DB, store it
-      //         if (!existingStatus) {
-      //           this.databaseSvc
-      //             .createReviewStatus(
-      //               username,
-      //               projectId,
-      //               commit.id,
-      //               'NOT_SUBMITTED'
-      //             )
-      //             .subscribe();
-      //         }
-
-      //         return commitListItem;
-      //       });
-      //     });
-    });
   }
 
-  requestReview(listItem: CommitListItem) {
-    if (!this.username) {
-      console.error('User not authenticated');
-      return;
-    }
-
-    const username = this.username;
-
+  requestReview(commit: GitlabCommitDto) {
     this.gerritSvc
-      .postRequestReview(this.projectId, listItem.commit.id)
+      .postRequestReview(this.projectId, commit.gitlabCommitId)
       .subscribe({
         next: (response) => {
           console.log('Request review response:', response);
 
           // Update the review status in the database
-          this.databaseSvc
-            .updateReviewStatus(
-              username,
-              this.projectId,
-              listItem.commit.id,
-              'WAITING_FOR_REPLY'
-            )
-            .subscribe({
-              next: (updateResponse) => {
-                listItem.status = 'WAITING_FOR_REPLY';
-                console.log('Review status updated:', updateResponse);
-              },
-              error: (error) => {
-                console.error('Error updating review status:', error);
-              },
-            });
         },
         error: (error) => {
           console.error('Error requesting review:', error);
@@ -139,30 +75,7 @@ export class CommitListComponent implements OnInit {
       });
   }
 
-  revertSubmission(listItem: CommitListItem) {
-    if (!this.username) {
-      console.error('User not authenticated');
-      return;
-    }
-
-    const username = this.username;
-
+  revertSubmission(commit: GitlabCommitDto) {
     // Update the review status in the database
-    this.databaseSvc
-      .updateReviewStatus(
-        username,
-        this.projectId,
-        listItem.commit.id,
-        'NOT_SUBMITTED'
-      )
-      .subscribe({
-        next: (updateResponse) => {
-          listItem.status = 'NOT_SUBMITTED';
-          console.log('Review status updated:', updateResponse);
-        },
-        error: (error) => {
-          console.error('Error updating review status:', error);
-        },
-      });
   }
 }

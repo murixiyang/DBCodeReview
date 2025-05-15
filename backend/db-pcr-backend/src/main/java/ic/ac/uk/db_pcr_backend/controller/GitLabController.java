@@ -127,7 +127,7 @@ public class GitLabController {
         }
 
         /* Return commit list with mapping to change status */
-        @GetMapping("/get-project-commits-with-status")
+        @GetMapping("/get-commits-with-status")
         public ResponseEntity<List<CommitWithStatusDto>> getProjectCommitsWithStatus(
                         @RequestParam("projectId") String projectId,
                         @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)

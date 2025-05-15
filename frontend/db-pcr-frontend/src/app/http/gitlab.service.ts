@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { CommitDiffSchema, CommitSchema, ProjectSchema } from '@gitbeaker/rest';
 import { ProjectDto } from '../interface/database/project-dto';
 import { GitlabCommitDto } from '../interface/database/gitlab-commit-dto';
+import { CommitWithStatusDto } from '../interface/database/commit-with-status-dto';
 
 @Injectable({
   providedIn: 'root',
@@ -28,10 +29,10 @@ export class GitlabService {
     });
   }
 
-  /** Get project commits */
-  getProjectCommits(projectId: string): Observable<GitlabCommitDto[]> {
-    return this.http.get<GitlabCommitDto[]>(
-      `${this.baseUrl}/get-project-commits?projectId=${projectId}`,
+  /** Get project commits with CommitStatus */
+  getCommitsWithStatus(projectId: string): Observable<CommitWithStatusDto[]> {
+    return this.http.get<CommitWithStatusDto[]>(
+      `${this.baseUrl}/get-commits-with-status?projectId=${projectId}`,
       { withCredentials: true }
     );
   }

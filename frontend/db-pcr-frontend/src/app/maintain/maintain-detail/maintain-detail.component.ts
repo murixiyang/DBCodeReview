@@ -2,12 +2,9 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ProjectSchema } from '@gitbeaker/rest';
-import { ReviewAssignment } from '../../interface/review-assignment';
 import { MaintainService } from '../../http/maintain.service';
 import { GitlabService } from '../../http/gitlab.service';
 import { ProjectDto } from '../../interface/database/project-dto';
-import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
 import { ReviewAssignmentUsernameDto } from '../../interface/database/review-assignment-dto copy';
 
 @Component({

@@ -1,16 +1,9 @@
 import { Component } from '@angular/core';
 import { ReviewService } from '../../http/review.service';
-import { AuthService } from '../../service/auth.service';
-import { AssignmentMetadata } from '../../interface/assignment-metadata';
-import { map, Observable } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { NgFor, NgIf } from '@angular/common';
 import { ReviewCommitListComponent } from '../review-commit-list/review-commit-list.component';
 import { ChangeRequestDto } from '../../interface/database/change-request-dto';
-import { ProjectUserPseudonymDto } from '../../interface/database/project-user-pseudonym-dto';
-import { ReviewAssignmentUsernameDto } from '../../interface/database/review-assignment-dto copy';
-import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
-import { ChangeStatus } from '../../interface/change-status';
 
 @Component({
   selector: 'app-review-list',

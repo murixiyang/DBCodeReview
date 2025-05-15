@@ -1,13 +1,6 @@
 import { Component, Input, SimpleChanges } from '@angular/core';
-import { ChangeInfo } from '../../interface/gerrit/change-info';
 import { Router } from '@angular/router';
-import { MaintainService } from '../../http/maintain.service';
-import { GerritService } from '../../http/gerrit.service';
-import { DatabaseService } from '../../http/database.service';
-import { AuthService } from '../../service/auth.service';
 import { ReviewService } from '../../http/review.service';
-import { tap } from 'rxjs';
-import { GerritChangeListItem } from '../../interface/commit-list-item';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
