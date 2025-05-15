@@ -17,12 +17,12 @@ export class MaintainService {
   assignReviewers(
     projectId: number,
     reviewerNum: number
-  ): Observable<ReviewAssignmentPseudonymDto[]> {
+  ): Observable<ReviewAssignmentUsernameDto[]> {
     const params = new HttpParams()
       .set('projectId', projectId.toString())
       .set('reviewerNum', reviewerNum.toString());
 
-    return this.http.post<ReviewAssignmentPseudonymDto[]>(
+    return this.http.post<ReviewAssignmentUsernameDto[]>(
       `${this.baseUrl}/assign`,
       null,
       {

@@ -1,0 +1,7 @@
+export type CommitStatus =
+  | 'NOT_SUBMITTED'
+  | 'SUPPRESSED_SUBMITTED'
+  | 'WAITING_REVIEW'
+  | 'IN_REVIEW'
+  | 'CHANGES_REQUESTED'
+  | 'APPROVED';

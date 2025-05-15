@@ -51,7 +51,7 @@ public class MaintainController {
         }
 
         @PostMapping("/assign")
-        public ResponseEntity<List<ReviewAssignmentPseudonymDto>> assignReviewers(
+        public ResponseEntity<List<ReviewAssignmentUsernameDto>> assignReviewers(
                         @RequestParam("projectId") String projectId,
                         @RequestParam("reviewerNum") int reviewerNum,
                         @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
@@ -61,11 +61,9 @@ public class MaintainController {
                 List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(groupId, projectId, reviewerNum,
                                 accessToken);
 
-                List<ReviewAssignmentPseudonymDto> dtos = assignments.stream().map(ra -> {
-                        var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(ra, RoleType.AUTHOR);
-                        var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(ra, RoleType.REVIEWER);
+                List<ReviewAssignmentUsernameDto> dtos = assignments.stream().map(ra -> {
 
-                        return new ReviewAssignmentPseudonymDto(ra, authorMask, reviewerMask);
+                        return new ReviewAssignmentUsernameDto(ra, ra.getAuthor(), ra.getReviewer());
                 }).toList();
 
                 return ResponseEntity.ok(dtos);

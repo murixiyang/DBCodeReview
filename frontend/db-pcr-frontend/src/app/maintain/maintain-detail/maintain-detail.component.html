@@ -4,7 +4,7 @@
   Project:
   <select [(ngModel)]="projectId">
     <option *ngFor="let p of projects" [value]="p.id">
-      {{ p["nameWithNamespace"] }}
+      {{ p.namespace }}/{{ p.name }}
     </option>
   </select>
 </label>

@@ -10,6 +10,7 @@ import { ChangeRequestDto } from '../../interface/database/change-request-dto';
 import { ProjectUserPseudonymDto } from '../../interface/database/project-user-pseudonym-dto';
 import { ReviewAssignmentUsernameDto } from '../../interface/database/review-assignment-dto copy';
 import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
+import { ChangeStatus } from '../../interface/change-status';
 
 @Component({
   selector: 'app-review-list',
@@ -22,9 +23,6 @@ export class ReviewListComponent {
 
   changeRequests!: ChangeRequestDto[];
   selectedChangeRequest?: ChangeRequestDto;
-
-  // Map ChangeRequestDto to author's pseudonym
-  PseudoNameMapping: Map<ChangeRequestDto, String> = new Map();
 
   constructor(
     private reviewSvc: ReviewService,

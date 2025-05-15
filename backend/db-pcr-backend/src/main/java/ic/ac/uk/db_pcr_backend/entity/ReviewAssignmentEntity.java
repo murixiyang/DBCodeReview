@@ -4,7 +4,7 @@ import java.time.Instant;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import ic.ac.uk.db_pcr_backend.model.ChangeStatus;
+import ic.ac.uk.db_pcr_backend.model.ProjectStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -49,7 +49,7 @@ public class ReviewAssignmentEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "project_status", nullable = false, length = 20)
-    private ChangeStatus projectStatus = ChangeStatus.WAITING_REVIEW;
+    private ProjectStatus projectStatus = ProjectStatus.PENDING;
 
     @Column(name = "project_status_at", nullable = false)
     private Instant projectStatusAt = Instant.now();
@@ -97,11 +97,11 @@ public class ReviewAssignmentEntity {
         return assignedAt;
     }
 
-    public ChangeStatus getProjectStatus() {
+    public ProjectStatus getProjectStatus() {
         return projectStatus;
     }
 
-    public void setProjectStatus(ChangeStatus projectStatus) {
+    public void setProjectStatus(ProjectStatus projectStatus) {
         this.projectStatus = projectStatus;
         this.projectStatusAt = Instant.now();
     }

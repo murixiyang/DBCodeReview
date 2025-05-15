@@ -6,6 +6,9 @@ import { ProjectSchema } from '@gitbeaker/rest';
 import { ReviewAssignment } from '../../interface/review-assignment';
 import { MaintainService } from '../../http/maintain.service';
 import { GitlabService } from '../../http/gitlab.service';
+import { ProjectDto } from '../../interface/database/project-dto';
+import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
+import { ReviewAssignmentUsernameDto } from '../../interface/database/review-assignment-dto copy';
 
 @Component({
   selector: 'app-maintain-detail',
@@ -14,10 +17,10 @@ import { GitlabService } from '../../http/gitlab.service';
   styleUrl: './maintain-detail.component.css',
 })
 export class MaintainDetailComponent implements OnInit {
-  projects: ProjectSchema[] = [];
+  projects: ProjectDto[] = [];
   projectId!: number;
   reviewerNum: number = 2;
-  reviewAssignments: ReviewAssignment[] = [];
+  reviewAssignments: ReviewAssignmentUsernameDto[] = [];
 
   constructor(
     private gitlabSvc: GitlabService,

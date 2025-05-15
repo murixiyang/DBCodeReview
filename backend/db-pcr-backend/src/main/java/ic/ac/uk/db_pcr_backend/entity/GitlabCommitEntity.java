@@ -31,7 +31,7 @@ public class GitlabCommitEntity {
     /** Which ProjectEntity (fork) this commit belongs to */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "project_id", nullable = false, foreignKey = @ForeignKey(name = "fk_commit_project"))
-    private ProjectEntity ProjectEntity;
+    private ProjectEntity project;
 
     /** Who authored the commit */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -56,12 +56,12 @@ public class GitlabCommitEntity {
     }
 
     public GitlabCommitEntity(String gitlabCommitId,
-            ProjectEntity ProjectEntity,
+            ProjectEntity project,
             UserEntity author,
             String message,
             Instant committedAt) {
         this.gitlabCommitId = gitlabCommitId;
-        this.ProjectEntity = ProjectEntity;
+        this.project = project;
         this.author = author;
         this.message = message;
         this.committedAt = committedAt;
@@ -81,11 +81,11 @@ public class GitlabCommitEntity {
     }
 
     public ProjectEntity getProject() {
-        return ProjectEntity;
+        return project;
     }
 
-    public void setProject(ProjectEntity ProjectEntity) {
-        this.ProjectEntity = ProjectEntity;
+    public void setProject(ProjectEntity project) {
+        this.project = project;
     }
 
     public UserEntity getAuthor() {

@@ -5,7 +5,7 @@ import java.time.Instant;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import ic.ac.uk.db_pcr_backend.model.ChangeStatus;
+import ic.ac.uk.db_pcr_backend.model.ReviewStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -50,7 +50,7 @@ public class ChangeRequestEntity {
     /** Current status of this change in the review workflow */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private ChangeStatus status = ChangeStatus.WAITING_REVIEW;
+    private ReviewStatus status = ReviewStatus.NOT_REVIEWED;
 
     /** When the status last changed */
     @UpdateTimestamp
@@ -103,11 +103,11 @@ public class ChangeRequestEntity {
         return submittedAt;
     }
 
-    public ChangeStatus getStatus() {
+    public ReviewStatus getStatus() {
         return status;
     }
 
-    public void setStatus(ChangeStatus status) {
+    public void setStatus(ReviewStatus status) {
         this.status = status;
     }
 

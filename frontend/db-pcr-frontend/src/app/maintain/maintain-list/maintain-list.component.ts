@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { GitlabService } from '../../http/gitlab.service';
 import { Router } from '@angular/router';
 import { AsyncPipe, NgFor } from '@angular/common';
-import { ProjectSchema } from '@gitbeaker/rest';
+import { ProjectDto } from '../../interface/database/project-dto';
 
 @Component({
   selector: 'app-maintain-list',
@@ -12,7 +12,7 @@ import { ProjectSchema } from '@gitbeaker/rest';
   styleUrl: './maintain-list.component.css',
 })
 export class MaintainListComponent {
-  projects$!: Observable<ProjectSchema[]>;
+  projects$!: Observable<ProjectDto[]>;
 
   constructor(private gitLabService: GitlabService, private router: Router) {}
 

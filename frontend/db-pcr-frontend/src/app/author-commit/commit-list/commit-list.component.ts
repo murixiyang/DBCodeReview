@@ -9,6 +9,8 @@ import { GitlabService } from '../../http/gitlab.service';
 import { GerritService } from '../../http/gerrit.service';
 import { DatabaseService } from '../../http/database.service';
 import { AuthService } from '../../service/auth.service';
+import { ChangeRequestDto } from '../../interface/database/change-request-dto';
+import { GitlabCommitDto } from '../../interface/database/gitlab-commit-dto';
 
 @Component({
   imports: [
@@ -26,7 +28,7 @@ export class CommitListComponent implements OnInit {
   projectId: string = '';
 
   displayedColumns = ['status', 'hash', 'message', 'date', 'action'];
-  commitList: CommitListItem[] = [];
+  commitList: GitlabCommitDto[] = [];
 
   username: string | null = null;
 
@@ -61,34 +63,41 @@ export class CommitListComponent implements OnInit {
     const username = this.username;
 
     this.gitLabSvc.getProjectCommits(projectId).subscribe((gitlabCommits) => {
-      this.databaseSvc
-        .getReviewStatus(username, projectId)
-        .subscribe((reviewStatusEntityList) => {
-          this.commitList = gitlabCommits.map((commit) => {
-            const existingStatus = reviewStatusEntityList.filter(
-              (status) => status.commitSha === commit.id
-            )[0]?.reviewStatus;
+      
+        this.commitList = gitlabCommits;
 
-            const commitListItem: CommitListItem = {
-              status: existingStatus ? existingStatus : 'NOT_SUBMITTED',
-              commit: commit,
-            };
 
-            // If commit not in DB, store it
-            if (!existingStatus) {
-              this.databaseSvc
-                .createReviewStatus(
-                  username,
-                  projectId,
-                  commit.id,
-                  'NOT_SUBMITTED'
-                )
-                .subscribe();
-            }
+      });
 
-            return commitListItem;
-          });
-        });
+      // this.gitLabSvc.getProjectCommits(projectId).subscribe((gitlabCommits) => {
+      //   this.databaseSvc
+      //     .getReviewStatus(username, projectId)
+      //     .subscribe((reviewStatusEntityList) => {
+      //       this.changeRequests = gitlabCommits.map((commit) => {
+      //         const existingStatus = reviewStatusEntityList.filter(
+      //           (status) => status.commitSha === commit.id
+      //         )[0]?.reviewStatus;
+
+      //         const commitListItem: CommitListItem = {
+      //           status: existingStatus ? existingStatus : 'NOT_SUBMITTED',
+      //           commit: commit,
+      //         };
+
+      //         // If commit not in DB, store it
+      //         if (!existingStatus) {
+      //           this.databaseSvc
+      //             .createReviewStatus(
+      //               username,
+      //               projectId,
+      //               commit.id,
+      //               'NOT_SUBMITTED'
+      //             )
+      //             .subscribe();
+      //         }
+
+      //         return commitListItem;
+      //       });
+      //     });
     });
   }
 
