@@ -1,9 +1,9 @@
 import { ChangeStatus } from '../change-status';
 
-export interface ReviewAssignmentPseudonymDto {
+export interface ReviewAssignmentUsernameDto {
   id: number;
-  authorId: number;
-  reviewerId: number;
+  authorName: string;
+  reviewerName: string;
   projectId: number;
   assignedAt: string;
   projectStatus: ChangeStatus;

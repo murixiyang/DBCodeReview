@@ -1,10 +1,7 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
-import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentUsernameDto;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
-import ic.ac.uk.db_pcr_backend.service.GitLabService;
+import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.service.MaintainService;
+import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
 
 @RestController
 @RequestMapping("/api/maintain")
@@ -31,45 +30,43 @@ public class MaintainController {
         private MaintainService maintainSvc;
 
         @Autowired
-        private GitLabService gitlabSvc;
+        private PseudoNameService pseudoNameSvc;
 
         @Value("${gitlab.group.id}")
         private String groupId;
 
         @GetMapping("/get-assigned-list")
-        public ResponseEntity<List<ReviewAssignmentDto>> getAssignedList(
+        public ResponseEntity<List<ReviewAssignmentUsernameDto>> getAssignedList(
                         @RequestParam("projectId") String projectId) throws Exception {
 
                 List<ReviewAssignmentEntity> assignments = maintainSvc
                                 .getReviewAssignmentsForProject(Long.valueOf(projectId));
 
-                // map entity → DTO
-                List<ReviewAssignmentDto> dtos = assignments.stream().map(ReviewAssignmentDto::fromEntity)
-                                .collect(Collectors.toList());
+                List<ReviewAssignmentUsernameDto> dtos = assignments.stream().map(ra -> {
+
+                        return new ReviewAssignmentUsernameDto(ra, ra.getAuthor(), ra.getReviewer());
+                }).toList();
 
                 return ResponseEntity.ok(dtos);
         }
 
         @PostMapping("/assign")
-        public ResponseEntity<List<ReviewAssignmentDto>> assignReviewers(
+        public ResponseEntity<List<ReviewAssignmentPseudonymDto>> assignReviewers(
                         @RequestParam("projectId") String projectId,
                         @RequestParam("reviewerNum") int reviewerNum,
                         @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
 
                 String accessToken = client.getAccessToken().getTokenValue();
 
-                List<ReviewAssignmentEntity> saved = maintainSvc.assignReviewers(groupId, projectId,
-                                reviewerNum, accessToken);
+                List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(groupId, projectId, reviewerNum,
+                                accessToken);
 
-                // map entity → DTO
-                List<ReviewAssignmentDto> dtos = saved.stream()
-                                .map(a -> new ReviewAssignmentDto(
-                                                a.getAssignmentUuid(),
-                                                a.getGroupProjectId(),
-                                                a.getProjectName(),
-                                                a.getAuthorName(),
-                                                a.getReviewerName()))
-                                .toList();
+                List<ReviewAssignmentPseudonymDto> dtos = assignments.stream().map(ra -> {
+                        var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(ra, RoleType.AUTHOR);
+                        var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(ra, RoleType.REVIEWER);
+
+                        return new ReviewAssignmentPseudonymDto(ra, authorMask, reviewerMask);
+                }).toList();
 
                 return ResponseEntity.ok(dtos);
         }

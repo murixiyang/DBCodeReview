@@ -43,33 +43,34 @@ public class ReviewService {
 
     @Autowired
     private PseudonymRepo nameRepo;
-xa
 
-    /** Fetch commits list using Uuid */
-    public List<ChangeInfoDto> fetchCommitsForAssignment(String assignmentUuid) throws Exception {
-        ReviewAssignmentEntity asn = reviewAssignmentRepo.findByAssignmentUuid(assignmentUuid)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    // /** Fetch commits list using Uuid */
+    // public List<ChangeInfoDto> fetchCommitsForAssignment(String assignmentUuid)
+    // throws Exception {
+    // ReviewAssignmentEntity asn =
+    // reviewAssignmentRepo.findByAssignmentUuid(assignmentUuid)
+    // .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        // build the path
-        String repoPath = asn.getAuthorName() + "/" + asn.getProjectName();
+    // // build the path
+    // String repoPath = asn.getAuthorName() + "/" + asn.getProjectName();
 
-        // call Gerrit
-        List<ChangeInfo> changes = gerritSvc.getCommitsFromProjectPath(repoPath);
+    // // call Gerrit
+    // List<ChangeInfo> changes = gerritSvc.getCommitsFromProjectPath(repoPath);
 
-        return changes.stream()
-                .map(change -> {
+    // return changes.stream()
+    // .map(change -> {
 
-                    return new ChangeInfoDto(
-                            change.changeId,
-                            change.subject,
-                            change.updated.toInstant());
-                })
-                .collect(Collectors.toList());
-    }
+    // return new ChangeInfoDto(
+    // change.changeId,
+    // change.subject,
+    // change.updated.toInstant());
+    // })
+    // .collect(Collectors.toList());
+    // }
 
     // * Get ChangeDiff by changeId */
-    public String getDiffs(String changeId) throws RestApiException {
-        return gerritSvc.fetchRawPatch(changeId, "current");
+    public String getDiffs(String gerritChangeId) throws RestApiException {
+        return gerritSvc.fetchRawPatch(gerritChangeId, "current");
     }
 
 }

@@ -7,11 +7,13 @@ import java.util.Random;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.PseudonymEntity;
+import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.repository.ProjectUserPseudonymRepo;
@@ -86,6 +88,11 @@ public class PseudoNameService {
             }
         }
         throw new IllegalStateException("Unable to generate unique pseudonym after " + maxAttempts + " attempts");
+    }
+
+    public ProjectUserPseudonymEntity getPseudonymInReviewAssignment(ReviewAssignmentEntity assignment, RoleType role) {
+        return nameAssignmentRepo.findByProjectAndUserAndRole(assignment.getProject(), assignment.getAuthor(), role)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown pseudonym for " + role + ": " + assignment));
     }
 
     // /**

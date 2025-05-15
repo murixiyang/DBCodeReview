@@ -21,21 +21,23 @@ public class DatabaseController {
     @Autowired
     private DatabaseService databaseSvc;
 
-    @GetMapping("/get-review-status")
-    public List<ReviewStatusEntity> getReviewStatuses(
-            @RequestParam String username,
-            @RequestParam String projectId) {
-        return databaseSvc.getReviewStatuses(username, projectId);
-    }
+    // @GetMapping("/get-review-status")
+    // public List<ReviewStatusEntity> getReviewStatuses(
+    // @RequestParam String username,
+    // @RequestParam String projectId) {
+    // return databaseSvc.getReviewStatuses(username, projectId);
+    // }
 
-    @PostMapping("/create-review-status")
-    public ReviewStatusEntity createReviewStatus(@RequestBody ReviewStatusDto dto) {
-        return databaseSvc.createReviewStatus(dto);
-    }
+    // @PostMapping("/create-review-status")
+    // public ReviewStatusEntity createReviewStatus(@RequestBody ReviewStatusDto
+    // dto) {
+    // return databaseSvc.createReviewStatus(dto);
+    // }
 
-    @PutMapping("/update-review-status")
-    public ReviewStatusEntity updateReviewStatus(@RequestBody ReviewStatusDto dto) {
-        return databaseSvc.updateReviewStatus(dto);
-    }
+    // @PutMapping("/update-review-status")
+    // public ReviewStatusEntity updateReviewStatus(@RequestBody ReviewStatusDto
+    // dto) {
+    // return databaseSvc.updateReviewStatus(dto);
+    // }
 
 }

@@ -8,6 +8,7 @@ import { ChangeInfo } from '../interface/gerrit/change-info';
 import { ChangeDiff } from '../interface/gerrit/change-diff.ts';
 import { ProjectDto } from '../interface/database/project-dto';
 import { ChangeRequestDto } from '../interface/database/change-request-dto';
+import { ReviewAssignmentPseudonymDto } from '../interface/database/review-assignment-dto';
 
 @Injectable({
   providedIn: 'root',
@@ -43,19 +44,36 @@ export class ReviewService {
     );
   }
 
-  /** Get assignment metadata for Uuid */
-  getAssignmentMetaByUuid(
-    assignmentUuid: string
-  ): Observable<AssignmentMetadata> {
-    const params = new HttpParams().set('assignmentUuid', assignmentUuid);
+  /** Get ReviewAssignment Pseudunym Dto by assignment id */
+  getReviewAssignmentPseudonymDto(
+    assignmentId: number
+  ): Observable<ReviewAssignmentPseudonymDto> {
+    const params = new HttpParams().set(
+      'assignmentId',
+      assignmentId.toString()
+    );
 
-    return this.http.get<AssignmentMetadata>(
-      `${this.baseUrl}/get-metadata-by-uuid`,
+    return this.http.get<ReviewAssignmentPseudonymDto>(
+      `${this.baseUrl}/get-review-assignment-pseudonym-by-id`,
       {
         params,
       }
     );
   }
+
+  /** Get assignment metadata for Uuid */
+  // getAssignmentMetaByUuid(
+  //   assignmentUuid: string
+  // ): Observable<AssignmentMetadata> {
+  //   const params = new HttpParams().set('assignmentUuid', assignmentUuid);
+
+  //   return this.http.get<AssignmentMetadata>(
+  //     `${this.baseUrl}/get-metadata-by-uuid`,
+  //     {
+  //       params,
+  //     }
+  //   );
+  // }
 
   /** Get Gerrit ChangeInfo list by Uuid */
   // getGerritChangeInfoByUuid(assignmentUuid: string): Observable<ChangeInfo[]> {

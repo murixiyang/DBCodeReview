@@ -2,42 +2,33 @@ package ic.ac.uk.db_pcr_backend.dto.datadto;
 
 import java.time.Instant;
 
+import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
+import ic.ac.uk.db_pcr_backend.entity.PseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.model.ChangeStatus;
 
-public class ReviewAssignmentDto {
+public class ReviewAssignmentPseudonymDto {
     private Long id;
-    private Long authorId;
-    private Long reviewerId;
+    private String authorPseudonym;
+    private String reviewerPseudonym;
     private Long projectId;
     private Instant assignedAt;
     private ChangeStatus projectStatus;
     private Instant projectStatusAt;
 
     // Constructor
-    public ReviewAssignmentDto() {
+    public ReviewAssignmentPseudonymDto() {
     }
 
-    public ReviewAssignmentDto(Long id, Long authorId, Long reviewerId, Long projectId, Instant assignedAt,
-            ChangeStatus projectStatus, Instant projectStatusAt) {
-        this.id = id;
-        this.authorId = authorId;
-        this.reviewerId = reviewerId;
-        this.projectId = projectId;
-        this.assignedAt = assignedAt;
-        this.projectStatus = projectStatus;
-        this.projectStatusAt = projectStatusAt;
-    }
-
-    public static ReviewAssignmentDto fromEntity(ReviewAssignmentEntity ra) {
-        return new ReviewAssignmentDto(
-                ra.getId(),
-                ra.getAuthor().getId(),
-                ra.getReviewer().getId(),
-                ra.getProject().getId(),
-                ra.getAssignedAt(),
-                ra.getProjectStatus(),
-                ra.getProjectStatusAt());
+    public ReviewAssignmentPseudonymDto(
+            ReviewAssignmentEntity ra,
+            ProjectUserPseudonymEntity authorMask,
+            ProjectUserPseudonymEntity reviewerMask) {
+        this.id = ra.getId();
+        this.authorPseudonym = authorMask.getPseudonym().getName();
+        this.reviewerPseudonym = reviewerMask.getPseudonym().getName();
+        this.projectStatus = ra.getProjectStatus();
+        this.assignedAt = ra.getAssignedAt();
     }
 
     // Getters and Setters
@@ -49,20 +40,20 @@ public class ReviewAssignmentDto {
         this.id = id;
     }
 
-    public Long getAuthorId() {
-        return authorId;
+    public String getAuthorPseudonym() {
+        return authorPseudonym;
     }
 
-    public void setAuthorId(Long authorId) {
-        this.authorId = authorId;
+    public void setAuthorPseudonym(String authorPseudonym) {
+        this.authorPseudonym = authorPseudonym;
     }
 
-    public Long getReviewerId() {
-        return reviewerId;
+    public String getReviewerPseudonym() {
+        return reviewerPseudonym;
     }
 
-    public void setReviewerId(Long reviewerId) {
-        this.reviewerId = reviewerId;
+    public void setReviewerPseudonym(String reviewerPseudonym) {
+        this.reviewerPseudonym = reviewerPseudonym;
     }
 
     public Long getProjectId() {
