@@ -70,6 +70,8 @@ public class ReviewService {
 
     // * Get ChangeDiff by changeId */
     public String getDiffs(String gerritChangeId) throws RestApiException {
+        System.out.println("Service: ReviewService.getDiffs");
+
         return gerritSvc.fetchRawPatch(gerritChangeId, "current");
     }
 

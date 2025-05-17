@@ -44,6 +44,9 @@ public class PseudoNameService {
     @Transactional
     public ProjectUserPseudonymEntity getOrCreatePseudoName(
             ProjectEntity project, UserEntity user, RoleType role) {
+
+        System.out.println("Service: PseudoNameService.getOrCreatePseudoName");
+
         return nameAssignmentRepo.findByProjectAndUserAndRole(project, user, role)
                 .orElseGet(() -> createNameMapping(project, user, role));
     }
@@ -51,6 +54,7 @@ public class PseudoNameService {
     private ProjectUserPseudonymEntity createNameMapping(ProjectEntity project,
             UserEntity user,
             RoleType role) {
+        System.out.println("Service: PseudoNameService.createNameMapping");
 
         // collect used names in this project+role
         Set<String> used = new HashSet<>();
@@ -73,6 +77,9 @@ public class PseudoNameService {
      * adding a numeric suffix if needed to avoid collisions.
      */
     private String generateUniqueName(Set<String> used) {
+
+        System.out.println("Service: PseudoNameService.generateUniqueName");
+
         int maxAttempts = ADJECTIVES.size() * ANIMALS.size() * 2;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             String base = ADJECTIVES.get(rand.nextInt(ADJECTIVES.size()))
@@ -94,46 +101,5 @@ public class PseudoNameService {
         return nameAssignmentRepo.findByProjectAndUserAndRole(assignment.getProject(), assignment.getAuthor(), role)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown pseudonym for " + role + ": " + assignment));
     }
-
-    // /**
-    // * Returns the existing pseudonym for this (assignment, realName),
-    // * or generates+stores a new one by picking from the adjective+animal lists
-    // * without colliding with existing pseudonyms in that assignment.
-    // */
-    // @Transactional
-    // public String getOrCreatePseudoName(String assignmentUuid, String realName) {
-    // return nameRepo.findByAssignmentUuidAndRealName(assignmentUuid, realName)
-    // .map(PseudoNameEntity::getPseudoName)
-    // .orElseGet(() -> {
-    // // fetch used pseudonyms
-    // Set<String> used = nameRepo.findByAssignmentUuid(assignmentUuid).stream()
-    // .map(PseudoNameEntity::getPseudoName)
-    // .collect(Collectors.toSet());
-
-    // // build all combos
-    // List<String> candidates = new ArrayList<>();
-    // for (var adj : ADJECTIVES) {
-    // for (var ani : ANIMALS) {
-    // candidates.add(adj + " " + ani);
-    // }
-    // }
-
-    // // pick a random unused one
-    // Collections.shuffle(candidates, rand);
-    // String pick = candidates.stream()
-    // .filter(c -> !used.contains(c))
-    // .findFirst()
-    // .orElseThrow(() -> new IllegalStateException("Ran out of pseudonyms"));
-
-    // PseudoNameEntity p = new PseudoNameEntity(assignmentUuid, realName, pick);
-
-    // System.out
-    // .println("DBLOG: Create pseudonym " + pick + " for " + realName + " in " +
-    // assignmentUuid);
-
-    // nameRepo.save(p);
-    // return pick;
-    // });
-    // }
 
 }

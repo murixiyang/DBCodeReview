@@ -26,6 +26,8 @@ public class CommitStatusService {
     private SubmissionTrackerService submissionTrackerSvc;
 
     public CommitStatus summarizeCommit(GitlabCommitEntity commit) {
+        System.out.println("Service: CommitStatusService.summarizeCommit");
+
         // A) Has the author ever submitted beyond this commit?
         Instant lastSubAt = submissionTrackerSvc.getLastSubmittedTimestamp(commit.getAuthor().getId(),
                 commit.getProject().getId());

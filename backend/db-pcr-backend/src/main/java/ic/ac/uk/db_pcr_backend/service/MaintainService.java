@@ -40,6 +40,8 @@ public class MaintainService {
             int reviewersPerStudent,
             String oauthToken) throws Exception {
 
+        System.out.println("Service: MaintainService.assignReviewers");
+
         // Fetch all “developer” members (students)
         List<Member> students = gitlabSvc.getDevInGroup(gitlabGroupId, oauthToken);
 
@@ -87,6 +89,9 @@ public class MaintainService {
     /* Get assigned list for project */
     @Transactional(readOnly = true)
     public List<ReviewAssignmentEntity> getReviewAssignmentsForProject(Long gitlabProjectId) {
+
+        System.out.println("Service: MaintainService.getReviewAssignmentsForProject");
+
         ProjectEntity project = projectRepo
                 .findByGitlabProjectId(gitlabProjectId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown project id: " + gitlabProjectId));

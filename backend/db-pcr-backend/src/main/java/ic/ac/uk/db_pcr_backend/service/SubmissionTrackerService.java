@@ -37,6 +37,8 @@ public class SubmissionTrackerService {
      */
     @Transactional
     public String recordSubmission(String username, Long projectId, String newGerritSha) {
+        System.out.println("Service: SubmissionTrackerService.recordSubmission");
+
         // Find User
         UserEntity user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
@@ -59,6 +61,8 @@ public class SubmissionTrackerService {
     @Transactional(readOnly = true)
     public String getLastSubmittedSha(String gitlabUsername,
             Long gitlabProjectId) {
+        System.out.println("Service: SubmissionTrackerService.getLastSubmittedSha");
+
         UserEntity author = userRepo.findByUsername(gitlabUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown user: " + gitlabUsername));
         ProjectEntity project = projectRepo.findByGitlabProjectId(gitlabProjectId)
@@ -72,6 +76,8 @@ public class SubmissionTrackerService {
 
     @Transactional(readOnly = true)
     public Instant getLastSubmittedTimestamp(Long authorId, Long projectId) {
+        System.out.println("Service: SubmissionTrackerService.getLastSubmittedTimestamp");
+
         UserEntity author = userRepo.findById(authorId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown user id: " + authorId));
         ProjectEntity project = projectRepo.findById(projectId)

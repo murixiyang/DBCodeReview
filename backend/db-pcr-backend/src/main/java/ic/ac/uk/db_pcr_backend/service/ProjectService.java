@@ -40,6 +40,8 @@ public class ProjectService {
     public void syncPersonalProjects(UserEntity user, String accessToken)
             throws GitLabApiException {
 
+        System.out.println("Service: ProjectService.syncPersonalProjects");
+
         // Call GitLab’s API for personal projects
         List<Project> forks = gitLabSvc.getPersonalProject(accessToken);
 
@@ -59,6 +61,8 @@ public class ProjectService {
     @Transactional
     public void syncGroupProjects(GitlabGroupEntity group, String oauthToken)
             throws GitLabApiException {
+
+        System.out.println("Service: ProjectService.syncGroupProjects");
 
         // B) Fetch group projects from Gitlab
         List<Project> groupProjects = gitLabSvc.getGroupProjects(group.getGitlabGroupId().toString(), oauthToken);

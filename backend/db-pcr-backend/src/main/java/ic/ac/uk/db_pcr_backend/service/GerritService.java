@@ -85,6 +85,7 @@ public class GerritService {
 
     // * Fetch commits list using repo Path */
     public List<ChangeInfo> getCommitsFromProjectPath(String path) throws Exception {
+        System.out.println("Service: GerritService.getCommitsFromProjectPath");
 
         return gerritApi.changes()
                 .query("project:" + path)
@@ -92,6 +93,8 @@ public class GerritService {
     }
 
     public String fetchRawPatch(String changeId, String revisionId) {
+        System.out.println("Service: GerritService.fetchRawPatch");
+
         String url = "/changes/" + URLEncoder.encode(changeId, StandardCharsets.UTF_8)
                 + "/revisions/" + revisionId
                 + "/patch?download=true";
@@ -123,6 +126,8 @@ public class GerritService {
     // ** Submit one/several gitlab commits to gerrit */ */
     public String submitForReview(String projectId, String targetSha, String gitlabToken, String username)
             throws Exception {
+        System.out.println("Service: GerritService.submitForReview");
+
         String cloneUrl = gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
         String pathWithNamespace = gitLabSvc.getProjectPathWithNamespace(projectId, gitlabToken);
 
@@ -173,6 +178,8 @@ public class GerritService {
     }
 
     private void ensureGerritProjectExists(GerritApi api, String path) throws RestApiException {
+        System.out.println("Service: GerritService.ensureGerritProjectExists");
+
         try {
             api.projects().name(path).get();
         } catch (RuntimeException e) {
@@ -188,6 +195,8 @@ public class GerritService {
     }
 
     private void createEmptyGerritProject(String path, GerritApi api) throws RestApiException {
+        System.out.println("Service: GerritService.createEmptyGerritProject");
+
         ProjectInput in = new ProjectInput();
         in.name = path;
         in.createEmptyCommit = true;
@@ -196,6 +205,9 @@ public class GerritService {
 
     private Git cloneGerritRepo(Path tempDir, String pathWithNamespace, CredentialsProvider gerritCreds)
             throws GitAPIException {
+
+        System.out.println("Service: GerritService.cloneGerritRepo");
+
         return Git.cloneRepository()
                 .setURI(gerritAuthUrl + "/" + pathWithNamespace + ".git")
                 .setDirectory(tempDir.toFile())
@@ -205,6 +217,9 @@ public class GerritService {
     }
 
     private void fetchGerritChanges(Git git, CredentialsProvider gerritCreds) throws GitAPIException {
+
+        System.out.println("Service: GerritService.fetchGerritChanges");
+
         git.fetch()
                 .setRemote("origin")
                 .setCredentialsProvider(gerritCreds)
@@ -216,6 +231,8 @@ public class GerritService {
 
     private void fetchGitLabCommits(Git git, String cloneUrl, CredentialsProvider gitlabCreds) throws Exception {
 
+        System.out.println("Service: GerritService.fetchGitLabCommits");
+
         git.remoteAdd().setName("gitlab").setUri(new URIish(cloneUrl)).call();
         git.fetch()
                 .setRemote("gitlab")
@@ -225,6 +242,8 @@ public class GerritService {
     }
 
     private void checkoutReviewBranch(Git git, String reviewBranch, RevCommit base) throws Exception {
+        System.out.println("Service: GerritService.checkoutReviewBranch");
+
         if (base != null) {
             git.checkout()
                     .setName(reviewBranch)
@@ -242,6 +261,8 @@ public class GerritService {
     }
 
     private RevCommit parseCommit(Git git, String sha) throws IOException {
+        System.out.println("Service: GerritService.parseCommit");
+
         // Resolve the SHA string to an ObjectId
         ObjectId id = git.getRepository().resolve(sha);
         if (id == null) {
@@ -255,6 +276,8 @@ public class GerritService {
     }
 
     private String computeChangeId(RevCommit source) throws IOException {
+        System.out.println("Service: GerritService.computeChangeId");
+
         ObjectId tree = source.getTree().getId();
         ObjectId parent = source.getParentCount() > 0
                 ? source.getParent(0).getId()
@@ -269,6 +292,8 @@ public class GerritService {
     private void applyDiffAsPatch(Git git,
             RevCommit base,
             RevCommit target) throws Exception {
+        System.out.println("Service: GerritService.applyDiffAsPatch");
+
         Repository repo = git.getRepository();
 
         // If base is null (first review), use HEAD of the branch as base
@@ -294,6 +319,8 @@ public class GerritService {
     }
 
     private void commitWithChangeId(Git git, String changeId, String originalMsg) throws Exception {
+        System.out.println("Service: GerritService.commitWithChangeId");
+
         String fullMsg = originalMsg + "\n\nChange-Id: " + changeId;
         git.commit()
                 .setAll(true) // commit the staged squash
@@ -302,6 +329,8 @@ public class GerritService {
     }
 
     private PushResult pushToGerrit(Git git, CredentialsProvider gerritCreds) throws GitAPIException {
+        System.out.println("Service: GerritService.pushToGerrit");
+
         return git.push()
                 .setRemote("origin")
                 .setRefSpecs(new RefSpec("HEAD:refs/for/" + gerritBranch))
@@ -311,6 +340,8 @@ public class GerritService {
     }
 
     private String extractNewSha(PushResult pr) {
+        System.out.println("Service: GerritService.extractNewSha");
+
         return pr.getRemoteUpdates().stream()
                 .map(u -> u.getNewObjectId().getName())
                 .findFirst()

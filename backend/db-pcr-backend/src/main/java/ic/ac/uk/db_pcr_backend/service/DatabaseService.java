@@ -27,52 +27,52 @@ import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 @Service
 public class DatabaseService {
 
-        @Autowired
-        private GitLabService gitLabSvc;
+    @Autowired
+    private GitLabService gitLabSvc;
 
-        @Autowired
-        private ProjectRepo projectRepo;
+    @Autowired
+    private ProjectRepo projectRepo;
 
-        @Autowired
-        private GitlabGroupRepo groupRepo;
+    @Autowired
+    private GitlabGroupRepo groupRepo;
 
-        @Autowired
-        private UserRepo userRepo;
+    @Autowired
+    private UserRepo userRepo;
 
-        @Autowired
-        private GitlabCommitRepo commitRepo;
+    @Autowired
+    private GitlabCommitRepo commitRepo;
 
-        
+    /* ------- Gitlab Commit -------- */
+    @Transactional
+    public void syncCommitsForProject(Long gitlabProjectId, String oauthToken) throws GitLabApiException {
+        System.out.println("Service: DatabaseService.syncCommitsForProject");
 
-        /* ------- Gitlab Commit -------- */
-        @Transactional
-        public void syncCommitsForProject(Long gitlabProjectId, String oauthToken) throws GitLabApiException {
-                ProjectEntity project = projectRepo.findByGitlabProjectId(gitlabProjectId)
-                                .orElseThrow(() -> new IllegalArgumentException(
-                                                "Project not found: " + gitlabProjectId));
+        ProjectEntity project = projectRepo.findByGitlabProjectId(gitlabProjectId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Project not found: " + gitlabProjectId));
 
-                String projectIdStr = String.valueOf(gitlabProjectId);
+        String projectIdStr = String.valueOf(gitlabProjectId);
 
-                List<Commit> gitlabCommits = gitLabSvc.getProjectCommits(projectIdStr, oauthToken);
+        List<Commit> gitlabCommits = gitLabSvc.getProjectCommits(projectIdStr, oauthToken);
 
-                for (Commit c : gitlabCommits) {
-                        // upsert author
-                        UserEntity author = userRepo.findByGitlabUserId(c.getAuthor().getId())
-                                        .orElseGet(() -> userRepo.save(
-                                                        new UserEntity(c.getAuthor().getId(), c.getAuthorName(),
-                                                                        null)));
+        for (Commit c : gitlabCommits) {
+            // upsert author
+            UserEntity author = userRepo.findByGitlabUserId(c.getAuthor().getId())
+                    .orElseGet(() -> userRepo.save(
+                            new UserEntity(c.getAuthor().getId(), c.getAuthorName(),
+                                    null)));
 
-                        // upsert commit
-                        GitlabCommitEntity entity = commitRepo.findByGitlabCommitId(c.getId())
-                                        .orElseGet(() -> new GitlabCommitEntity(
-                                                        c.getId(), project, author, c.getMessage(),
-                                                        c.getCommittedDate().toInstant()));
+            // upsert commit
+            GitlabCommitEntity entity = commitRepo.findByGitlabCommitId(c.getId())
+                    .orElseGet(() -> new GitlabCommitEntity(
+                            c.getId(), project, author, c.getMessage(),
+                            c.getCommittedDate().toInstant()));
 
-                        entity.setMessage(c.getMessage());
-                        entity.setCommittedAt(c.getCommittedDate().toInstant());
+            entity.setMessage(c.getMessage());
+            entity.setCommittedAt(c.getCommittedDate().toInstant());
 
-                        commitRepo.save(entity);
-                }
+            commitRepo.save(entity);
         }
+    }
 
 }
