@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.models.Diff;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -21,10 +22,14 @@ import ic.ac.uk.db_pcr_backend.model.CommitStatus;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.service.CommitService;
+import ic.ac.uk.db_pcr_backend.service.GitLabService;
 
 @RestController
 @RequestMapping("/api")
 public class CommitController {
+
+    @Autowired
+    private GitLabService gitLabSvc;
 
     @Autowired
     private CommitService commitSvc;
@@ -95,6 +100,25 @@ public class CommitController {
                 .toList();
 
         return ResponseEntity.ok(result);
+
+    }
+
+    @GetMapping("/get-commit-diff")
+    public ResponseEntity<List<Diff>> getCommitDiff(@RequestParam("projectId") String projectId,
+            @RequestParam("sha") String gitlabCommitId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            throws GitLabApiException {
+
+        System.out.println("STAGE: GitLabController.getCommitDiff");
+
+        // Get Project
+        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown project id " + projectId));
+
+        String gitlabProjectId = String.valueOf(project.getGitlabProjectId());
+
+        String accessToken = client.getAccessToken().getTokenValue();
+        return ResponseEntity.ok(gitLabSvc.getCommitDiff(gitlabProjectId, gitlabCommitId, accessToken));
     }
 
 }

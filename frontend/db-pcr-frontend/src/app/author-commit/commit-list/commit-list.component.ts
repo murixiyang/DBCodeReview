@@ -36,9 +36,6 @@ export class CommitListComponent implements OnInit {
   constructor(
     private gitLabSvc: GitlabService,
     private gerritSvc: GerritService,
-    private databaseSvc: DatabaseService,
-    private authSvc: AuthService,
-    private router: Router,
     private route: ActivatedRoute
   ) {}
 
