@@ -105,7 +105,6 @@ public class GerritService {
                 .build();
 
         String rawB64 = rest.getForObject(url, String.class);
-        System.out.println("DBLOG: Raw patch: " + rawB64);
         // Gerrit may still prepend the XSSI guard; strip up to the first letter of the
         // patch
         String stripped = rawB64.replaceFirst("(?s)^.*?(?=RnVmZik|ZGlmZik|diff)", "");
@@ -113,7 +112,6 @@ public class GerritService {
         // Now decode the base64 to get the real unified diff text
         byte[] decoded = Base64.getDecoder().decode(stripped);
         String patch = new String(decoded, StandardCharsets.UTF_8);
-        System.out.println("DBLOG: Decoded patch: " + patch);
 
         int idx = patch.indexOf("diff --git");
         if (idx > 0) {
@@ -173,7 +171,6 @@ public class GerritService {
         // --- Record the SHA as the new last submitted
         submissionTrackerSvc.recordSubmission(username, projectIdLong, newGerritSha);
 
-        System.out.println("DBLOG: Pushed commit to Gerrit: " + changeId);
         return changeId;
     }
 

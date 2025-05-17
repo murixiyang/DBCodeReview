@@ -10,6 +10,7 @@ import { DatabaseService } from '../../http/database.service';
 import { AuthService } from '../../service/auth.service';
 import { CommitWithStatusDto } from '../../interface/database/commit-with-status-dto';
 import { GitlabCommitDto } from '../../interface/database/gitlab-commit-dto';
+import { ShortIdPipe } from '../../pipe/short-id.pipe';
 
 @Component({
   imports: [
@@ -19,6 +20,7 @@ import { GitlabCommitDto } from '../../interface/database/gitlab-commit-dto';
     DatePipe,
     RouterLink,
     NgIf,
+    ShortIdPipe,
   ],
   templateUrl: './commit-list.component.html',
   styleUrl: './commit-list.component.css',

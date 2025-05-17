@@ -7,7 +7,6 @@ import java.util.Random;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.method.P;
 import org.springframework.stereotype.Service;
 
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
@@ -25,9 +24,16 @@ import org.springframework.transaction.annotation.Transactional;
 public class PseudoNameService {
 
     private static final List<String> ADJECTIVES = List.of(
-            "Brave", "Clever", "Gentle", "Mighty", "Swift");
-    private static final List<String> ANIMALS = List.of(
-            "Bear", "Frog", "Hawk", "Otter", "Panda");
+            "Brave", "Clever", "Gentle", "Mighty", "Swift",
+            "Radiant", "Curious", "Valiant", "Fierce", "Nimble",
+            "Wise", "Bold", "Stoic", "Graceful", "Fearless",
+            "Dashing", "Eloquent", "Luminous", "Steadfast", "Vibrant");
+    private static final List<String> NOUNS = List.of(
+            "Bear", "Frog", "Hawk", "Otter", "Panda",
+            "Wolf", "Falcon", "Rabbit", "Fox", "Tiger",
+            "Elephant", "Seal", "Giraffe", "Dolphin", "Eagle",
+            "Koala", "Penguin", "Leopard", "Jaguar", "Badger",
+            "Dragon", "Phoenix", "Unicorn", "Griffin", "Hydra");
 
     @Autowired
     private PseudonymRepo nameRepo;
@@ -80,11 +86,11 @@ public class PseudoNameService {
 
         System.out.println("Service: PseudoNameService.generateUniqueName");
 
-        int maxAttempts = ADJECTIVES.size() * ANIMALS.size() * 2;
+        int maxAttempts = ADJECTIVES.size() * NOUNS.size() * 2;
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
             String base = ADJECTIVES.get(rand.nextInt(ADJECTIVES.size()))
                     + " "
-                    + ANIMALS.get(rand.nextInt(ANIMALS.size()));
+                    + NOUNS.get(rand.nextInt(NOUNS.size()));
             String candidate = base;
             if (used.contains(candidate)) {
                 // add suffix
