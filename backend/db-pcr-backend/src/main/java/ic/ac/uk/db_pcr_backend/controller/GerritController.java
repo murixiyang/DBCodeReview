@@ -31,6 +31,8 @@ public class GerritController {
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client, Principal principal)
             throws Exception {
 
+        System.out.println("STAGE: GerritController.requestReview");
+
         // 1) Fetch the GitLab OAuth token for this user/session
         String accessToken = client.getAccessToken().getTokenValue();
         String username = principal.getName();

@@ -48,6 +48,8 @@ public class ProjectController {
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
             @AuthenticationPrincipal OAuth2User oauth2User) throws GitLabApiException {
 
+        System.out.println("STAGE: ProjectController.getProject");
+
         String accessToken = client.getAccessToken().getTokenValue();
 
         Long gitlabUserId = Long.valueOf(oauth2User.getAttribute("id").toString());
@@ -72,6 +74,9 @@ public class ProjectController {
     @GetMapping("/group-projects")
     public ResponseEntity<List<ProjectDto>> getProjectNameInGroup(
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+
+        System.out.println("STAGE: ProjectController.getProjectNameInGroup");
+
         String accessToken = client.getAccessToken().getTokenValue();
 
         Long gitlabGroupId = Long.valueOf(groupId);

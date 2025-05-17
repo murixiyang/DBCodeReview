@@ -26,50 +26,52 @@ import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
 @PreAuthorize("hasRole('MAINTAINER')")
 public class MaintainController {
 
-        @Autowired
-        private MaintainService maintainSvc;
+    @Autowired
+    private MaintainService maintainSvc;
 
-        @Autowired
-        private PseudoNameService pseudoNameSvc;
+    @Autowired
+    private PseudoNameService pseudoNameSvc;
 
-        @Value("${gitlab.group.id}")
-        private String gitlabGroupId;
+    @Value("${gitlab.group.id}")
+    private String gitlabGroupId;
 
-        @GetMapping("/get-assigned-list")
-        public ResponseEntity<List<ReviewAssignmentUsernameDto>> getAssignedList(
-                        @RequestParam("projectId") String projectId) throws Exception {
+    @GetMapping("/get-assigned-list")
+    public ResponseEntity<List<ReviewAssignmentUsernameDto>> getAssignedList(
+            @RequestParam("projectId") String projectId) throws Exception {
 
-                List<ReviewAssignmentEntity> assignments = maintainSvc
-                                .getReviewAssignmentsForProject(Long.valueOf(projectId));
+        System.out.println("STAGE: MaintainController.getAssignedList");
 
-                List<ReviewAssignmentUsernameDto> dtos = assignments.stream().map(ra -> {
+        List<ReviewAssignmentEntity> assignments = maintainSvc
+                .getReviewAssignmentsForProject(Long.valueOf(projectId));
 
-                        return new ReviewAssignmentUsernameDto(ra, ra.getAuthor(), ra.getReviewer());
-                }).toList();
+        List<ReviewAssignmentUsernameDto> dtos = assignments.stream().map(ra -> {
 
-                return ResponseEntity.ok(dtos);
-        }
+            return new ReviewAssignmentUsernameDto(ra, ra.getAuthor(), ra.getReviewer());
+        }).toList();
 
-        @PostMapping("/assign")
-        public ResponseEntity<List<ReviewAssignmentUsernameDto>> assignReviewers(
-                        @RequestParam("projectId") String projectId,
-                        @RequestParam("reviewerNum") int reviewerNum,
-                        @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+        return ResponseEntity.ok(dtos);
+    }
 
-                String accessToken = client.getAccessToken().getTokenValue();
+    @PostMapping("/assign")
+    public ResponseEntity<List<ReviewAssignmentUsernameDto>> assignReviewers(
+            @RequestParam("projectId") String projectId,
+            @RequestParam("reviewerNum") int reviewerNum,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
 
-                System.out.println("DBLOG: Start to assign project for " + projectId);
+        System.out.println("STAGE: MaintainController.assignReviewers");
 
-                List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(gitlabGroupId, projectId,
-                                reviewerNum,
-                                accessToken);
+        String accessToken = client.getAccessToken().getTokenValue();
 
-                List<ReviewAssignmentUsernameDto> dtos = assignments.stream().map(ra -> {
+        List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(gitlabGroupId, projectId,
+                reviewerNum,
+                accessToken);
 
-                        return new ReviewAssignmentUsernameDto(ra, ra.getAuthor(), ra.getReviewer());
-                }).toList();
+        List<ReviewAssignmentUsernameDto> dtos = assignments.stream().map(ra -> {
 
-                return ResponseEntity.ok(dtos);
-        }
+            return new ReviewAssignmentUsernameDto(ra, ra.getAuthor(), ra.getReviewer());
+        }).toList();
+
+        return ResponseEntity.ok(dtos);
+    }
 
 }

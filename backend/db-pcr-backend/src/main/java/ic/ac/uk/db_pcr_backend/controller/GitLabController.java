@@ -57,6 +57,9 @@ public class GitLabController {
     public ResponseEntity<List<GitlabCommitDto>> getProjectCommits(@RequestParam("projectId") String projectId,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
             throws GitLabApiException {
+
+        System.out.println("STAGE: GitLabController.getProjectCommits");
+
         String accessToken = client.getAccessToken().getTokenValue();
 
         Long projectIdLong = Long.valueOf(projectId);
@@ -85,6 +88,8 @@ public class GitLabController {
             @RequestParam("projectId") String projectId,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
             throws GitLabApiException {
+
+        System.out.println("STAGE: GitLabController.getProjectCommitsWithStatus");
 
         String accessToken = client.getAccessToken().getTokenValue();
 
@@ -115,6 +120,9 @@ public class GitLabController {
             @RequestParam("sha") String sha,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
             throws GitLabApiException {
+
+        System.out.println("STAGE: GitLabController.getCommitDiff");
+
         String accessToken = client.getAccessToken().getTokenValue();
         return ResponseEntity.ok(gitLabService.getCommitDiff(projectId, sha, accessToken));
     }

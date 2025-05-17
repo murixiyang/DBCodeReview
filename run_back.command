@@ -15,13 +15,16 @@ elif [ -n "$ALL_ID" ]; then
   docker start "$ALL_ID"
 else
   echo "✚ Creating & starting Postgres container..."
+
   docker run -d \
     --name "$CONTAINER_NAME" \
     -e POSTGRES_DB="$DB_NAME" \
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASS" \
     -p 5432:5432 \
+    -v code-review-db-data:/var/lib/postgresql/data \
     postgres:15
+
 fi
 
 # 3) Wait for Postgres to accept connections (authenticate as $DB_USER)

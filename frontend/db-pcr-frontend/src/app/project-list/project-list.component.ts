@@ -11,7 +11,7 @@ import { ReviewService } from '../http/review.service';
 import { ProjectDto } from '../interface/database/project-dto';
 
 @Component({
-  imports: [NgFor, AsyncPipe],
+  imports: [NgFor],
   templateUrl: './project-list.component.html',
   styleUrl: './project-list.component.css',
 })
