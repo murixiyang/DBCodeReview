@@ -4,13 +4,11 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { GerritService } from '../../http/gerrit.service';
-import { DatabaseService } from '../../http/database.service';
-import { AuthService } from '../../service/auth.service';
 import { CommitWithStatusDto } from '../../interface/database/commit-with-status-dto';
 import { GitlabCommitDto } from '../../interface/database/gitlab-commit-dto';
 import { ShortIdPipe } from '../../pipe/short-id.pipe';
 import { CommitService } from '../../http/commit.service';
+import { ReviewService } from '../../http/review.service';
 
 @Component({
   imports: [
@@ -35,7 +33,7 @@ export class CommitListComponent implements OnInit {
 
   constructor(
     private commitSvc: CommitService,
-    private gerritSvc: GerritService,
+    private reviewSvc: ReviewService,
     private route: ActivatedRoute
   ) {}
 
@@ -52,7 +50,7 @@ export class CommitListComponent implements OnInit {
   getProjectCommitsWithStatus(projectId: string) {}
 
   requestReview(commit: GitlabCommitDto) {
-    this.gerritSvc
+    this.reviewSvc
       .postRequestReview(this.projectId, commit.gitlabCommitId)
       .subscribe({
         next: (response) => {

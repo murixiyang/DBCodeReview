@@ -52,6 +52,20 @@ export class ReviewService {
     );
   }
 
+  /** Post a request review from Gitlab commit to Gerrit */
+  postRequestReview(
+    projectId: string,
+    sha: string
+  ): Observable<{ changeId: string }> {
+    const url = `${this.baseUrl}/post-request-review`;
+    // build the body exactly as your @RequestBody record expects
+    const body = { projectId, sha };
+
+    return this.http.post<{ changeId: string }>(url, body, {
+      withCredentials: true, // send the JSESSIONID so Spring can look up the OAuth2AuthorizedClient
+    });
+  }
+
   /** Get assignment metadata for Uuid */
   // getAssignmentMetaByUuid(
   //   assignmentUuid: string
