@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { GitlabService } from './gitlab.service';
+import { CommitService } from './commit.service';
 
-describe('GitlabService', () => {
-  let service: GitlabService;
+describe('CommitService', () => {
+  let service: CommitService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(GitlabService);
+    service = TestBed.inject(CommitService);
   });
 
   it('should be created', () => {

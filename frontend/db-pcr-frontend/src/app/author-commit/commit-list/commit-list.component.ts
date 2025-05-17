@@ -4,13 +4,13 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { GitlabService } from '../../http/gitlab.service';
 import { GerritService } from '../../http/gerrit.service';
 import { DatabaseService } from '../../http/database.service';
 import { AuthService } from '../../service/auth.service';
 import { CommitWithStatusDto } from '../../interface/database/commit-with-status-dto';
 import { GitlabCommitDto } from '../../interface/database/gitlab-commit-dto';
 import { ShortIdPipe } from '../../pipe/short-id.pipe';
+import { CommitService } from '../../http/commit.service';
 
 @Component({
   imports: [
@@ -34,7 +34,7 @@ export class CommitListComponent implements OnInit {
   username: string | null = null;
 
   constructor(
-    private gitLabSvc: GitlabService,
+    private commitSvc: CommitService,
     private gerritSvc: GerritService,
     private route: ActivatedRoute
   ) {}
@@ -42,7 +42,7 @@ export class CommitListComponent implements OnInit {
   ngOnInit() {
     this.projectId = this.route.snapshot.params['projectId'];
 
-    this.gitLabSvc
+    this.commitSvc
       .getCommitsWithStatus(this.projectId)
       .subscribe((gitlabCommits) => {
         this.commitList = gitlabCommits;

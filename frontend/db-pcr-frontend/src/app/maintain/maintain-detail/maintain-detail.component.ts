@@ -3,9 +3,9 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { MaintainService } from '../../http/maintain.service';
-import { GitlabService } from '../../http/gitlab.service';
 import { ProjectDto } from '../../interface/database/project-dto';
 import { ReviewAssignmentUsernameDto } from '../../interface/database/review-assignment-dto copy';
+import { ProjectService } from '../../http/project.service';
 
 @Component({
   selector: 'app-maintain-detail',
@@ -20,13 +20,13 @@ export class MaintainDetailComponent implements OnInit {
   reviewAssignments: ReviewAssignmentUsernameDto[] = [];
 
   constructor(
-    private gitlabSvc: GitlabService,
+    private projectSvc: ProjectService,
     private maintainSvc: MaintainService,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.gitlabSvc.getGroupProjects().subscribe({
+    this.projectSvc.getGroupProjects().subscribe({
       next: (ps) => {
         this.projects = ps;
 

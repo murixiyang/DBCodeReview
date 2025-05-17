@@ -1,33 +1,17 @@
 import { Injectable } from '@angular/core';
-import { SPRING_URL, SPRING_URL_GITLAB } from '../service/constant.service';
+import { SPRING_URL } from '../service/constant.service';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CommitDiffSchema, CommitSchema, ProjectSchema } from '@gitbeaker/rest';
-import { ProjectDto } from '../interface/database/project-dto';
-import { GitlabCommitDto } from '../interface/database/gitlab-commit-dto';
 import { CommitWithStatusDto } from '../interface/database/commit-with-status-dto';
+import { CommitDiffSchema } from '@gitbeaker/rest';
 
 @Injectable({
   providedIn: 'root',
 })
-export class GitlabService {
+export class CommitService {
   private baseUrl = SPRING_URL;
 
   constructor(private http: HttpClient) {}
-
-  /**  Get user's project list */
-  getProjects(): Observable<ProjectDto[]> {
-    return this.http.get<ProjectDto[]>(`${this.baseUrl}/projects`, {
-      withCredentials: true,
-    });
-  }
-
-  /** Get project by group */
-  getGroupProjects(): Observable<ProjectDto[]> {
-    return this.http.get<ProjectDto[]>(`${this.baseUrl}/group-projects`, {
-      withCredentials: true,
-    });
-  }
 
   /** Get project commits with CommitStatus */
   getCommitsWithStatus(projectId: string): Observable<CommitWithStatusDto[]> {

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AsyncPipe, NgFor } from '@angular/common';
-import { GitlabService } from '../http/gitlab.service';
 import { Observable } from 'rxjs';
 import { ProjectSchema } from '@gitbeaker/rest';
 import { MaintainService } from '../http/maintain.service';
@@ -9,6 +8,7 @@ import { AuthService } from '../service/auth.service';
 import { GerritService } from '../http/gerrit.service';
 import { ReviewService } from '../http/review.service';
 import { ProjectDto } from '../interface/database/project-dto';
+import { ProjectService } from '../http/project.service';
 
 @Component({
   imports: [NgFor],
@@ -20,13 +20,13 @@ export class ProjectListComponent implements OnInit {
   projectsToReview!: ProjectDto[];
 
   constructor(
-    private gitLabSvc: GitlabService,
+    private projectSvc: ProjectService,
     private reviewSvc: ReviewService,
     private router: Router
   ) {}
 
   ngOnInit() {
-    this.gitLabSvc.getProjects().subscribe((projects) => {
+    this.projectSvc.getProjects().subscribe((projects) => {
       this.projects = projects;
     });
 
