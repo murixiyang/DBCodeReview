@@ -56,3 +56,8 @@
   <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
   <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 </table>
+
+<!-- Empty State -->
+<p *ngIf="!commitList.length" class="empty-state">
+  No changes found for this assignment.
+</p>

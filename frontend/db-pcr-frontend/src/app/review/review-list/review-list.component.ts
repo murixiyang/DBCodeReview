@@ -14,6 +14,7 @@ import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-as
 })
 export class ReviewListComponent {
   groupProjectId!: string;
+  projectName!: string;
 
   reviewAssignments!: ReviewAssignmentPseudonymDto[];
   selectedAssignment?: ReviewAssignmentPseudonymDto;
@@ -32,6 +33,7 @@ export class ReviewListComponent {
         this.reviewAssignments = data;
 
         this.selectedAssignment = this.reviewAssignments[0];
+        this.projectName = this.selectedAssignment.groupProjectName;
       });
   }
 

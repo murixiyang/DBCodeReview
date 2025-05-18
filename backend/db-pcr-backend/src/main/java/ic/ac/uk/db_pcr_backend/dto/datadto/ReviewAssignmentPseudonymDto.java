@@ -11,6 +11,7 @@ public class ReviewAssignmentPseudonymDto {
     private String authorPseudonym;
     private String reviewerPseudonym;
     private Long groupProjectId;
+    private String groupProjectName;
     private Instant assignedAt;
     private ProjectStatus projectStatus;
     private Instant projectStatusAt;
@@ -27,6 +28,7 @@ public class ReviewAssignmentPseudonymDto {
         this.authorPseudonym = authorMask.getPseudonym().getName();
         this.reviewerPseudonym = reviewerMask.getPseudonym().getName();
         this.groupProjectId = ra.getGroupProject().getId();
+        this.groupProjectName = ra.getGroupProject().getName();
         this.assignedAt = ra.getAssignedAt();
         this.projectStatus = ra.getProjectStatus();
         this.projectStatusAt = ra.getProjectStatusAt();
@@ -63,6 +65,14 @@ public class ReviewAssignmentPseudonymDto {
 
     public void setGroupProjectId(Long groupProjectId) {
         this.groupProjectId = groupProjectId;
+    }
+
+    public String getGroupProjectName() {
+        return groupProjectName;
+    }
+
+    public void setGroupProjectName(String groupProjectName) {
+        this.groupProjectName = groupProjectName;
     }
 
     public Instant getAssignedAt() {

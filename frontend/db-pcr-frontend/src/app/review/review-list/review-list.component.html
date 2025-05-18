@@ -1,7 +1,7 @@
 <div class="review-container">
   <!-- Sidebar -->
   <aside class="sidebar">
-    <h2>{{ groupProjectId }}</h2>
+    <h2>{{ projectName }}</h2>
     <ul>
       <li
         *ngFor="let assignment of reviewAssignments"
@@ -16,7 +16,7 @@
   <!-- Detail pane -->
   <section class="detail" *ngIf="selectedAssignment">
     <h3>
-      Reviewing {{ groupProjectId }} by {{ selectedAssignment.authorPseudonym }}
+      Reviewing {{ projectName }} by {{ selectedAssignment.authorPseudonym }}
     </h3>
     <app-review-commit-list [selectedAssignment]="selectedAssignment">
     </app-review-commit-list>

@@ -5,6 +5,7 @@ export interface ReviewAssignmentPseudonymDto {
   authorPseudonym: string;
   reviewerPseudonym: string;
   groupProjectId: number;
+  groupProjectName: string;
   assignedAt: string;
   projectStatus: ProjectStatus;
   projectStatusAt: string;
