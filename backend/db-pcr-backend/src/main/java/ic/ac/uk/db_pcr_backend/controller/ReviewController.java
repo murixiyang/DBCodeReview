@@ -2,7 +2,6 @@ package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +33,6 @@ import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
-import ic.ac.uk.db_pcr_backend.service.ReviewService;
 
 @RestController
 @RequestMapping("/api/review")
@@ -42,9 +40,6 @@ public class ReviewController {
 
     @Autowired
     private GerritService gerritSvc;
-
-    @Autowired
-    private ReviewService reviewSvc;
 
     @Autowired
     private PseudoNameService pseudoNameSvc;
@@ -120,8 +115,6 @@ public class ReviewController {
                 .map(ChangeRequestDto::fromEntity)
                 .collect(Collectors.toList());
 
-        System.out.println("DBLOG: Change requests found: " + changeRequests.size());
-
         return ResponseEntity.ok(changeRequests);
     }
 
@@ -141,13 +134,9 @@ public class ReviewController {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Project not found: " + groupProjectId));
 
-        System.out.println("DBLOG: Project found: " + groupProject.getId());
-
         UserEntity reviewer = userRepo.findByUsername(oauth2User.getAttribute("username"))
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Reviewer not found: " + oauth2User.getAttribute("username")));
-
-        System.out.println("DBLOG: Reviewer found: " + reviewer.getId());
 
         // Find the review assignment
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
@@ -161,19 +150,16 @@ public class ReviewController {
                 })
                 .toArray(ReviewAssignmentPseudonymDto[]::new);
 
-        System.out.println("DBLOG: Review assignments found: " + assignments.size());
-
         return ResponseEntity.ok(dtoArray);
     }
 
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
     @GetMapping("/get-change-diff")
-    public String getChangeDiff(@RequestParam("assignmentUuid") String assignmentUuid,
-            @RequestParam("changeId") String changeId) throws Exception {
+    public String getChangeDiff(@RequestParam("gerritChangeId") String gerritChangeId) throws Exception {
 
         System.out.println("STAGE: ReviewController.getChangeDiff");
 
-        return reviewSvc.getDiffs(changeId);
+        return gerritSvc.fetchRawPatch(gerritChangeId, "current");
     }
 
     /** Push some gitlab commits to gerrit */

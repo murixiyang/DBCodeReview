@@ -65,32 +65,6 @@ export class ReviewService {
     );
   }
 
-  /** Get assignment metadata for Uuid */
-  // getAssignmentMetaByUuid(
-  //   assignmentUuid: string
-  // ): Observable<AssignmentMetadata> {
-  //   const params = new HttpParams().set('assignmentUuid', assignmentUuid);
-
-  //   return this.http.get<AssignmentMetadata>(
-  //     `${this.baseUrl}/get-metadata-by-uuid`,
-  //     {
-  //       params,
-  //     }
-  //   );
-  // }
-
-  /** Get Gerrit ChangeInfo list by Uuid */
-  // getGerritChangeInfoByUuid(assignmentUuid: string): Observable<ChangeInfo[]> {
-  //   const params = new HttpParams().set('assignmentUuid', assignmentUuid);
-
-  //   return this.http.get<ChangeInfo[]>(
-  //     `${this.baseUrl}/get-commit-list-by-uuid`,
-  //     {
-  //       params,
-  //     }
-  //   );
-  // }
-
   /** Get ChangeDiff for */
   getChangeDiffs(gerritChangeId: string): Observable<string> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);

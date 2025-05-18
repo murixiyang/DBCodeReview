@@ -16,8 +16,6 @@
   <!-- Detail pane -->
   <section class="detail" *ngIf="selectedAssignment">
     <h3>
-      <!-- Reviewing {{ projectId }} by {{ selectedChangeRequest.authorPseudoName }}
-        -->
       Reviewing {{ groupProjectId }} by {{ selectedAssignment.authorPseudonym }}
     </h3>
     <app-review-commit-list [selectedAssignment]="selectedAssignment">

@@ -44,7 +44,6 @@ export class CommitListComponent implements OnInit {
       .getCommitsWithStatus(this.projectId)
       .subscribe((gitlabCommits) => {
         this.commitList = gitlabCommits;
-        console.log('Commit list:', this.commitList);
       });
   }
 
@@ -53,14 +52,11 @@ export class CommitListComponent implements OnInit {
       .postRequestReview(this.projectId, commit.commit.gitlabCommitId)
       .subscribe({
         next: (response) => {
-          console.log('Request review response:', response);
-
           // Update the review status in the database
           this.commitSvc
             .getCommitsWithStatus(this.projectId)
             .subscribe((gitlabCommits) => {
               this.commitList = gitlabCommits;
-              console.log('Updated Commit list:', this.commitList);
             });
         },
         error: (error) => {

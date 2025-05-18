@@ -1,5 +1,5 @@
 import { Component, Input, SimpleChanges } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ReviewService } from '../../http/review.service';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
@@ -11,7 +11,14 @@ import { ShortIdPipe } from '../../pipe/short-id.pipe';
 
 @Component({
   selector: 'app-review-commit-list',
-  imports: [MatTableModule, MatChipsModule, MatButtonModule, DatePipe, NgIf, ShortIdPipe],
+  imports: [
+    MatTableModule,
+    MatChipsModule,
+    MatButtonModule,
+    DatePipe,
+    NgIf,
+    ShortIdPipe,
+  ],
   templateUrl: './review-commit-list.component.html',
   styleUrl: './review-commit-list.component.css',
 })
@@ -41,13 +48,11 @@ export class ReviewCommitListComponent {
       .getChangeRequestForAssignment(this.selectedAssignment.id.toString())
       .subscribe((list) => {
         this.commitList = list;
-
-        console.log('ChangeRequestDto List:', this.commitList);
       });
   }
 
   /** Navigate to your diff/review screen */
   startReview(item: ChangeRequestDto) {
-    this.router.navigate(['/review', item.gerritChangeId]);
+    this.router.navigate(['/review/detail', item.gerritChangeId]);
   }
 }

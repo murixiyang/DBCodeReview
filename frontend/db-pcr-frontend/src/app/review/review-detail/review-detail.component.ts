@@ -45,14 +45,11 @@ export class ReviewDetailComponent {
   }
 
   private loadDiffs() {
-    this.reviewSvc
-      .getChangeDiffs(this.gerritChangeId)
-      .subscribe((diff) => {
-        this.rawDiff = diff;
-        console.log('rawDiff', diff);
-        // trigger a re-render
-        setTimeout(() => this.render(), 0);
-      });
+    this.reviewSvc.getChangeDiffs(this.gerritChangeId).subscribe((diff) => {
+      this.rawDiff = diff;
+      // trigger a re-render
+      setTimeout(() => this.render(), 0);
+    });
   }
 
   ngAfterViewInit() {

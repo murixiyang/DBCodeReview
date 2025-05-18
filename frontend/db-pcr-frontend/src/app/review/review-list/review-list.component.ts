@@ -30,7 +30,6 @@ export class ReviewListComponent {
       .getReviewAssignmentPseudonymDtoList(this.groupProjectId!)
       .subscribe((data) => {
         this.reviewAssignments = data;
-        console.log('Review Assignments:', this.reviewAssignments);
 
         this.selectedAssignment = this.reviewAssignments[0];
       });

@@ -14,7 +14,7 @@ export const routes: Routes = [
   { path: 'commit-detail/:projectId/:sha', component: CommitDetailComponent },
   { path: 'review/:projectId', component: ReviewListComponent },
   {
-    path: 'review/:gerritChangeId',
+    path: 'review/detail/:gerritChangeId',
     component: ReviewDetailComponent,
   },
   { path: 'maintain/project-list', component: MaintainListComponent },
