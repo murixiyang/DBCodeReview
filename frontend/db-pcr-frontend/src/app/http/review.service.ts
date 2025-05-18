@@ -22,10 +22,10 @@ export class ReviewService {
   }
 
   /** Get ChangeRequest Dto for a project */
-  getChangeRequestForProject(
-    groupProjectId: string
+  getChangeRequestForAssignment(
+    assignmentId: string
   ): Observable<ChangeRequestDto[]> {
-    const params = new HttpParams().set('groupProjectId', groupProjectId);
+    const params = new HttpParams().set('assignmentId', assignmentId);
 
     return this.http.get<ChangeRequestDto[]>(
       `${this.baseUrl}/get-review-project-commits`,

@@ -10,6 +10,7 @@ public class ChangeRequestDto {
     private Long assignmentId;
     private Long commitId;
     private String gerritChangeId;
+    private String message;
     private Instant submittedAt;
     private ReviewStatus status;
     private Instant lastStatusAt;
@@ -17,12 +18,13 @@ public class ChangeRequestDto {
     public ChangeRequestDto() {
     }
 
-    public ChangeRequestDto(Long id, Long assignmentId, Long commitId, String gerritChangeId,
+    public ChangeRequestDto(Long id, Long assignmentId, Long commitId, String gerritChangeId, String message,
             Instant submittedAt, ReviewStatus status, Instant lastStatusAt) {
         this.id = id;
         this.assignmentId = assignmentId;
         this.commitId = commitId;
         this.gerritChangeId = gerritChangeId;
+        this.message = message;
         this.submittedAt = submittedAt;
         this.status = status;
         this.lastStatusAt = lastStatusAt;
@@ -34,6 +36,7 @@ public class ChangeRequestDto {
                 changeRequest.getAssignment().getId(),
                 changeRequest.getCommit().getId(),
                 changeRequest.getGerritChangeId(),
+                changeRequest.getCommit().getMessage(),
                 changeRequest.getSubmittedAt(),
                 changeRequest.getStatus(),
                 changeRequest.getLastStatusAt());
@@ -71,6 +74,14 @@ public class ChangeRequestDto {
 
     public void setGerritChangeId(String gerritChangeId) {
         this.gerritChangeId = gerritChangeId;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 
     public Instant getSubmittedAt() {

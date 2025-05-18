@@ -2,6 +2,7 @@ package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,34 +102,21 @@ public class ReviewController {
     @Transactional(readOnly = true)
     @GetMapping("/get-review-project-commits")
     public ResponseEntity<List<ChangeRequestDto>> getReviewProjectCommits(
-            @RequestParam("groupProjectId") String groupProjectId,
+            @RequestParam("assignmentId") String assignmentId,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
             @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
         System.out.println("STAGE: ReviewController.getReviewProjectCommits");
 
-        // Find the project
-        ProjectEntity groupProject = projectRepo.findById(Long.valueOf(groupProjectId))
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Project not found: " + groupProjectId));
-
-        System.out.println("DBLOG: Project found: " + groupProject.getId());
-
-        UserEntity reviewer = userRepo.findByUsername(oauth2User.getAttribute("username"))
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Reviewer not found: " + oauth2User.getAttribute("username")));
-
-        System.out.println("DBLOG: Reviewer found: " + reviewer.getId());
-
         // Find the review assignment
-        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
-                .findByReviewerAndGroupProject(reviewer, groupProject);
-
-        System.out.println("DBLOG: Review assignments found: " + assignments.size());
+        ReviewAssignmentEntity assignment = reviewAssignmentRepo.findById(Long.valueOf(assignmentId))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Assignment not found: " + assignmentId));
 
         // Find the change requests
-        List<ChangeRequestDto> changeRequests = assignments.stream()
-                .flatMap(asn -> changeRequestRepo.findByAssignment(asn).stream())
+        List<ChangeRequestDto> changeRequests = changeRequestRepo
+                .findByAssignment(assignment)
+                .stream()
                 .map(ChangeRequestDto::fromEntity)
                 .collect(Collectors.toList());
 

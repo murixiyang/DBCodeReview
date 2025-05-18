@@ -7,10 +7,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { DatePipe, NgIf } from '@angular/common';
 import { ChangeRequestDto } from '../../interface/database/change-request-dto';
 import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
+import { ShortIdPipe } from '../../pipe/short-id.pipe';
 
 @Component({
   selector: 'app-review-commit-list',
-  imports: [MatTableModule, MatChipsModule, MatButtonModule, DatePipe, NgIf],
+  imports: [MatTableModule, MatChipsModule, MatButtonModule, DatePipe, NgIf, ShortIdPipe],
   templateUrl: './review-commit-list.component.html',
   styleUrl: './review-commit-list.component.css',
 })
@@ -35,22 +36,14 @@ export class ReviewCommitListComponent {
     }
   }
 
-  // private getAssignmentMeta() {
-  //   this.reviewSvc
-  //     .getAssignmentMetaByUuid(this.gerritChangeId)
-  //     .subscribe((meta) => {
-  //       this.projectName = meta.projectName;
-  //       this.authorPseudoName = meta.authorPseudoName;
-  //     });
-  // }
-
   private getGerritCommitList() {
-    // this.reviewSvc
-    //   .getChangeRequestForProject(this.gerritChangeId)
-    //   .subscribe((list) => {
-    //     console.log('Gerrit ChangeInfo List:', list);
-    //     this.commitList = list;
-    //   });
+    this.reviewSvc
+      .getChangeRequestForAssignment(this.selectedAssignment.id.toString())
+      .subscribe((list) => {
+        this.commitList = list;
+
+        console.log('ChangeRequestDto List:', this.commitList);
+      });
   }
 
   /** Navigate to your diff/review screen */

@@ -1,4 +1,4 @@
-<div *ngIf="gerritChangeId">
+<div *ngIf="selectedAssignment">
   <!-- Commit Table -->
   <table mat-table [dataSource]="commitList" class="mat-elevation-z1">
     <!-- Status Column -->
@@ -16,7 +16,7 @@
       <th mat-header-cell *matHeaderCellDef>Change Id</th>
       <td mat-cell *matCellDef="let e">
         <a (click)="startReview(e)" class="change-link">
-          {{ e.gerritChangeId }}
+          {{ e.gerritChangeId | shortId : 8 }}
         </a>
       </td>
     </ng-container>
@@ -25,7 +25,7 @@
     <ng-container matColumnDef="message">
       <th mat-header-cell *matHeaderCellDef>Subject</th>
       <td mat-cell *matCellDef="let e">
-        {{ e.change.message }}
+        {{ e.message }}
       </td>
     </ng-container>
 
@@ -33,7 +33,7 @@
     <ng-container matColumnDef="date">
       <th mat-header-cell *matHeaderCellDef>Last Updated</th>
       <td mat-cell *matCellDef="let e">
-        {{ e.change.updatedAt | date : "medium" }}
+        {{ e.submittedAt | date : "medium" }}
       </td>
     </ng-container>
 
