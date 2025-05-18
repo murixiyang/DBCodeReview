@@ -57,13 +57,12 @@ export class ReviewService {
     projectId: string,
     sha: string
   ): Observable<{ changeId: string }> {
-    const url = `${this.baseUrl}/post-request-review`;
-    // build the body exactly as your @RequestBody record expects
-    const body = { projectId, sha };
-
-    return this.http.post<{ changeId: string }>(url, body, {
-      withCredentials: true, // send the JSESSIONID so Spring can look up the OAuth2AuthorizedClient
-    });
+    const params = new HttpParams().set('projectId', projectId).set('sha', sha);
+    return this.http.post<{ changeId: string }>(
+      `${this.baseUrl}/post-request-review`,
+      null,
+      { params }
+    );
   }
 
   /** Get assignment metadata for Uuid */

@@ -44,14 +44,13 @@ export class CommitListComponent implements OnInit {
       .getCommitsWithStatus(this.projectId)
       .subscribe((gitlabCommits) => {
         this.commitList = gitlabCommits;
+        console.log('Commit list:', this.commitList);
       });
   }
 
-  getProjectCommitsWithStatus(projectId: string) {}
-
-  requestReview(commit: GitlabCommitDto) {
+  requestReview(commit: CommitWithStatusDto) {
     this.reviewSvc
-      .postRequestReview(this.projectId, commit.gitlabCommitId)
+      .postRequestReview(this.projectId, commit.commit.gitlabCommitId)
       .subscribe({
         next: (response) => {
           console.log('Request review response:', response);

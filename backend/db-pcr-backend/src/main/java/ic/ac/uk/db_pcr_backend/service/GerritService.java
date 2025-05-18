@@ -40,6 +40,11 @@ import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
+import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
+import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
+import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
+import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
+
 @Service
 public class GerritService {
     private final RestTemplateBuilder builder;
@@ -49,6 +54,9 @@ public class GerritService {
 
     @Autowired
     private SubmissionTrackerService submissionTrackerSvc;
+
+    @Autowired
+    private ChangeRequestService changeRequestSvc;
 
     private final String gerritHttpUrl;
     private final String gerritAuthUrl;
@@ -122,12 +130,16 @@ public class GerritService {
     }
 
     // ** Submit one/several gitlab commits to gerrit */ */
-    public String submitForReview(String projectId, String targetSha, String gitlabToken, String username)
+    public String submitForReview(String gitlabProjectId, String targetSha, String gitlabToken, String username)
             throws Exception {
         System.out.println("Service: GerritService.submitForReview");
 
-        String cloneUrl = gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
-        String pathWithNamespace = gitLabSvc.getProjectPathWithNamespace(projectId, gitlabToken);
+        System.out.println("DBLOG: groupId: " + gitlabProjectId);
+        System.out.println("DBLOG: targetSha: " + targetSha);
+        System.out.println("DBLOG: username: " + username);
+
+        String cloneUrl = gitLabSvc.getProjectCloneUrl(gitlabProjectId, gitlabToken);
+        String pathWithNamespace = gitLabSvc.getProjectPathWithNamespace(gitlabProjectId, gitlabToken);
 
         GerritApi gerritApi = gerritApiFactory.create(gerritAuthData);
         CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2", gitlabToken);
@@ -137,9 +149,9 @@ public class GerritService {
         // Ensure the Gerrit project exists (create if missing)
         ensureGerritProjectExists(gerritApi, pathWithNamespace);
 
-        Long projectIdLong = Long.parseLong(projectId);
+        Long gitlabProjectIdLong = Long.parseLong(gitlabProjectId);
         // Load last submitted SHA from DB
-        String baseSha = submissionTrackerSvc.getLastSubmittedSha(username, projectIdLong);
+        String baseSha = submissionTrackerSvc.getLastSubmittedSha(username, gitlabProjectIdLong);
 
         Path tempDir = Files.createTempDirectory("review-");
 
@@ -169,7 +181,10 @@ public class GerritService {
         String newGerritSha = extractNewSha(result);
 
         // --- Record the SHA as the new last submitted
-        submissionTrackerSvc.recordSubmission(username, projectIdLong, newGerritSha);
+        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, newGerritSha);
+
+        // --- Record the change request
+        changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);
 
         return changeId;
     }

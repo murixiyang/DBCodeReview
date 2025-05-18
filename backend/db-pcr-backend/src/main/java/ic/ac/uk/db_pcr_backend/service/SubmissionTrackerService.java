@@ -30,13 +30,13 @@ public class SubmissionTrackerService {
     /**
      * Record the last submitted SHA for a user and project.
      * 
-     * @param username     The username of the user
-     * @param projectId    The ID of the project
-     * @param newGerritSha The new SHA to record
+     * @param username        The username of the user
+     * @param gitlabProjectId The gitlabProjectId of the project
+     * @param newGerritSha    The new SHA to record
      * @return The last submitted SHA
      */
     @Transactional
-    public String recordSubmission(String username, Long projectId, String newGerritSha) {
+    public String recordSubmission(String username, Long gitlabProjectId, String newGerritSha) {
         System.out.println("Service: SubmissionTrackerService.recordSubmission");
 
         // Find User
@@ -44,8 +44,9 @@ public class SubmissionTrackerService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
         // Find project
-        ProjectEntity project = projectRepo.findByGitlabProjectId(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project not found: " + projectId));
+        ProjectEntity project = projectRepo.findByGitlabProjectId(gitlabProjectId)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("Project not found, Gitlab project id: " + gitlabProjectId));
 
         // Upsert the SubmissionTracker record
         var submissionTracker = submissionTrackerRepo

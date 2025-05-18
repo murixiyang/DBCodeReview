@@ -1,6 +1,7 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2Aut
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,12 +29,16 @@ import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
+import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
 import ic.ac.uk.db_pcr_backend.service.ReviewService;
 
 @RestController
 @RequestMapping("/api/review")
 public class ReviewController {
+
+    @Autowired
+    private GerritService gerritSvc;
 
     @Autowired
     private ReviewService reviewSvc;
@@ -113,6 +119,9 @@ public class ReviewController {
         return ResponseEntity.ok(changeRequests);
     }
 
+    /**
+     * Get the review assignment pseudonym by id
+     */
     @Transactional(readOnly = true)
     @GetMapping("/get-review-assignment-pseudonym-by-id")
     public ResponseEntity<ReviewAssignmentPseudonymDto> getReviewAssignmentById(
@@ -134,24 +143,6 @@ public class ReviewController {
         return ResponseEntity.ok(dto);
     }
 
-    /** Get assignment metadata for reviewer */
-    // @GetMapping("/get-metadata-by-reviewer")
-    // public List<AssignmentMetadataDto>
-    // getMyAssignmentsForReviewer(@RequestParam("reviewerName") String
-    // reviewerName,
-    // @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
-    // throws Exception {
-    // return reviewSvc.findAssignmentsForReviewer(reviewerName);
-    // }
-
-    /** Get assignment metadata for uuid */
-    // @GetMapping("/get-metadata-by-uuid")
-    // public List<AssignmentMetadataDto>
-    // getMyAssignmentsByUuid(@RequestParam("assignmentUuid") String assignmentUuid)
-    // throws Exception {
-    // return reviewSvc.findAssignmentsForReviewer(assignmentUuid);
-    // }
-
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
     @GetMapping("/get-change-diff")
     public String getChangeDiff(@RequestParam("assignmentUuid") String assignmentUuid,
@@ -160,6 +151,36 @@ public class ReviewController {
         System.out.println("STAGE: ReviewController.getChangeDiff");
 
         return reviewSvc.getDiffs(changeId);
+    }
+
+    /** Push some gitlab commits to gerrit */
+    @PostMapping("/post-request-review")
+    public ResponseEntity<Map<String, String>> requestReview(
+            @RequestParam("projectId") String projectId,
+            @RequestParam("sha") String gitlabCommitId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            throws Exception {
+
+        System.out.println("STAGE: GerritController.requestReview");
+
+        System.out.println("DBLOG: sha: " + gitlabCommitId);
+
+        // 1) Fetch the GitLab OAuth token for this user/session
+        String accessToken = client.getAccessToken().getTokenValue();
+
+        // Find project
+        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
+                .orElseThrow(() -> new IllegalArgumentException("Unknown project id " + projectId));
+
+        String gitlabProjectId = String.valueOf(project.getGitlabProjectId());
+        String username = project.getOwner().getUsername();
+
+        // 2) Delegate to the service
+        String gerritChangeId = gerritSvc.submitForReview(
+                gitlabProjectId, gitlabCommitId, accessToken, username);
+
+        // 3) Return the new Change number to the frontend
+        return ResponseEntity.ok(Map.of("changeId", gerritChangeId));
     }
 
 }
