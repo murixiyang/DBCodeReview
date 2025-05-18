@@ -26,8 +26,10 @@ public class ReviewAssignmentPseudonymDto {
         this.id = ra.getId();
         this.authorPseudonym = authorMask.getPseudonym().getName();
         this.reviewerPseudonym = reviewerMask.getPseudonym().getName();
-        this.projectStatus = ra.getProjectStatus();
+        this.groupProjectId = ra.getGroupProject().getId();
         this.assignedAt = ra.getAssignedAt();
+        this.projectStatus = ra.getProjectStatus();
+        this.projectStatusAt = ra.getProjectStatusAt();
     }
 
     // Getters and Setters

@@ -6,6 +6,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatButtonModule } from '@angular/material/button';
 import { DatePipe, NgIf } from '@angular/common';
 import { ChangeRequestDto } from '../../interface/database/change-request-dto';
+import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
 
 @Component({
   selector: 'app-review-commit-list',
@@ -14,7 +15,9 @@ import { ChangeRequestDto } from '../../interface/database/change-request-dto';
   styleUrl: './review-commit-list.component.css',
 })
 export class ReviewCommitListComponent {
-  @Input() gerritChangeId!: string;
+  //   @Input() gerritChangeId!: string;
+
+  @Input() selectedAssignment!: ReviewAssignmentPseudonymDto;
 
   // Metadata
   projectName!: string;
@@ -27,7 +30,7 @@ export class ReviewCommitListComponent {
   constructor(private reviewSvc: ReviewService, private router: Router) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['gerritChangeId'] && this.gerritChangeId) {
+    if (changes['selectedAssignment'] && this.selectedAssignment) {
       this.getGerritCommitList();
     }
   }
@@ -42,12 +45,12 @@ export class ReviewCommitListComponent {
   // }
 
   private getGerritCommitList() {
-    this.reviewSvc
-      .getChangeRequestForProject(this.gerritChangeId)
-      .subscribe((list) => {
-        console.log('Gerrit ChangeInfo List:', list);
-        this.commitList = list;
-      });
+    // this.reviewSvc
+    //   .getChangeRequestForProject(this.gerritChangeId)
+    //   .subscribe((list) => {
+    //     console.log('Gerrit ChangeInfo List:', list);
+    //     this.commitList = list;
+    //   });
   }
 
   /** Navigate to your diff/review screen */

@@ -23,12 +23,12 @@ export class ReviewService {
 
   /** Get ChangeRequest Dto for a project */
   getChangeRequestForProject(
-    projectId: string
+    groupProjectId: string
   ): Observable<ChangeRequestDto[]> {
-    const params = new HttpParams().set('projectId', projectId);
+    const params = new HttpParams().set('groupProjectId', groupProjectId);
 
     return this.http.get<ChangeRequestDto[]>(
-      `${this.baseUrl}//get-review-project-commits`,
+      `${this.baseUrl}/get-review-project-commits`,
       {
         params,
       }
@@ -36,16 +36,16 @@ export class ReviewService {
   }
 
   /** Get ReviewAssignment Pseudunym Dto by assignment id */
-  getReviewAssignmentPseudonymDto(
-    assignmentId: number
-  ): Observable<ReviewAssignmentPseudonymDto> {
+  getReviewAssignmentPseudonymDtoList(
+    groupProjectId: string
+  ): Observable<ReviewAssignmentPseudonymDto[]> {
     const params = new HttpParams().set(
-      'assignmentId',
-      assignmentId.toString()
+      'groupProjectId',
+      groupProjectId.toString()
     );
 
-    return this.http.get<ReviewAssignmentPseudonymDto>(
-      `${this.baseUrl}/get-review-assignment-pseudonym-by-id`,
+    return this.http.get<ReviewAssignmentPseudonymDto[]>(
+      `${this.baseUrl}/get-review-assignment-pseudonym`,
       {
         params,
       }

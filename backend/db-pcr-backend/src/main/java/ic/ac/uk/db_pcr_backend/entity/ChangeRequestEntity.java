@@ -2,7 +2,6 @@ package ic.ac.uk.db_pcr_backend.entity;
 
 import java.time.Instant;
 
-import org.checkerframework.common.aliasing.qual.Unique;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 

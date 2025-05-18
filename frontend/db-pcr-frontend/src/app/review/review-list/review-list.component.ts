@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { NgFor, NgIf } from '@angular/common';
 import { ReviewCommitListComponent } from '../review-commit-list/review-commit-list.component';
 import { ChangeRequestDto } from '../../interface/database/change-request-dto';
+import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
 
 @Component({
   selector: 'app-review-list',
@@ -12,10 +13,10 @@ import { ChangeRequestDto } from '../../interface/database/change-request-dto';
   styleUrl: './review-list.component.css',
 })
 export class ReviewListComponent {
-  projectId!: string;
+  groupProjectId!: string;
 
-  changeRequests!: ChangeRequestDto[];
-  selectedChangeRequest?: ChangeRequestDto;
+  reviewAssignments!: ReviewAssignmentPseudonymDto[];
+  selectedAssignment?: ReviewAssignmentPseudonymDto;
 
   constructor(
     private reviewSvc: ReviewService,
@@ -23,19 +24,19 @@ export class ReviewListComponent {
   ) {}
 
   ngOnInit() {
-    this.projectId = this.route.snapshot.paramMap.get('projectId')!;
+    this.groupProjectId = this.route.snapshot.paramMap.get('projectId')!;
 
     this.reviewSvc
-      .getChangeRequestForProject(this.projectId!)
+      .getReviewAssignmentPseudonymDtoList(this.groupProjectId!)
       .subscribe((data) => {
-        this.changeRequests = data;
-        console.log('Change Requests:', this.changeRequests);
+        this.reviewAssignments = data;
+        console.log('Review Assignments:', this.reviewAssignments);
 
-        this.selectedChangeRequest = this.changeRequests[0];
+        this.selectedAssignment = this.reviewAssignments[0];
       });
   }
 
-  select(c: ChangeRequestDto) {
-    this.selectedChangeRequest = c;
+  select(assignment: ReviewAssignmentPseudonymDto) {
+    this.selectedAssignment = assignment;
   }
 }

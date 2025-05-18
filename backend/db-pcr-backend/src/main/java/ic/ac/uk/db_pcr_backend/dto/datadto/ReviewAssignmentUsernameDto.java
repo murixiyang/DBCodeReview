@@ -38,6 +38,8 @@ public class ReviewAssignmentUsernameDto {
         this.id = ra.getId();
         this.authorName = author.getUsername();
         this.reviewerName = reviewer.getUsername();
+        this.groupProjectId = ra.getGroupProject().getId();
+        this.projectStatusAt = ra.getProjectStatusAt();
         this.projectStatus = ra.getProjectStatus();
         this.assignedAt = ra.getAssignedAt();
     }

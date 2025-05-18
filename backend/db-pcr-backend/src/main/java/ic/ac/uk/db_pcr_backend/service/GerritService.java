@@ -132,10 +132,6 @@ public class GerritService {
 
         String targetSha = targetCommitEntity.getGitlabCommitId();
 
-        System.out.println("DBLOG: groupId: " + gitlabProjectId);
-        System.out.println("DBLOG: targetSha: " + targetSha);
-        System.out.println("DBLOG: username: " + username);
-
         String cloneUrl = gitLabSvc.getProjectCloneUrl(gitlabProjectId, gitlabToken);
         String pathWithNamespace = gitLabSvc.getProjectPathWithNamespace(gitlabProjectId, gitlabToken);
 

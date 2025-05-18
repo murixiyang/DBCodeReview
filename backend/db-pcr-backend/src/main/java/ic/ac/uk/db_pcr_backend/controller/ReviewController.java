@@ -101,26 +101,38 @@ public class ReviewController {
     @Transactional(readOnly = true)
     @GetMapping("/get-review-project-commits")
     public ResponseEntity<List<ChangeRequestDto>> getReviewProjectCommits(
-            @RequestParam("projectId") String projectId,
-            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+            @RequestParam("groupProjectId") String groupProjectId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
         System.out.println("STAGE: ReviewController.getReviewProjectCommits");
 
         // Find the project
-        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
+        ProjectEntity groupProject = projectRepo.findById(Long.valueOf(groupProjectId))
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Project not found: " + projectId));
+                        "Project not found: " + groupProjectId));
+
+        System.out.println("DBLOG: Project found: " + groupProject.getId());
+
+        UserEntity reviewer = userRepo.findByUsername(oauth2User.getAttribute("username"))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reviewer not found: " + oauth2User.getAttribute("username")));
+
+        System.out.println("DBLOG: Reviewer found: " + reviewer.getId());
 
         // Find the review assignment
-        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByGroupProject(project.getParentProject());
+        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
+                .findByReviewerAndGroupProject(reviewer, groupProject);
 
-        // Find change requests, if not found, then create them
+        System.out.println("DBLOG: Review assignments found: " + assignments.size());
 
         // Find the change requests
         List<ChangeRequestDto> changeRequests = assignments.stream()
                 .flatMap(asn -> changeRequestRepo.findByAssignment(asn).stream())
                 .map(ChangeRequestDto::fromEntity)
                 .collect(Collectors.toList());
+
+        System.out.println("DBLOG: Change requests found: " + changeRequests.size());
 
         return ResponseEntity.ok(changeRequests);
     }
@@ -129,24 +141,41 @@ public class ReviewController {
      * Get the review assignment pseudonym by id
      */
     @Transactional(readOnly = true)
-    @GetMapping("/get-review-assignment-pseudonym-by-id")
-    public ResponseEntity<ReviewAssignmentPseudonymDto> getReviewAssignmentById(
-            @RequestParam("assignmentId") Long assignmentId) throws Exception {
+    @GetMapping("/get-review-assignment-pseudonym")
+    public ResponseEntity<ReviewAssignmentPseudonymDto[]> getReviewAssignmentForReviewer(
+            @RequestParam("groupProjectId") String groupProjectId,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
-        System.out.println("STAGE: ReviewController.getReviewAssignmentById");
+        System.out.println("STAGE: ReviewController.getReviewAssignmentForReviewer");
 
-        ReviewAssignmentEntity assignment = reviewAssignmentRepo.findById(assignmentId).orElseThrow(
-                () -> new IllegalArgumentException("Unknown ReviewAssignment id " + assignmentId));
+        // Find the project
+        ProjectEntity groupProject = projectRepo.findById(Long.valueOf(groupProjectId))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Project not found: " + groupProjectId));
 
-        // Get the author and reviewer pseudonyms
-        var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(assignment, RoleType.AUTHOR);
-        var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(assignment, RoleType.REVIEWER);
+        System.out.println("DBLOG: Project found: " + groupProject.getId());
 
-        // Create the DTO
-        ReviewAssignmentPseudonymDto dto = new ReviewAssignmentPseudonymDto(assignment, authorMask,
-                reviewerMask);
+        UserEntity reviewer = userRepo.findByUsername(oauth2User.getAttribute("username"))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reviewer not found: " + oauth2User.getAttribute("username")));
 
-        return ResponseEntity.ok(dto);
+        System.out.println("DBLOG: Reviewer found: " + reviewer.getId());
+
+        // Find the review assignment
+        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
+                .findByReviewerAndGroupProject(reviewer, groupProject);
+
+        ReviewAssignmentPseudonymDto[] dtoArray = assignments.stream()
+                .map(asn -> {
+                    var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.AUTHOR);
+                    var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.REVIEWER);
+                    return new ReviewAssignmentPseudonymDto(asn, authorMask, reviewerMask);
+                })
+                .toArray(ReviewAssignmentPseudonymDto[]::new);
+
+        System.out.println("DBLOG: Review assignments found: " + assignments.size());
+
+        return ResponseEntity.ok(dtoArray);
     }
 
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
@@ -168,8 +197,6 @@ public class ReviewController {
             throws Exception {
 
         System.out.println("STAGE: GerritController.requestReview");
-
-        System.out.println("DBLOG: sha: " + gitlabCommitId);
 
         // 1) Fetch the GitLab OAuth token for this user/session
         String accessToken = client.getAccessToken().getTokenValue();
