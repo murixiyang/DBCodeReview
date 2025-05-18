@@ -12,15 +12,15 @@ import { ProjectService } from '../../http/project.service';
   styleUrl: './maintain-list.component.css',
 })
 export class MaintainListComponent {
-  projects$!: Observable<ProjectDto[]>;
+  groupProjects$!: Observable<ProjectDto[]>;
 
   constructor(private projectSvc: ProjectService, private router: Router) {}
 
   ngOnInit() {
-    this.projects$ = this.projectSvc.getGroupProjects();
+    this.groupProjects$ = this.projectSvc.getGroupProjects();
   }
 
-  navigateToCommitList(projectId: number) {
-    this.router.navigate(['/maintain', projectId]);
+  navigateToCommitList(groupProjectId: number) {
+    this.router.navigate(['/maintain', groupProjectId]);
   }
 }

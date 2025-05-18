@@ -86,13 +86,13 @@ public class ReviewController {
 
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByReviewer(reviewer);
 
-        List<ProjectDto> projects = assignments.stream()
-                .map(ReviewAssignmentEntity::getProject)
+        List<ProjectDto> groupProjects = assignments.stream()
+                .map(ReviewAssignmentEntity::getGroupProject)
                 .distinct()
                 .map(ProjectDto::fromEntity)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(projects);
+        return ResponseEntity.ok(groupProjects);
     }
 
     /**
@@ -112,7 +112,7 @@ public class ReviewController {
                         "Project not found: " + projectId));
 
         // Find the review assignment
-        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByProject(project);
+        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByGroupProject(project.getParentProject());
 
         // Find change requests, if not found, then create them
 

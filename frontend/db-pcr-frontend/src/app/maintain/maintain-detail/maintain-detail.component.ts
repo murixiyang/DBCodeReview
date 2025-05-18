@@ -14,8 +14,8 @@ import { ProjectService } from '../../http/project.service';
   styleUrl: './maintain-detail.component.css',
 })
 export class MaintainDetailComponent implements OnInit {
-  projects: ProjectDto[] = [];
-  projectId!: number;
+  groupProjects: ProjectDto[] = [];
+  groupGitlabProjectId!: number;
   reviewerNum: number = 2;
   reviewAssignments: ReviewAssignmentUsernameDto[] = [];
 
@@ -28,10 +28,10 @@ export class MaintainDetailComponent implements OnInit {
   ngOnInit() {
     this.projectSvc.getGroupProjects().subscribe({
       next: (ps) => {
-        this.projects = ps;
+        this.groupProjects = ps;
 
         if (ps.length) {
-          this.projectId = ps[0].gitlabProjectId;
+          this.groupGitlabProjectId = ps[0].gitlabProjectId;
 
           this.showAssigned();
         }
@@ -41,10 +41,10 @@ export class MaintainDetailComponent implements OnInit {
   }
 
   assign(): void {
-    if (!this.projectId) return;
+    if (!this.groupGitlabProjectId) return;
 
     this.maintainSvc
-      .assignReviewers(this.projectId, this.reviewerNum)
+      .assignReviewers(this.groupGitlabProjectId, this.reviewerNum)
       .subscribe({
         next: (assignments) => (this.reviewAssignments = assignments),
         error: (err) => console.error('Assignment failed', err),
@@ -52,9 +52,9 @@ export class MaintainDetailComponent implements OnInit {
   }
 
   showAssigned(): void {
-    if (!this.projectId) return;
+    if (!this.groupGitlabProjectId) return;
 
-    this.maintainSvc.getAssignedList(this.projectId).subscribe({
+    this.maintainSvc.getAssignedList(this.groupGitlabProjectId).subscribe({
       next: (assignments) => (this.reviewAssignments = assignments),
       error: (err) => console.error('Failed to load reviewers', err),
     });

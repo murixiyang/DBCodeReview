@@ -21,7 +21,7 @@ import jakarta.persistence.ForeignKey;
 
 @Entity
 @Table(name = "review_assignments", uniqueConstraints = @UniqueConstraint(columnNames = { "author_id", "reviewer_id",
-        "project_id" }, name = "uk_review_assignment_author_reviewer_project"))
+        "group_project_id" }, name = "uk_review_assignment_author_reviewer_project"))
 
 public class ReviewAssignmentEntity {
     @Id
@@ -40,8 +40,8 @@ public class ReviewAssignmentEntity {
 
     // which project (fork) this assignment refers to
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ra_project"))
-    private ProjectEntity project;
+    @JoinColumn(name = "group_project_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ra_project"))
+    private ProjectEntity groupProject;
 
     @CreationTimestamp
     @Column(name = "assigned_at", nullable = false, updatable = false)
@@ -59,10 +59,10 @@ public class ReviewAssignmentEntity {
     public ReviewAssignmentEntity() {
     }
 
-    public ReviewAssignmentEntity(UserEntity author, UserEntity reviewer, ProjectEntity project) {
+    public ReviewAssignmentEntity(UserEntity author, UserEntity reviewer, ProjectEntity groupProject) {
         this.author = author;
         this.reviewer = reviewer;
-        this.project = project;
+        this.groupProject = groupProject;
     }
 
     public Long getId() {
@@ -85,12 +85,12 @@ public class ReviewAssignmentEntity {
         this.reviewer = reviewer;
     }
 
-    public ProjectEntity getProject() {
-        return project;
+    public ProjectEntity getGroupProject() {
+        return groupProject;
     }
 
-    public void setProject(ProjectEntity project) {
-        this.project = project;
+    public void setGroupProject(ProjectEntity groupProject) {
+        this.groupProject = groupProject;
     }
 
     public Instant getAssignedAt() {

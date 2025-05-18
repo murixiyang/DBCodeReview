@@ -16,12 +16,12 @@ public interface ReviewAssignmentRepo extends JpaRepository<ReviewAssignmentEnti
 
     List<ReviewAssignmentEntity> findByReviewer(UserEntity reviewer);
 
-    List<ReviewAssignmentEntity> findByProject(ProjectEntity project);
+    List<ReviewAssignmentEntity> findByGroupProject(ProjectEntity groupProject);
 
-    List<ReviewAssignmentEntity> findByAuthorAndProject(UserEntity author, ProjectEntity project);
+    List<ReviewAssignmentEntity> findByAuthorAndGroupProject(UserEntity author, ProjectEntity groupProject);
 
-    Optional<ReviewAssignmentEntity> findByAuthorAndReviewerAndProject(
-            UserEntity author, UserEntity reviewer, ProjectEntity project);
+    Optional<ReviewAssignmentEntity> findByAuthorAndReviewerAndGroupProject(
+            UserEntity author, UserEntity reviewer, ProjectEntity groupProject);
 
-    void deleteByProject(ProjectEntity project);
+    void deleteByGroupProject(ProjectEntity groupProject);
 }

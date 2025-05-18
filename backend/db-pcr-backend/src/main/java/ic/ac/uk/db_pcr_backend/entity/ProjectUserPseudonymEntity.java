@@ -21,8 +21,8 @@ import jakarta.persistence.ForeignKey;
 
 @Entity
 @Table(name = "project_user_pseudonyms", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_pup_project_role_user", columnNames = { "project_id", "role", "user_id" }),
-        @UniqueConstraint(name = "uk_pup_project_role_pseudonym", columnNames = { "project_id", "role",
+        @UniqueConstraint(name = "uk_pup_project_role_user", columnNames = { "group_project_id", "role", "user_id" }),
+        @UniqueConstraint(name = "uk_pup_project_role_pseudonym", columnNames = { "group_project_id", "role",
                 "pseudonym_id" })
 })
 public class ProjectUserPseudonymEntity {
@@ -32,8 +32,8 @@ public class ProjectUserPseudonymEntity {
     private Long id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "project_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pup_project"))
-    private ProjectEntity project;
+    @JoinColumn(name = "group_project_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pup_project"))
+    private ProjectEntity groupProject;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_pup_user"))
@@ -54,9 +54,9 @@ public class ProjectUserPseudonymEntity {
     public ProjectUserPseudonymEntity() {
     }
 
-    public ProjectUserPseudonymEntity(ProjectEntity project, UserEntity user, RoleType role,
+    public ProjectUserPseudonymEntity(ProjectEntity groupProject, UserEntity user, RoleType role,
             PseudonymEntity pseudonym) {
-        this.project = project;
+        this.groupProject = groupProject;
         this.user = user;
         this.role = role;
         this.pseudonym = pseudonym;
@@ -68,12 +68,12 @@ public class ProjectUserPseudonymEntity {
         return id;
     }
 
-    public ProjectEntity getProject() {
-        return project;
+    public ProjectEntity getGroupProject() {
+        return groupProject;
     }
 
-    public void setProject(ProjectEntity project) {
-        this.project = project;
+    public void setGroupProject(ProjectEntity groupProject) {
+        this.groupProject = groupProject;
     }
 
     public UserEntity getUser() {

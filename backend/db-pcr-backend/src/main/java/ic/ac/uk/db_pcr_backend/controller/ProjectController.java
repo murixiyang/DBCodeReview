@@ -59,6 +59,14 @@ public class ProjectController {
         UserEntity user = userRepo.findByGitlabUserId(gitlabUserId)
                 .orElseGet(() -> userRepo.save(new UserEntity(gitlabUserId, username, null)));
 
+        // First sync group projects (so we can set the parent project)
+        Long gitlabGroupId = Long.valueOf(groupId);
+        GitlabGroupEntity group = groupRepo.findByGitlabGroupId(gitlabGroupId)
+                .orElseGet(() -> groupRepo
+                        .save(new GitlabGroupEntity(gitlabGroupId, "Group " + gitlabGroupId)));
+        projectSvc.syncGroupProjects(group, accessToken);
+
+        // Then sync personal projects
         projectSvc.syncPersonalProjects(user, accessToken);
 
         List<ProjectEntity> projects = projectRepo.findByOwnerId(user.getId());

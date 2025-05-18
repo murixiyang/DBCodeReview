@@ -11,9 +11,10 @@ import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
 
 public interface ProjectUserPseudonymRepo extends JpaRepository<ProjectUserPseudonymEntity, Long> {
-    List<ProjectUserPseudonymEntity> findByProjectAndRole(ProjectEntity project, RoleType role);
 
-    Optional<ProjectUserPseudonymEntity> findByProjectAndUserAndRole(ProjectEntity project, UserEntity user,
+    List<ProjectUserPseudonymEntity> findByGroupProjectAndRole(ProjectEntity groupProject, RoleType role);
+
+    Optional<ProjectUserPseudonymEntity> findByGroupProjectAndUserAndRole(ProjectEntity groupProject, UserEntity user,
             RoleType role);
 
 }

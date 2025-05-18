@@ -49,22 +49,23 @@ public class PseudoNameService {
      */
     @Transactional
     public ProjectUserPseudonymEntity getOrCreatePseudoName(
-            ProjectEntity project, UserEntity user, RoleType role) {
+            ProjectEntity groupProject, UserEntity user, RoleType role) {
 
         System.out.println("Service: PseudoNameService.getOrCreatePseudoName");
 
-        return nameAssignmentRepo.findByProjectAndUserAndRole(project, user, role)
-                .orElseGet(() -> createNameMapping(project, user, role));
+        return nameAssignmentRepo.findByGroupProjectAndUserAndRole(groupProject, user, role)
+                .orElseGet(() -> createNameMapping(groupProject, user, role));
     }
 
-    private ProjectUserPseudonymEntity createNameMapping(ProjectEntity project,
+    private ProjectUserPseudonymEntity createNameMapping(ProjectEntity groupProject,
             UserEntity user,
             RoleType role) {
         System.out.println("Service: PseudoNameService.createNameMapping");
 
         // collect used names in this project+role
         Set<String> used = new HashSet<>();
-        nameAssignmentRepo.findByProjectAndRole(project, role).forEach(pup -> used.add(pup.getPseudonym().getName()));
+        nameAssignmentRepo.findByGroupProjectAndRole(groupProject, role)
+                .forEach(pup -> used.add(pup.getPseudonym().getName()));
 
         // generate a unique name
         String name = generateUniqueName(used);
@@ -74,7 +75,7 @@ public class PseudoNameService {
         nameRepo.save(pseudo);
 
         // map into project_user_pseudonyms
-        ProjectUserPseudonymEntity nameAssignment = new ProjectUserPseudonymEntity(project, user, role, pseudo);
+        ProjectUserPseudonymEntity nameAssignment = new ProjectUserPseudonymEntity(groupProject, user, role, pseudo);
         return nameAssignmentRepo.save(nameAssignment);
     }
 
@@ -104,7 +105,8 @@ public class PseudoNameService {
     }
 
     public ProjectUserPseudonymEntity getPseudonymInReviewAssignment(ReviewAssignmentEntity assignment, RoleType role) {
-        return nameAssignmentRepo.findByProjectAndUserAndRole(assignment.getProject(), assignment.getAuthor(), role)
+        return nameAssignmentRepo
+                .findByGroupProjectAndUserAndRole(assignment.getGroupProject(), assignment.getAuthor(), role)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown pseudonym for " + role + ": " + assignment));
     }
 

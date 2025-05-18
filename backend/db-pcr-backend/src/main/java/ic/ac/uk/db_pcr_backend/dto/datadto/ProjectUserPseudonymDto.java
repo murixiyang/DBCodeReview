@@ -6,7 +6,7 @@ import ic.ac.uk.db_pcr_backend.model.RoleType;
 
 public class ProjectUserPseudonymDto {
     private Long id;
-    private Long projectId;
+    private Long groupProjectId;
     private Long userId;
     private RoleType role;
     private String pseudonymName;
@@ -16,11 +16,11 @@ public class ProjectUserPseudonymDto {
     public ProjectUserPseudonymDto() {
     }
 
-    public ProjectUserPseudonymDto(Long id, Long projectId, Long userId, RoleType role, Long pseudonymId,
+    public ProjectUserPseudonymDto(Long id, Long groupProjectId, Long userId, RoleType role, Long pseudonymId,
             String pseudonymName,
             Instant assignedAt) {
         this.id = id;
-        this.projectId = projectId;
+        this.groupProjectId = groupProjectId;
         this.userId = userId;
         this.role = role;
         this.pseudonymName = pseudonymName;
@@ -36,12 +36,12 @@ public class ProjectUserPseudonymDto {
         this.id = id;
     }
 
-    public Long getProjectId() {
-        return projectId;
+    public Long getGroupProjectId() {
+        return groupProjectId;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setGroupProjectId(Long groupProjectId) {
+        this.groupProjectId = groupProjectId;
     }
 
     public Long getUserId() {

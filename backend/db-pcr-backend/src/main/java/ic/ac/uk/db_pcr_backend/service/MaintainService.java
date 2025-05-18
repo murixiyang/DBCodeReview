@@ -62,7 +62,7 @@ public class MaintainService {
                 .toList();
 
         // Clear any existing assignments for this project
-        reviewAssignmentRepo.deleteByProject(project);
+        reviewAssignmentRepo.deleteByGroupProject(project.getParentProject());
 
         // Create mapping of authors to reviewers
         var result = new ArrayList<ReviewAssignmentEntity>();
@@ -95,7 +95,7 @@ public class MaintainService {
         ProjectEntity project = projectRepo
                 .findByGitlabProjectId(gitlabProjectId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown project id: " + gitlabProjectId));
-        return reviewAssignmentRepo.findByProject(project);
+        return reviewAssignmentRepo.findByGroupProject(project);
     }
 
 }

@@ -10,7 +10,7 @@ public class ReviewAssignmentUsernameDto {
     private Long id;
     private String authorName;
     private String reviewerName;
-    private Long projectId;
+    private Long groupProjectId;
     private Instant assignedAt;
     private ProjectStatus projectStatus;
     private Instant projectStatusAt;
@@ -19,13 +19,13 @@ public class ReviewAssignmentUsernameDto {
     public ReviewAssignmentUsernameDto() {
     }
 
-    public ReviewAssignmentUsernameDto(Long id, String authorName, String reviewerName, Long projectId,
+    public ReviewAssignmentUsernameDto(Long id, String authorName, String reviewerName, Long groupProjectId,
             Instant assignedAt,
             ProjectStatus projectStatus, Instant projectStatusAt) {
         this.id = id;
         this.authorName = authorName;
         this.reviewerName = reviewerName;
-        this.projectId = projectId;
+        this.groupProjectId = groupProjectId;
         this.assignedAt = assignedAt;
         this.projectStatus = projectStatus;
         this.projectStatusAt = projectStatusAt;
@@ -67,12 +67,12 @@ public class ReviewAssignmentUsernameDto {
         this.reviewerName = reviewerName;
     }
 
-    public Long getProjectId() {
-        return projectId;
+    public Long getGroupProjectId() {
+        return groupProjectId;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setGroupProjectId(Long groupProjectId) {
+        this.groupProjectId = groupProjectId;
     }
 
     public Instant getAssignedAt() {

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
+import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
@@ -36,17 +37,22 @@ public class ChangeRequestService {
     public void insertNewChangeRequest(Long gitlabProjectId, String targetSha, String username, String changeId) {
         System.out.println("STAGE: ChangeRequestService.insertNewChangeRequest");
 
-        // 2) Fetch the GitlabCommitEntity you just pushed
+        // Fetch the GitlabCommitEntity you just pushed
         GitlabCommitEntity commit = commitRepo
                 .findByGitlabCommitId(targetSha)
                 .orElseThrow(() -> new IllegalStateException("Commit must already be in our DB"));
 
-        // 3) Find all the ReviewAssignment rows for this author+project
-        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByAuthorAndProject(
-                userRepo.findByUsername(username).get(),
-                projectRepo.findByGitlabProjectId(gitlabProjectId).get());
+        // Find by parent group project
+        ProjectEntity project = projectRepo
+                .findByGitlabProjectId(gitlabProjectId)
+                .orElseThrow(() -> new IllegalStateException("Project must already be in our DB"));
 
-        // 4) For each assignment create a ChangeRequestEntity
+        // Find all the ReviewAssignment rows for this author+project
+        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByAuthorAndGroupProject(
+                userRepo.findByUsername(username).get(),
+                project.getParentProject());
+
+        // For each assignment create a ChangeRequestEntity
         List<ChangeRequestEntity> requests = assignments.stream()
                 .map(ra -> {
                     ChangeRequestEntity cr = new ChangeRequestEntity(ra, commit, changeId);

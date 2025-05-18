@@ -10,7 +10,7 @@ public class ReviewAssignmentPseudonymDto {
     private Long id;
     private String authorPseudonym;
     private String reviewerPseudonym;
-    private Long projectId;
+    private Long groupProjectId;
     private Instant assignedAt;
     private ProjectStatus projectStatus;
     private Instant projectStatusAt;
@@ -55,12 +55,12 @@ public class ReviewAssignmentPseudonymDto {
         this.reviewerPseudonym = reviewerPseudonym;
     }
 
-    public Long getProjectId() {
-        return projectId;
+    public Long getGroupProjectId() {
+        return groupProjectId;
     }
 
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
+    public void setGroupProjectId(Long groupProjectId) {
+        this.groupProjectId = groupProjectId;
     }
 
     public Instant getAssignedAt() {
