@@ -2,7 +2,7 @@ package ic.ac.uk.db_pcr_backend.entity;
 
 import java.time.Instant;
 
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,8 +17,8 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.ForeignKey;
 
 @Entity
-@Table(name = "submission_tracker", uniqueConstraints = @UniqueConstraint(columnNames = { "author_id",
-        "project_id" }, name = "uk_submission_author_project"))
+@Table(name = "submission_tracker", uniqueConstraints = @UniqueConstraint(columnNames = { "author_id", "project_id",
+        "commit_id" }, name = "uk_submission_event"))
 
 public class SubmissionTrackerEntity {
     @Id
@@ -36,21 +36,28 @@ public class SubmissionTrackerEntity {
     private ProjectEntity project;
 
     /** The last SHA we pushed to Gerrit */
-    @Column(name = "last_submitted_sha", nullable = false)
-    private String lastSubmittedSha;
+    @Column(name = "last_submitted_gerrit_sha", nullable = false)
+    private String lastSubmittedGerritSha;
 
-    /** When this row was last updated */
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private Instant updatedAt;
+    /** The last Gitlab Commit we pushed to GitLab */
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "commit_id", foreignKey = @ForeignKey(name = "fk_se_commit"))
+    private GitlabCommitEntity lastSubmittedCommit;
+
+    /** When this row was submitted */
+    @CreationTimestamp
+    @Column(name = "submitted_at", nullable = false, updatable = false)
+    private Instant submittedAt;
 
     public SubmissionTrackerEntity() {
     }
 
-    public SubmissionTrackerEntity(UserEntity author, ProjectEntity project, String lastSubmittedSha) {
+    public SubmissionTrackerEntity(UserEntity author, ProjectEntity project, String lastSubmittedGerritSha,
+            GitlabCommitEntity lastSubmittedCommit) {
         this.author = author;
         this.project = project;
-        this.lastSubmittedSha = lastSubmittedSha;
+        this.lastSubmittedGerritSha = lastSubmittedGerritSha;
+        this.lastSubmittedCommit = lastSubmittedCommit;
     }
 
     // --- getters & setters ---
@@ -74,19 +81,27 @@ public class SubmissionTrackerEntity {
         this.project = project;
     }
 
-    public String getLastSubmittedSha() {
-        return lastSubmittedSha;
+    public String getLastSubmittedGerritSha() {
+        return lastSubmittedGerritSha;
     }
 
-    public void setLastSubmittedSha(String lastSubmittedSha) {
-        this.lastSubmittedSha = lastSubmittedSha;
+    public void setLastSubmittedGerritSha(String lastSubmittedGerritSha) {
+        this.lastSubmittedGerritSha = lastSubmittedGerritSha;
     }
 
-    public Instant getUpdatedAt() {
-        return updatedAt;
+    public GitlabCommitEntity getLastSubmittedCommit() {
+        return lastSubmittedCommit;
     }
 
-    public void setUpdatedAt(Instant updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setLastSubmittedCommit(GitlabCommitEntity lastSubmittedCommit) {
+        this.lastSubmittedCommit = lastSubmittedCommit;
+    }
+
+    public Instant getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public void setSubmittedAt(Instant submittedAt) {
+        this.submittedAt = submittedAt;
     }
 }

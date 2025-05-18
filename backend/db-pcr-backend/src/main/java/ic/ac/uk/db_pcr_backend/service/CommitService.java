@@ -12,12 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
+import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.CommitStatus;
 import ic.ac.uk.db_pcr_backend.model.ReviewStatus;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
+import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 
 @Service
@@ -40,6 +42,9 @@ public class CommitService {
 
     @Autowired
     private GitlabCommitRepo commitRepo;
+
+    @Autowired
+    private SubmissionTrackerRepo submissionTrackerRepo;
 
     /*
      * Sync the commits for a project from GitLab into the database.
@@ -83,37 +88,61 @@ public class CommitService {
     public CommitStatus summarizeCommit(GitlabCommitEntity commit) {
         System.out.println("Service: CommitStatusService.summarizeCommit");
 
-        // A) Has the author ever submitted beyond this commit?
-        Instant lastSubAt = submissionTrackerSvc.getLastSubmittedTimestamp(commit.getAuthor().getId(),
-                commit.getProject().getId());
+        UserEntity author = commit.getAuthor();
+        ProjectEntity project = commit.getProject();
+        String thisGitlabCommitId = commit.getGitlabCommitId();
 
-        if (lastSubAt == null) {
+        // Get all submitted SHAs, in time order
+        List<String> submitGitlabCommitIds = submissionTrackerRepo
+                .findByAuthorAndProjectOrderBySubmittedAtAsc(author, project)
+                .stream()
+                .map(e -> e.getLastSubmittedCommit().getGitlabCommitId())
+                .toList();
+
+        // If no commits were submitted yet, return NOT_SUBMITTED
+        if (submitGitlabCommitIds.isEmpty()) {
             return CommitStatus.NOT_SUBMITTED;
         }
-        if (commit.getCommittedAt().isBefore(lastSubAt)
-                && !commit.getCommittedAt().equals(lastSubAt)) {
-            return CommitStatus.SUPPRESSED_SUBMITTED;
-        }
-        if (commit.getCommittedAt().equals(lastSubAt)) {
-            return CommitStatus.WAITING_REVIEW;
+
+        // If the commit is not submitted -- Not_SUBMITTED or SUPPRESSED_SUBMITTED
+        if (!submitGitlabCommitIds.contains(thisGitlabCommitId)) {
+            // determine if it's older or newer than the last‐submitted
+            List<GitlabCommitEntity> all = commitRepo
+                    .findByProjectOrderByCommittedAtAsc(project);
+
+            int idxThis = all.indexOf(commit);
+            int idxLast = all.indexOf(
+                    commitRepo.findByGitlabCommitId(submitGitlabCommitIds.get(submitGitlabCommitIds.size() - 1))
+                            .orElseThrow());
+
+            if (idxThis < idxLast) {
+                return CommitStatus.SUPPRESSED_SUBMITTED;
+            } else {
+                return CommitStatus.NOT_SUBMITTED;
+            }
         }
 
-        // B) If it’s been submitted, look at the review requests:
-        List<ReviewStatus> reviews = changeRequestRepo.findByCommit(commit)
+        // If submitted, check the change request status
+        List<ReviewStatus> reviews = changeRequestRepo
+                .findByCommit(commit)
                 .stream()
                 .map(ChangeRequestEntity::getStatus)
                 .toList();
 
-        if (reviews.isEmpty()) {
+        // no one has even opened the patch yet
+        if (reviews.stream().allMatch(s -> s == ReviewStatus.NOT_REVIEWED)) {
             return CommitStatus.WAITING_REVIEW;
         }
-        if (reviews.contains(ReviewStatus.NEED_RESOLVE)
-                || reviews.contains(ReviewStatus.WAITING_RESOLVE)) {
+        // any reviewer asked for changes or left comments unaddressed
+        if (reviews.stream().anyMatch(s -> s == ReviewStatus.NEED_RESOLVE ||
+                s == ReviewStatus.WAITING_RESOLVE)) {
             return CommitStatus.CHANGES_REQUESTED;
         }
+        // everyone gave +1
         if (reviews.stream().allMatch(s -> s == ReviewStatus.APPROVED)) {
             return CommitStatus.APPROVED;
         }
+        // mixture of APPROVED + NOT_REVIEWED
         return CommitStatus.IN_REVIEW;
     }
 

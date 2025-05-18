@@ -16,4 +16,6 @@ public interface GitlabCommitRepo extends JpaRepository<GitlabCommitEntity, Long
 
     List<GitlabCommitEntity> findByAuthor(UserEntity author);
 
+    List<GitlabCommitEntity> findByProjectOrderByCommittedAtAsc(ProjectEntity project);
+
 }

@@ -130,9 +130,12 @@ public class GerritService {
     }
 
     // ** Submit one/several gitlab commits to gerrit */ */
-    public String submitForReview(String gitlabProjectId, String targetSha, String gitlabToken, String username)
+    public String submitForReview(String gitlabProjectId, GitlabCommitEntity targetCommitEntity, String gitlabToken,
+            String username)
             throws Exception {
         System.out.println("Service: GerritService.submitForReview");
+
+        String targetSha = targetCommitEntity.getGitlabCommitId();
 
         System.out.println("DBLOG: groupId: " + gitlabProjectId);
         System.out.println("DBLOG: targetSha: " + targetSha);
@@ -151,7 +154,7 @@ public class GerritService {
 
         Long gitlabProjectIdLong = Long.parseLong(gitlabProjectId);
         // Load last submitted SHA from DB
-        String baseSha = submissionTrackerSvc.getLastSubmittedSha(username, gitlabProjectIdLong);
+        String baseSha = submissionTrackerSvc.getLastSubmittedGerritSha(username, gitlabProjectIdLong);
 
         Path tempDir = Files.createTempDirectory("review-");
 
@@ -181,7 +184,7 @@ public class GerritService {
         String newGerritSha = extractNewSha(result);
 
         // --- Record the SHA as the new last submitted
-        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, newGerritSha);
+        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, newGerritSha, targetCommitEntity);
 
         // --- Record the change request
         changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);

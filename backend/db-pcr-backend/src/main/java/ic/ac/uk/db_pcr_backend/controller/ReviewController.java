@@ -21,11 +21,13 @@ import org.springframework.web.bind.annotation.RestController;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
+import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
+import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
@@ -51,6 +53,9 @@ public class ReviewController {
 
     @Autowired
     private ProjectRepo projectRepo;
+
+    @Autowired
+    private GitlabCommitRepo commitRepo;
 
     @Autowired
     private ReviewAssignmentRepo reviewAssignmentRepo;
@@ -175,9 +180,13 @@ public class ReviewController {
         String gitlabProjectId = String.valueOf(project.getGitlabProjectId());
         String username = project.getOwner().getUsername();
 
+        // Find Commit
+        GitlabCommitEntity commit = commitRepo.findByGitlabCommitId(gitlabCommitId)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown commit id " + gitlabCommitId));
+
         // 2) Delegate to the service
         String gerritChangeId = gerritSvc.submitForReview(
-                gitlabProjectId, gitlabCommitId, accessToken, username);
+                gitlabProjectId, commit, accessToken, username);
 
         // 3) Return the new Change number to the frontend
         return ResponseEntity.ok(Map.of("changeId", gerritChangeId));

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
@@ -36,7 +37,8 @@ public class SubmissionTrackerService {
      * @return The last submitted SHA
      */
     @Transactional
-    public String recordSubmission(String username, Long gitlabProjectId, String newGerritSha) {
+    public void recordSubmission(String username, Long gitlabProjectId, String newGerritSha,
+            GitlabCommitEntity commit) {
         System.out.println("Service: SubmissionTrackerService.recordSubmission");
 
         // Find User
@@ -49,20 +51,17 @@ public class SubmissionTrackerService {
                         () -> new IllegalArgumentException("Project not found, Gitlab project id: " + gitlabProjectId));
 
         // Upsert the SubmissionTracker record
-        var submissionTracker = submissionTrackerRepo
-                .findByAuthorAndProject(user, project)
-                .orElseGet(() -> new SubmissionTrackerEntity(user, project, newGerritSha));
 
-        submissionTracker.setLastSubmittedSha(newGerritSha);
-        submissionTracker.setUpdatedAt(Instant.now());
+        SubmissionTrackerEntity submissionTracker = new SubmissionTrackerEntity(user, project, newGerritSha,
+                commit);
 
-        return submissionTrackerRepo.save(submissionTracker).getLastSubmittedSha();
+        submissionTrackerRepo.save(submissionTracker);
     }
 
     @Transactional(readOnly = true)
-    public String getLastSubmittedSha(String gitlabUsername,
+    public String getLastSubmittedGerritSha(String gitlabUsername,
             Long gitlabProjectId) {
-        System.out.println("Service: SubmissionTrackerService.getLastSubmittedSha");
+        System.out.println("Service: SubmissionTrackerService.getLastSubmittedGerritSha");
 
         UserEntity author = userRepo.findByUsername(gitlabUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown user: " + gitlabUsername));
@@ -70,8 +69,8 @@ public class SubmissionTrackerService {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown project: " + gitlabProjectId));
 
         return submissionTrackerRepo
-                .findByAuthorAndProject(author, project)
-                .map(SubmissionTrackerEntity::getLastSubmittedSha)
+                .findTopByAuthorAndProjectOrderBySubmittedAtDesc(author, project)
+                .map(SubmissionTrackerEntity::getLastSubmittedGerritSha)
                 .orElse(null); // or throw if you prefer
     }
 
@@ -85,8 +84,8 @@ public class SubmissionTrackerService {
                 .orElseThrow(() -> new IllegalArgumentException("Unknown project id: " + projectId));
 
         return submissionTrackerRepo
-                .findByAuthorAndProject(author, project)
-                .map(SubmissionTrackerEntity::getUpdatedAt)
+                .findTopByAuthorAndProjectOrderBySubmittedAtDesc(author, project)
+                .map(SubmissionTrackerEntity::getSubmittedAt)
                 .orElse(null); // or throw if you prefer
     }
 

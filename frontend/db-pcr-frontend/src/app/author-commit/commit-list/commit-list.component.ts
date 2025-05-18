@@ -56,6 +56,12 @@ export class CommitListComponent implements OnInit {
           console.log('Request review response:', response);
 
           // Update the review status in the database
+          this.commitSvc
+            .getCommitsWithStatus(this.projectId)
+            .subscribe((gitlabCommits) => {
+              this.commitList = gitlabCommits;
+              console.log('Updated Commit list:', this.commitList);
+            });
         },
         error: (error) => {
           console.error('Error requesting review:', error);
