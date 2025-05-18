@@ -100,6 +100,7 @@ public class ProjectController {
         List<ProjectEntity> projects = projectRepo.findByGroupId(group.getId());
 
         List<ProjectDto> dtos = projects.stream()
+                .filter(project -> project.getParentProject() == null)
                 .map(ProjectDto::fromEntity)
                 .collect(Collectors.toList());
 

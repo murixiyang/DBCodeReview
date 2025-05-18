@@ -2,7 +2,7 @@
   <h1>Group Projects</h1>
 
   <div
-    *ngFor="let p of groupProjects$ | async"
+    *ngFor="let p of groupProjects"
     (click)="navigateToCommitList(p.id)"
     class="change-link"
   >

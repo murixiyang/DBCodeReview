@@ -2,6 +2,7 @@ package ic.ac.uk.db_pcr_backend.entity;
 
 import java.time.Instant;
 
+import org.checkerframework.common.aliasing.qual.Unique;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -21,7 +22,11 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.ForeignKey;
 
 @Entity
-@Table(name = "change_requests", uniqueConstraints = @UniqueConstraint(columnNames = "gerrit_change_id"))
+@Table(name = "change_requests", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_cr_gerrit_change_id_assignment_id", columnNames = { "gerrit_change_id",
+                "assignment_id" }),
+        @UniqueConstraint(name = "uk_cr_commit_id_assignment_id", columnNames = { "commit_id", "assignment_id" })
+})
 public class ChangeRequestEntity {
 
     @Id
@@ -39,7 +44,7 @@ public class ChangeRequestEntity {
     private GitlabCommitEntity commit;
 
     /** Gerrit Change-ID */
-    @Column(name = "gerrit_change_id", nullable = false, unique = true)
+    @Column(name = "gerrit_change_id", nullable = false)
     private String gerritChangeId;
 
     /** When the author submitted into Gerrit */

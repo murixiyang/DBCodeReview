@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
 import { AsyncPipe, NgFor } from '@angular/common';
@@ -7,17 +7,19 @@ import { ProjectService } from '../../http/project.service';
 
 @Component({
   selector: 'app-maintain-list',
-  imports: [NgFor, AsyncPipe],
+  imports: [NgFor],
   templateUrl: './maintain-list.component.html',
   styleUrl: './maintain-list.component.css',
 })
-export class MaintainListComponent {
-  groupProjects$!: Observable<ProjectDto[]>;
+export class MaintainListComponent implements OnInit {
+  groupProjects!: ProjectDto[];
 
   constructor(private projectSvc: ProjectService, private router: Router) {}
 
   ngOnInit() {
-    this.groupProjects$ = this.projectSvc.getGroupProjects();
+    this.projectSvc.getGroupProjects().subscribe((data) => {
+      this.groupProjects = data;
+    });
   }
 
   navigateToCommitList(groupProjectId: number) {

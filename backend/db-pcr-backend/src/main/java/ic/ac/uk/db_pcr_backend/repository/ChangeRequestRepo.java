@@ -10,7 +10,7 @@ import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 
 public interface ChangeRequestRepo extends JpaRepository<ChangeRequestEntity, Long> {
-    Optional<ChangeRequestEntity> findByGerritChangeId(String gerritChangeId);
+    List<ChangeRequestEntity> findByGerritChangeId(String gerritChangeId);
 
     List<ChangeRequestEntity> findByAssignment(ReviewAssignmentEntity assignment);
 
@@ -19,4 +19,5 @@ public interface ChangeRequestRepo extends JpaRepository<ChangeRequestEntity, Lo
     Optional<ChangeRequestEntity> findByAssignmentAndCommit(
             ReviewAssignmentEntity assignment,
             GitlabCommitEntity commit);
+
 }
