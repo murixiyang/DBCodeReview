@@ -102,18 +102,19 @@ public class ReviewController {
     @GetMapping("/get-review-project-commits")
     public ResponseEntity<List<ChangeRequestDto>> getReviewProjectCommits(
             @RequestParam("projectId") String projectId,
-            @RequestParam("username") String username,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
 
         System.out.println("STAGE: ReviewController.getReviewProjectCommits");
 
         // Find the project
-        ProjectEntity project = projectRepo.findByGitlabProjectId(Long.valueOf(projectId))
+        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Project not found: " + projectId));
 
         // Find the review assignment
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByProject(project);
+
+        // Find change requests, if not found, then create them
 
         // Find the change requests
         List<ChangeRequestDto> changeRequests = assignments.stream()

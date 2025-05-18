@@ -34,6 +34,8 @@ public class ChangeRequestService {
 
     @Transactional
     public void insertNewChangeRequest(Long gitlabProjectId, String targetSha, String username, String changeId) {
+        System.out.println("STAGE: ChangeRequestService.insertNewChangeRequest");
+
         // 2) Fetch the GitlabCommitEntity you just pushed
         GitlabCommitEntity commit = commitRepo
                 .findByGitlabCommitId(targetSha)
@@ -47,10 +49,7 @@ public class ChangeRequestService {
         // 4) For each assignment create a ChangeRequestEntity
         List<ChangeRequestEntity> requests = assignments.stream()
                 .map(ra -> {
-                    ChangeRequestEntity cr = new ChangeRequestEntity();
-                    cr.setAssignment(ra);
-                    cr.setCommit(commit);
-                    cr.setGerritChangeId(changeId);
+                    ChangeRequestEntity cr = new ChangeRequestEntity(ra, commit, changeId);
                     return cr;
                 })
                 .toList();

@@ -40,10 +40,7 @@ import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
-import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
-import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
-import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 
 @Service
 public class GerritService {
@@ -58,7 +55,6 @@ public class GerritService {
     @Autowired
     private ChangeRequestService changeRequestSvc;
 
-    private final String gerritHttpUrl;
     private final String gerritAuthUrl;
     private final String gerritUsername;
     private final String gerritHttpPassword;
@@ -78,7 +74,6 @@ public class GerritService {
 
         this.builder = builder;
 
-        this.gerritHttpUrl = gerritHttpUrl;
         this.gerritAuthUrl = gerritAuthUrl;
         this.gerritUsername = gerritUsername;
         this.gerritHttpPassword = gerritHttpPassword;

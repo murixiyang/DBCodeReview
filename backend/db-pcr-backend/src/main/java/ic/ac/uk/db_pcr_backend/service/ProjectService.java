@@ -6,15 +6,12 @@ import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ic.ac.uk.db_pcr_backend.entity.GitlabGroupEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
-import ic.ac.uk.db_pcr_backend.repository.GitlabGroupRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 
@@ -29,9 +26,6 @@ public class ProjectService {
 
     @Autowired
     private ProjectRepo projectRepo;
-
-    @Autowired
-    private GitlabGroupRepo groupRepo;
 
     /* ------- Project -------- */
 

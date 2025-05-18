@@ -14,12 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentUsernameDto;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
-import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.service.MaintainService;
-import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
 
 @RestController
 @RequestMapping("/api/maintain")
@@ -28,9 +25,6 @@ public class MaintainController {
 
     @Autowired
     private MaintainService maintainSvc;
-
-    @Autowired
-    private PseudoNameService pseudoNameSvc;
 
     @Value("${gitlab.group.id}")
     private String gitlabGroupId;

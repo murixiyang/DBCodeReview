@@ -1,6 +1,5 @@
 package ic.ac.uk.db_pcr_backend.service;
 
-import java.time.Instant;
 import java.util.List;
 
 import org.gitlab4j.api.GitLabApiException;
@@ -12,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
-import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.CommitStatus;
 import ic.ac.uk.db_pcr_backend.model.ReviewStatus;
@@ -27,9 +25,6 @@ public class CommitService {
 
     @Autowired
     private GitLabService gitLabSvc;
-
-    @Autowired
-    private SubmissionTrackerService submissionTrackerSvc;
 
     @Autowired
     private UserRepo userRepo;
