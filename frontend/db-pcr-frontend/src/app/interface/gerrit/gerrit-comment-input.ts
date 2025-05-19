@@ -1,6 +1,6 @@
 import { CommentRange } from './comment-range';
 
-export interface CommentInput {
+export interface GerritCommentInput {
   id?: string; // UUID of the comment, if exists, update comment
   path?: string; // file path
   side?: string; // 'PARENT' or 'REVISION'

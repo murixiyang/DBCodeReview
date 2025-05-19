@@ -33,6 +33,12 @@ export class ReviewDetailComponent {
   ngOnInit() {
     this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
     this.loadDiffs();
+
+    this.reviewSvc
+      .getExistedComments(this.gerritChangeId)
+      .subscribe((comments) => {
+        console.log('comments', comments);
+      });
   }
 
   private loadDiffs() {

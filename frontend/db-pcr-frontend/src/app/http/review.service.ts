@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { ProjectDto } from '../interface/database/project-dto';
 import { ChangeRequestDto } from '../interface/database/change-request-dto';
 import { ReviewAssignmentPseudonymDto } from '../interface/database/review-assignment-dto';
+import { GerritCommentInfo } from '../interface/gerrit/gerrit-comment-info';
 
 @Injectable({
   providedIn: 'root',
@@ -65,7 +66,7 @@ export class ReviewService {
     );
   }
 
-  /** Get ChangeDiff for */
+  /** Get ChangeDiff for a Gerrit Change */
   getChangeDiffs(gerritChangeId: string): Observable<string> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
@@ -73,5 +74,17 @@ export class ReviewService {
       params,
       responseType: 'text',
     });
+  }
+
+  /** Get Existed comment on a Gerrit Chage */
+  getExistedComments(gerritChangeId: string): Observable<GerritCommentInfo[]> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get<GerritCommentInfo[]>(
+      `${this.baseUrl}/get-gerrit-change-comments`,
+      {
+        params,
+      }
+    );
   }
 }

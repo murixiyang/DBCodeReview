@@ -1,7 +1,7 @@
 import { AccountInfo } from './account-info';
 import { CommentRange } from './comment-range';
 
-export interface CommentInfo {
+export interface GerritCommentInfo {
   id: string;
   path: string;
   side: string;

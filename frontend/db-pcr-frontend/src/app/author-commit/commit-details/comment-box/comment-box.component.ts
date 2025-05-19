@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIf } from '@angular/common';
-import { GerritService } from '../../../http/gerrit.service';
+import { GerritCommentInput } from '../../../interface/gerrit/gerrit-comment-input';
+import { GerritCommentInfo } from '../../../interface/gerrit/gerrit-comment-info';
 
 @Component({
   selector: 'app-comment-box',
@@ -10,15 +11,15 @@ import { GerritService } from '../../../http/gerrit.service';
   styleUrl: './comment-box.component.css',
 })
 export class CommentBoxComponent {
-  @Input() changeId: string = '';
+  @Input() gerritChangeId: string = '';
   @Input() revisionId: string = '';
 
   // Used when creating a new draft comment
-  @Input() newCommentInput: CommentInput | undefined = undefined;
+  @Input() newCommentInput: GerritCommentInput | undefined = undefined;
   @Input() commentMsg: string = '';
 
   // Used when show existed draft comment
-  @Input() existCommentInfo: CommentInfo | undefined = undefined;
+  @Input() existCommentInfo: GerritCommentInfo | undefined = undefined;
 
   @Input() edittable: boolean = true;
 
@@ -26,7 +27,7 @@ export class CommentBoxComponent {
 
   @Output() closeCommentBox = new EventEmitter<void>();
 
-  constructor(private gerritSvc: GerritService) {}
+  constructor() {}
 
   onSaveDraft(): void {
     // If editting a existed comment
@@ -45,28 +46,28 @@ export class CommentBoxComponent {
     this.newCommentInput.message = this.commentMsg;
 
     // Post draft comment
-    this.gerritSvc
-      .putDraftComment(this.changeId, this.revisionId, this.newCommentInput)
-      .subscribe((data) => {
-        console.log('Draft comment posted:', data);
+    // this.gerritSvc
+    //   .putDraftComment(this.changeId, this.revisionId, this.newCommentInput)
+    //   .subscribe((data) => {
+    //     console.log('Draft comment posted:', data);
 
-        // Close comment box
-        this.onCloseDraft();
-      });
+    //     // Close comment box
+    //     this.onCloseDraft();
+    //   });
   }
 
-  onUpdateDraft(oldCommentInput: CommentInput): void {
+  onUpdateDraft(oldCommentInput: GerritCommentInput): void {
     oldCommentInput.message = this.commentMsg;
 
     // Post draft comment
-    this.gerritSvc
-      .updateDraftComment(this.changeId, this.revisionId, oldCommentInput)
-      .subscribe((data) => {
-        console.log('Draft comment updated:', data);
+    // this.gerritSvc
+    //   .updateDraftComment(this.gerritChangeId, this.revisionId, oldCommentInput)
+    //   .subscribe((data) => {
+    //     console.log('Draft comment updated:', data);
 
-        // Close comment box
-        this.onCloseDraft();
-      });
+    //     // Close comment box
+    //     this.onCloseDraft();
+    //   });
   }
 
   onCloseDraft() {
@@ -91,21 +92,23 @@ export class CommentBoxComponent {
       console.error('Invalid comment ID');
     }
 
-    this.gerritSvc
-      .deleteDraftComment(
-        this.changeId,
-        this.revisionId,
-        this.existCommentInfo.id
-      )
-      .subscribe((data) => {
-        console.log('Draft comment deleted:', data);
+    // this.gerritSvc
+    //   .deleteDraftComment(
+    //     this.gerritChangeId,
+    //     this.revisionId,
+    //     this.existCommentInfo.id
+    //   )
+    //   .subscribe((data) => {
+    //     console.log('Draft comment deleted:', data);
 
-        // Close comment box
-        this.onCloseDraft();
-      });
+    //     // Close comment box
+    //     this.onCloseDraft();
+    //   });
   }
 
-  private commentInfoToCommentInput(commentInfo: CommentInfo): CommentInput {
+  private commentInfoToCommentInput(
+    commentInfo: GerritCommentInfo
+  ): GerritCommentInput {
     return {
       id: commentInfo.id,
       path: commentInfo.path,

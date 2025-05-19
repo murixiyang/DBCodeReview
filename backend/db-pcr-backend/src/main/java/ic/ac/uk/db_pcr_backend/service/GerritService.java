@@ -10,6 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,11 +37,13 @@ import org.eclipse.jgit.util.ChangeIdUtil;
 import com.google.gerrit.extensions.api.GerritApi;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
 import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
@@ -153,6 +157,26 @@ public class GerritService {
 
         return patch;
     }
+
+    public List<CommentInfoDto> getGerritChangeComments(String gerritChangeId) throws RestApiException {
+        System.out.println("Service: GerritService.getGerritChangeComments");
+
+        // 1) fetch the map: filePath → [ CommentInfo, … ]
+        Map<String, List<CommentInfo>> commentMap = gerritApi.changes().id(gerritChangeId).comments();
+
+        // 2) flatten but carry along the key (filePath)
+        List<CommentInfoDto> comments = commentMap.entrySet().stream()
+                .flatMap(entry -> {
+                    String filePath = entry.getKey();
+                    return entry.getValue().stream()
+                            .map(ci -> CommentInfoDto.fromGerritType(filePath, ci));
+                })
+                .collect(Collectors.toList());
+
+        return comments;
+    }
+
+    /* ----------- SUBMIT FOR REVIEW ---------------- */
 
     // ** Submit one/several gitlab commits to gerrit */ */
     public String submitForReview(String gitlabProjectId, GitlabCommitEntity targetCommitEntity, String gitlabToken,

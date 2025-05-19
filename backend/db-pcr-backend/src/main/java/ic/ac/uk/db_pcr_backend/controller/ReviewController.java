@@ -18,9 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gerrit.extensions.restapi.RestApiException;
+
 import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
@@ -192,6 +195,17 @@ public class ReviewController {
 
         // 3) Return the new Change number to the frontend
         return ResponseEntity.ok(Map.of("changeId", gerritChangeId));
+    }
+
+    /* ---------- COMMENTING -------------- */
+
+    @GetMapping("/get-gerrit-change-comments")
+    public ResponseEntity<List<CommentInfoDto>> getGerritChangeComments(
+            @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.getGerritChangeComments");
+
+        return ResponseEntity.ok(gerritSvc.getGerritChangeComments(gerritChangeId));
     }
 
 }
