@@ -176,6 +176,30 @@ public class GerritService {
         return comments;
     }
 
+    public List<CommentInfoDto> getGerritChangeDraftComments(String gerritChangeId) throws RestApiException {
+        System.out.println("Service: GerritService.getGerritChangeDraftComments");
+
+        // 1) fetch the map: filePath → [ CommentInfo, … ]
+        Map<String, List<CommentInfo>> draftMap = gerritApi.changes().id(gerritChangeId).drafts();
+
+        // 2) flatten but carry along the key (filePath)
+        List<CommentInfoDto> drafts = draftMap.entrySet().stream()
+                .flatMap(entry -> {
+                    String filePath = entry.getKey();
+                    return entry.getValue().stream()
+                            .map(ci -> CommentInfoDto.fromGerritType(filePath, ci));
+                })
+                .collect(Collectors.toList());
+
+        return drafts;
+    }
+
+    public void postGerritComment(String gerritChangeId, String message) throws RestApiException {
+        System.out.println("Service: GerritService.postGerritComment");
+
+        CommentInfo postedComment = gerritApi.changes().id(gerritChangeId).
+    }
+
     /* ----------- SUBMIT FOR REVIEW ---------------- */
 
     // ** Submit one/several gitlab commits to gerrit */ */

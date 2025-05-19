@@ -87,4 +87,16 @@ export class ReviewService {
       }
     );
   }
+
+  /** Get Existed comment on a Gerrit Chage */
+  getDraftComments(gerritChangeId: string): Observable<GerritCommentInfo[]> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get<GerritCommentInfo[]>(
+      `${this.baseUrl}/get-gerrit-change-draft-comments`,
+      {
+        params,
+      }
+    );
+  }
 }

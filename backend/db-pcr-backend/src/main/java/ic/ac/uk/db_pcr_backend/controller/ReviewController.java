@@ -208,4 +208,13 @@ public class ReviewController {
         return ResponseEntity.ok(gerritSvc.getGerritChangeComments(gerritChangeId));
     }
 
+    @GetMapping("/get-gerrit-change-draft-comments")
+    public ResponseEntity<List<CommentInfoDto>> getGerritChangeDraftComments(
+            @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.getGerritChangeDraftComments");
+
+        return ResponseEntity.ok(gerritSvc.getGerritChangeDraftComments(gerritChangeId));
+    }
+
 }
