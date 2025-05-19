@@ -13,3 +13,7 @@
   color: #666;
   font-style: italic;
 }
+
+:host ::ng-deep .hljs {
+  background: transparent !important;
+}

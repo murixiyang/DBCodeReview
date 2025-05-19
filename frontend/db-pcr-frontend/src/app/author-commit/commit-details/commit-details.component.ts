@@ -67,6 +67,8 @@ export class CommitDetailComponent implements OnInit, AfterViewInit {
       ].join('\n');
       const fullDiff = `${header}\n${diff.diff}`;
 
+      console.log('fullDiff', fullDiff);
+
       // instantiate the UI wrapper
       const ui = new Diff2HtmlUI(elRef.nativeElement, fullDiff, {
         outputFormat: 'side-by-side',

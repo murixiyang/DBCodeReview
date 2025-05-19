@@ -1,18 +1,8 @@
-import {
-  Component,
-  ElementRef,
-  QueryList,
-  ViewChild,
-  ViewChildren,
-} from '@angular/core';
-import { ChangeDiff } from '../../interface/gerrit/change-diff.ts';
-import {
-  Diff2HtmlUI,
-  Diff2HtmlUIConfig,
-} from 'diff2html/lib/ui/js/diff2html-ui-base.js';
+import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Diff2HtmlUIConfig } from 'diff2html/lib/ui/js/diff2html-ui-base.js';
+import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim.js';
 import { ActivatedRoute } from '@angular/router';
 import { ReviewService } from '../../http/review.service.js';
-import { NgFor, NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-review-detail',
@@ -24,6 +14,7 @@ export class ReviewDetailComponent {
   gerritChangeId!: string;
 
   rawDiff: string = '';
+
   private config: Diff2HtmlUIConfig = {
     drawFileList: false,
     outputFormat: 'side-by-side',
@@ -49,6 +40,8 @@ export class ReviewDetailComponent {
       this.rawDiff = diff;
       // trigger a re-render
       setTimeout(() => this.render(), 0);
+
+      console.log('rawDiff', this.rawDiff);
     });
   }
 
@@ -60,11 +53,14 @@ export class ReviewDetailComponent {
     if (!this.rawDiff || !this.diffContainer) return;
     // clear any previous content
     this.diffContainer.nativeElement.innerHTML = '';
+
     // instantiate and draw only the diffs
-    new Diff2HtmlUI(
+    const ui = new Diff2HtmlUI(
       this.diffContainer.nativeElement,
       this.rawDiff,
       this.config
-    ).draw();
+    );
+    ui.draw();
+    ui.highlightCode();
   }
 }
