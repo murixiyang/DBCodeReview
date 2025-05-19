@@ -23,8 +23,6 @@ import { ShortIdPipe } from '../../pipe/short-id.pipe';
   styleUrl: './review-commit-list.component.css',
 })
 export class ReviewCommitListComponent {
-  //   @Input() gerritChangeId!: string;
-
   @Input() selectedAssignment!: ReviewAssignmentPseudonymDto;
 
   // Metadata

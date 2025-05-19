@@ -31,4 +31,15 @@ export class CommitService {
       { withCredentials: true }
     );
   }
+
+  /** Get gerrit change id related to a commit submission */
+  getGerritChangeIdByCommitId(commitId: string): Observable<string> {
+    return this.http.get(
+      `${this.baseUrl}/get-gerrit-change-id?commitId=${commitId}`,
+      {
+        responseType: 'text',
+        withCredentials: true,
+      }
+    );
+  }
 }

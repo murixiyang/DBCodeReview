@@ -22,6 +22,7 @@ import ic.ac.uk.db_pcr_backend.model.CommitStatus;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.service.CommitService;
+import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.GitLabService;
 
 @RestController
@@ -33,6 +34,9 @@ public class CommitController {
 
     @Autowired
     private CommitService commitSvc;
+
+    @Autowired
+    private GerritService gerritSvc;
 
     @Autowired
     private ProjectRepo projectRepo;
@@ -76,7 +80,7 @@ public class CommitController {
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
             throws GitLabApiException {
 
-        System.out.println("STAGE: GitLabController.getProjectCommitsWithStatus");
+        System.out.println("STAGE: CommitController.getProjectCommitsWithStatus");
 
         String accessToken = client.getAccessToken().getTokenValue();
 
@@ -109,7 +113,7 @@ public class CommitController {
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
             throws GitLabApiException {
 
-        System.out.println("STAGE: GitLabController.getCommitDiff");
+        System.out.println("STAGE: CommitController.getCommitDiff");
 
         // Get Project
         ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
@@ -119,6 +123,18 @@ public class CommitController {
 
         String accessToken = client.getAccessToken().getTokenValue();
         return ResponseEntity.ok(gitLabSvc.getCommitDiff(gitlabProjectId, gitlabCommitId, accessToken));
+    }
+
+    /** Get Gerrit change Id via commit id */
+    @GetMapping("get-gerrit-change-id")
+    public ResponseEntity<String> getGerritChangeId(@RequestParam("commitId") String commitId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            throws GitLabApiException {
+
+        System.out.println("STAGE: CommitController.getGerritChangeId");
+
+        return ResponseEntity.ok(gerritSvc.getGerritChangeIdByCommitId(Long.valueOf(commitId)));
+
     }
 
 }

@@ -40,7 +40,10 @@ import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
+import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
+import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
+import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 
 @Service
 public class GerritService {
@@ -54,6 +57,12 @@ public class GerritService {
 
     @Autowired
     private ChangeRequestService changeRequestSvc;
+
+    @Autowired
+    private GitlabCommitRepo commitRepo;
+
+    @Autowired
+    private ChangeRequestRepo changeRequestRepo;
 
     private final String gerritAuthUrl;
     private final String gerritUsername;
@@ -84,6 +93,27 @@ public class GerritService {
         this.gerritApiFactory = new GerritRestApiFactory();
 
         this.gerritApi = gerritApiFactory.create(gerritAuthData);
+    }
+
+    public String getGerritChangeIdByCommitId(Long commitId) throws IllegalArgumentException {
+        System.out.println("Service: GerritService.getGerritChangeIdByCommitId");
+
+        // Find Commit
+        GitlabCommitEntity commit = commitRepo.findById(commitId).orElseThrow(() -> new IllegalArgumentException(
+                "Unknown commit id " + commitId));
+
+        // Find the related ChangeRequest
+        // Will find multiple, each related to 1 reviewer, but all have the same
+        // changeId
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo.findByCommit(commit);
+
+        if (changeRequests == null || changeRequests.size() == 0) {
+            // Throw exception
+            throw new IllegalArgumentException("No change requests found for commit id " + commitId);
+        }
+
+        return changeRequests.get(0).getGerritChangeId();
+
     }
 
     // * Fetch commits list using repo Path */

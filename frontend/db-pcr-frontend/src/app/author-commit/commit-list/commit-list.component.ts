@@ -34,7 +34,8 @@ export class CommitListComponent implements OnInit {
   constructor(
     private commitSvc: CommitService,
     private reviewSvc: ReviewService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -65,7 +66,11 @@ export class CommitListComponent implements OnInit {
       });
   }
 
-  revertSubmission(commit: GitlabCommitDto) {
-    // Update the review status in the database
+  checkReviewPage(commit: CommitWithStatusDto) {
+    this.commitSvc
+      .getGerritChangeIdByCommitId(commit.commit.id.toString())
+      .subscribe((gerritChangeId) => {
+        this.router.navigate(['/review/detail', gerritChangeId]);
+      });
   }
 }
