@@ -2,6 +2,10 @@
 <div class="page-container">
   <h2>Change {{ gerritChangeId }}</h2>
 
+  <button mat-raised-button color="primary" (click)="createDraftComment()">
+    Try create draft
+  </button>
+
   <!-- Side-by-side diffs -->
   <div #diffContainer class="diff-container"></div>
 </div>

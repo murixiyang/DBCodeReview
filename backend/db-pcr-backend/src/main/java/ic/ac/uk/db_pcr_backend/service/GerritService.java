@@ -35,7 +35,10 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
 
 import com.google.gerrit.extensions.api.GerritApi;
+import com.google.gerrit.extensions.api.changes.DraftInput;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
+import com.google.gerrit.extensions.client.Comment;
+import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
@@ -44,6 +47,7 @@ import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
@@ -194,10 +198,62 @@ public class GerritService {
         return drafts;
     }
 
-    public void postGerritComment(String gerritChangeId, String message) throws RestApiException {
+    public CommentInfoDto postGerritDraft(String gerritChangeId, CommentInputDto commentInput) throws RestApiException {
         System.out.println("Service: GerritService.postGerritComment");
 
-        CommentInfo postedComment = gerritApi.changes().id(gerritChangeId).
+        System.out.println("DBLOG: " + commentInput.getId());
+        System.out.println("DBLOG: " + commentInput.getPath());
+        System.out.println("DBLOG: " + commentInput.getLine());
+        System.out.println("DBLOG: " + commentInput.getMessage());
+        System.out.println("DBLOG: " + commentInput.getRange());
+        System.out.println("DBLOG: " + commentInput.getIn_reply_to());
+        System.out.println("DBLOG: " + commentInput.getSide());
+
+        DraftInput draft = createDraftInput(commentInput);
+
+        System.out.println("DBLOG: Draft  " + draft);
+        System.out.println("DBLOG: Draft " + draft.id);
+        System.out.println("DBLOG: Draft " + draft.path);
+        System.out.println("DBLOG: Draft " + draft.line);
+        System.out.println("DBLOG: Draft " + draft.message);
+        System.out.println("DBLOG: Draft " + draft.range);
+        System.out.println("DBLOG: Draft " + draft.inReplyTo);
+        System.out.println("DBLOG: Draft " + draft.side);
+
+        CommentInfo created = gerritApi
+                .changes()
+                .id(gerritChangeId)
+                .revision("current")
+                .createDraft(draft)
+                .get();
+
+        return CommentInfoDto.fromGerritType(commentInput.getPath(), created);
+    }
+
+    private DraftInput createDraftInput(CommentInputDto commentInput) {
+        System.out.println("Service: GerritService.createDraftInput");
+
+        DraftInput draft = new DraftInput();
+        draft.path = commentInput.getPath();
+        draft.side = Side.valueOf(commentInput.getSide());
+        draft.line = commentInput.getLine();
+        draft.message = commentInput.getMessage();
+        if (commentInput.getRange() != null) {
+            Comment.Range r = new Comment.Range();
+            r.startLine = commentInput.getRange().getStartLine();
+            r.startCharacter = commentInput.getRange().getStartCharacter();
+            r.endLine = commentInput.getRange().getEndLine();
+            r.endCharacter = commentInput.getRange().getEndCharacter();
+            draft.range = r;
+        }
+        draft.inReplyTo = commentInput.getIn_reply_to();
+
+        return draft;
+    }
+
+    public void submitDraftAsComment(String gerritChangeId, String message) throws RestApiException {
+        System.out.println("Service: GerritService.submitDraftAsComment");
+
     }
 
     /* ----------- SUBMIT FOR REVIEW ---------------- */

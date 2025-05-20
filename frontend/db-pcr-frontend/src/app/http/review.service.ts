@@ -6,6 +6,7 @@ import { ProjectDto } from '../interface/database/project-dto';
 import { ChangeRequestDto } from '../interface/database/change-request-dto';
 import { ReviewAssignmentPseudonymDto } from '../interface/database/review-assignment-dto';
 import { GerritCommentInfo } from '../interface/gerrit/gerrit-comment-info';
+import { GerritCommentInput } from '../interface/gerrit/gerrit-comment-input';
 
 @Injectable({
   providedIn: 'root',
@@ -76,7 +77,7 @@ export class ReviewService {
     });
   }
 
-  /** Get Existed comment on a Gerrit Chage */
+  /** Get Existed comment on a Gerrit Change */
   getExistedComments(gerritChangeId: string): Observable<GerritCommentInfo[]> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
@@ -88,12 +89,27 @@ export class ReviewService {
     );
   }
 
-  /** Get Existed comment on a Gerrit Chage */
+  /** Get Existed draft comment on a Gerrit Change */
   getDraftComments(gerritChangeId: string): Observable<GerritCommentInfo[]> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
     return this.http.get<GerritCommentInfo[]>(
       `${this.baseUrl}/get-gerrit-change-draft-comments`,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Post a draft comment on a Gerrit Change */
+  postDraftComment(
+    gerritChangeId: string,
+    commentInput: GerritCommentInput
+  ): Observable<GerritCommentInfo> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    return this.http.post<GerritCommentInfo>(
+      `${this.baseUrl}/post-gerrit-draft-comment`,
+      commentInput,
       {
         params,
       }

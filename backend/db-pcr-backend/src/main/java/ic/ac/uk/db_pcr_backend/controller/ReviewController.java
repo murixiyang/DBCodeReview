@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,6 +25,7 @@ import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
@@ -215,6 +217,17 @@ public class ReviewController {
         System.out.println("STAGE: ReviewController.getGerritChangeDraftComments");
 
         return ResponseEntity.ok(gerritSvc.getGerritChangeDraftComments(gerritChangeId));
+    }
+
+    @PostMapping("/post-gerrit-draft-comment")
+    public ResponseEntity<CommentInfoDto> postGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody CommentInputDto commentInput) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.postGerritDraftComment");
+
+        return ResponseEntity.ok(gerritSvc.postGerritDraft(
+                gerritChangeId, commentInput));
     }
 
 }

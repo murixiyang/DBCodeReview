@@ -3,6 +3,7 @@ import { Diff2HtmlUIConfig } from 'diff2html/lib/ui/js/diff2html-ui-base.js';
 import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim.js';
 import { ActivatedRoute } from '@angular/router';
 import { ReviewService } from '../../http/review.service.js';
+import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input.js';
 
 @Component({
   selector: 'app-review-detail',
@@ -68,5 +69,26 @@ export class ReviewDetailComponent {
     );
     ui.draw();
     ui.highlightCode();
+  }
+
+  createDraftComment() {
+    const commentInput: GerritCommentInput = {
+      path: 'README.md',
+      line: 1,
+      side: 'REVISION',
+      range: {
+        start_line: 1,
+        start_character: 1,
+        end_line: 1,
+        end_character: 1,
+      },
+      message: 'This is a test comment',
+    };
+
+    this.reviewSvc
+      .postDraftComment(this.gerritChangeId, commentInput)
+      .subscribe((comment) => {
+        console.log('comment', comment);
+      });
   }
 }
