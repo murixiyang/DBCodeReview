@@ -2,10 +2,22 @@
 <div class="page-container">
   <h2>Change {{ gerritChangeId }}</h2>
 
-  <button mat-raised-button color="primary" (click)="createDraftComment()">
-    Try create draft
-  </button>
-
-  <!-- Side-by-side diffs -->
   <div #diffContainer class="diff-container"></div>
+
+  <!-- Inline comment editors -->
+  <ng-container *ngFor="let draft of draftComments">
+    <div
+      class="comment-editor"
+      [style.top.px]="draft.y"
+      [style.left.px]="draft.x"
+    >
+      <textarea
+        rows="3"
+        [(ngModel)]="draft.message"
+        placeholder="Write a comment…"
+      ></textarea>
+      <button (click)="saveComment(draft)">Save</button>
+      <button (click)="cancelComment(draft)">Cancel</button>
+    </div>
+  </ng-container>
 </div>
