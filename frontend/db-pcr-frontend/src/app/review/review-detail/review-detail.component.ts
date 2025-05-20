@@ -11,7 +11,7 @@ import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info.js
 
 @Component({
   selector: 'app-review-detail',
-  imports: [NgFor, FormsModule],
+  imports: [FormsModule],
   templateUrl: './review-detail.component.html',
   styleUrl: './review-detail.component.css',
 })
@@ -81,8 +81,10 @@ export class ReviewDetailComponent {
     ui.highlightCode();
 
     // Insert existing draft comments into the diff table
-    this.existedComments.forEach((ec) => this.insertCommentRow(ec));
-    this.draftComments.forEach((dc) => this.insertCommentRow(dc));
+    this.existedComments.forEach((ec) =>
+      this.insertCommentRow(ec, 'published')
+    );
+    this.draftComments.forEach((dc) => this.insertCommentRow(dc, 'draft'));
 
     // Hook clicks to create new draft rows
     container
@@ -108,64 +110,95 @@ export class ReviewDetailComponent {
 
           const dc: GerritCommentInput = { path, side, line, message: '' };
           this.draftComments.push(dc);
-          this.insertCommentRow(dc);
+          this.insertCommentRow(dc, 'draft');
         });
       });
   }
 
-  private insertCommentRow(dc: GerritCommentInput, existingText?: string) {
+  private insertCommentRow(
+    commentInfo: GerritCommentInput | GerritCommentInfo,
+    mode: 'draft' | 'published'
+  ) {
     const container = this.diffContainer.nativeElement;
-    // 1) Find the file wrapper for this path
-    const fileWrappers = Array.from(
+    const wrappers = Array.from(
       container.querySelectorAll<HTMLElement>('.d2h-file-wrapper')
     );
-    const fileEl = fileWrappers.find((fw) => {
-      const nameEl = fw.querySelector('.d2h-file-header .d2h-file-name');
-      return nameEl?.textContent?.trim() === dc.path;
-    });
+    const fileEl = wrappers.find(
+      (fw) =>
+        fw
+          .querySelector('.d2h-file-header .d2h-file-name')
+          ?.textContent?.trim() === commentInfo.path
+    );
     if (!fileEl) return;
 
-    // 2) Find the <td> whose text matches the line number
-    const lineCells = Array.from(
+    const lineCell = Array.from(
       fileEl.querySelectorAll<HTMLElement>('.d2h-code-side-linenumber')
-    );
-    const lineCell = lineCells.find(
-      (td) => td.textContent?.trim() === '' + dc.line
-    );
+    ).find((td) => td.textContent?.trim() === String(commentInfo.line));
     if (!lineCell) return;
 
-    // 3) Get the <tr> containing that cell
     const tr = lineCell.closest('tr');
     if (!tr || !tr.parentNode) return;
 
-    // 4) Create a new <tr><td colspan="X">…</td></tr>
     const commentTr = document.createElement('tr');
+    commentTr.classList.add(
+      'tr-comment',
+      mode === 'draft' ? 'draft' : 'published'
+    );
+
     const commentTd = document.createElement('td');
+    commentTd.colSpan = tr.children.length;
 
-    // set colspan to span both sides of diff (find number of columns)
-    const colCount = tr.children.length;
-    commentTd.setAttribute('colspan', '' + colCount);
+    // build comment-box
+    const box = document.createElement('div');
+    box.classList.add('comment-box');
+    box.addEventListener('click', (e) => e.stopPropagation());
 
-    // 5) Build your comment editor inside the TD
-    const textarea = document.createElement('textarea');
-    textarea.rows = 3;
-    textarea.value = existingText ?? dc.message ?? '';
-    textarea.addEventListener('input', () => (dc.message = textarea.value));
+    if (mode === 'published') {
+      // published read-only
+      const header = document.createElement('div');
+      header.classList.add('comment-header');
+      header.textContent = `@${
+        (commentInfo as any).authorName || 'User'
+      } — ${new Date(
+        (commentInfo as any).updated || Date.now()
+      ).toLocaleString()}`;
 
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = existingText ? 'Update' : 'Save';
-    saveBtn.addEventListener('click', () => this.saveComment(dc));
+      const body = document.createElement('div');
+      body.classList.add('comment-body');
+      body.textContent = commentInfo.message!;
 
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'Cancel';
-    cancelBtn.addEventListener('click', () => this.cancelComment(dc));
+      box.append(header, body);
+    } else {
+      // draft editable
+      const textarea = document.createElement('textarea');
+      textarea.rows = 3;
+      textarea.value = commentInfo.message || '';
+      textarea.addEventListener(
+        'input',
+        () => (commentInfo.message = textarea.value)
+      );
 
-    commentTd.appendChild(textarea);
-    commentTd.appendChild(saveBtn);
-    commentTd.appendChild(cancelBtn);
+      const btnGroup = document.createElement('div');
+      btnGroup.classList.add('comment-box-buttons');
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.addEventListener('click', () =>
+        this.cancelComment(commentInfo as GerritCommentInput)
+      );
+
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Save';
+      saveBtn.addEventListener('click', () =>
+        this.saveComment(commentInfo as GerritCommentInput)
+      );
+
+      btnGroup.append(cancelBtn, saveBtn);
+      box.append(textarea, btnGroup);
+    }
+
+    commentTd.appendChild(box);
     commentTr.appendChild(commentTd);
-
-    // 6) Insert right after the target row
     tr.parentNode.insertBefore(commentTr, tr.nextSibling);
   }
 

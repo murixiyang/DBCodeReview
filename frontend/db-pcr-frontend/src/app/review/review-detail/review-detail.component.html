@@ -3,17 +3,4 @@
   <h2>Change {{ gerritChangeId }}</h2>
 
   <div #diffContainer class="diff-container"></div>
-
-  <!-- Inline comment editors -->
-  <ng-container *ngFor="let draft of draftComments">
-    <div class="comment-editor">
-      <textarea
-        rows="3"
-        [(ngModel)]="draft.message"
-        placeholder="Write a comment…"
-      ></textarea>
-      <button (click)="saveComment(draft)">Save</button>
-      <button (click)="cancelComment(draft)">Cancel</button>
-    </div>
-  </ng-container>
 </div>
