@@ -7,12 +7,3 @@
   border: 1px solid #ddd;
   position: relative;
 }
-
-:host ::ng-deep .hljs {
-  background: transparent !important;
-}
-
-.tr-comment td {
-  padding: 0;
-  border: none;
-}

@@ -2,5 +2,36 @@
 <div class="page-container">
   <h2>Change {{ gerritChangeId }}</h2>
 
-  <div #diffContainer class="diff-container"></div>
+  <!-- unified-diff mode: you feed it your raw patch -->
+  <ngx-unified-diff
+    [before]=""
+    [after]=""
+    [lineContextSize]="4"
+    (selectedLineChange)="onLineClick($event)"
+    class="diff-container"
+  >
+    <!-- Project published comments into the lines -->
+    <ng-template ngxDiffLineTemplate let-line let-file="file" let-side="side">
+      <ng-container *ngFor="let c of existedComments">
+        <app-comment-box
+          *ngIf="c.path === file && c.line === line"
+          mode="published"
+          [comment]="c"
+          (canceled)="cancelComment(c)"
+          (saved)="saveComment(c)"
+        ></app-comment-box>
+      </ng-container>
+
+      <!-- Project draft comments into the lines -->
+      <ng-container *ngFor="let d of draftComments">
+        <app-comment-box
+          *ngIf="d.path === file && d.line === line"
+          mode="draft"
+          [comment]="d"
+          (canceled)="cancelComment(d)"
+          (saved)="saveComment(d)"
+        ></app-comment-box>
+      </ng-container>
+    </ng-template>
+  </ngx-unified-diff>
 </div>

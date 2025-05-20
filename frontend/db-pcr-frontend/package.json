@@ -21,8 +21,10 @@
     "@angular/platform-browser-dynamic": "^19.1.0",
     "@angular/router": "^19.1.0",
     "@gitbeaker/rest": "^42.5.0",
+    "diff-match-patch-ts": "^0.6.0",
     "diff2html": "^3.4.51",
     "highlight.js": "^11.11.1",
+    "ngx-diff": "^10.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
