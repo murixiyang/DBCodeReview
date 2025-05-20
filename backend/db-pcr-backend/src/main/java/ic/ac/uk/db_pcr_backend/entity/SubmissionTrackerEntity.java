@@ -35,14 +35,19 @@ public class SubmissionTrackerEntity {
     @JoinColumn(name = "project_id", nullable = false, foreignKey = @ForeignKey(name = "fk_st_project"))
     private ProjectEntity project;
 
-    /** The last SHA we pushed to Gerrit */
-    @Column(name = "last_submitted_gerrit_sha", nullable = false)
-    private String lastSubmittedGerritSha;
+    /** Link to the previous submission in this chain */
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "previous_submission_id", foreignKey = @ForeignKey(name = "fk_st_prev_submission"))
+    private SubmissionTrackerEntity previousSubmission;
+
+    /** New SHA we pushed to Gerrit */
+    @Column(name = "submitted_gerrit_sha", nullable = false)
+    private String submittedGerritSha;
 
     /** The last Gitlab Commit we pushed to GitLab */
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "commit_id", foreignKey = @ForeignKey(name = "fk_se_commit"))
-    private GitlabCommitEntity lastSubmittedCommit;
+    private GitlabCommitEntity submittedCommit;
 
     /** When this row was submitted */
     @CreationTimestamp
@@ -52,12 +57,14 @@ public class SubmissionTrackerEntity {
     public SubmissionTrackerEntity() {
     }
 
-    public SubmissionTrackerEntity(UserEntity author, ProjectEntity project, String lastSubmittedGerritSha,
-            GitlabCommitEntity lastSubmittedCommit) {
+    public SubmissionTrackerEntity(UserEntity author, ProjectEntity project, SubmissionTrackerEntity previousSubmission,
+            String submittedGerritSha,
+            GitlabCommitEntity submittedCommit) {
         this.author = author;
         this.project = project;
-        this.lastSubmittedGerritSha = lastSubmittedGerritSha;
-        this.lastSubmittedCommit = lastSubmittedCommit;
+        this.submittedGerritSha = submittedGerritSha;
+        this.previousSubmission = previousSubmission;
+        this.submittedCommit = submittedCommit;
     }
 
     // --- getters & setters ---
@@ -81,20 +88,28 @@ public class SubmissionTrackerEntity {
         this.project = project;
     }
 
-    public String getLastSubmittedGerritSha() {
-        return lastSubmittedGerritSha;
+    public SubmissionTrackerEntity getPreviousSubmission() {
+        return previousSubmission;
     }
 
-    public void setLastSubmittedGerritSha(String lastSubmittedGerritSha) {
-        this.lastSubmittedGerritSha = lastSubmittedGerritSha;
+    public void setPreviousSubmission(SubmissionTrackerEntity previousSubmission) {
+        this.previousSubmission = previousSubmission;
     }
 
-    public GitlabCommitEntity getLastSubmittedCommit() {
-        return lastSubmittedCommit;
+    public String getSubmittedGerritSha() {
+        return submittedGerritSha;
     }
 
-    public void setLastSubmittedCommit(GitlabCommitEntity lastSubmittedCommit) {
-        this.lastSubmittedCommit = lastSubmittedCommit;
+    public void setSubmittedGerritSha(String submittedGerritSha) {
+        this.submittedGerritSha = submittedGerritSha;
+    }
+
+    public GitlabCommitEntity getSubmittedCommit() {
+        return submittedCommit;
+    }
+
+    public void setSubmittedCommit(GitlabCommitEntity submittedCommit) {
+        this.submittedCommit = submittedCommit;
     }
 
     public Instant getSubmittedAt() {

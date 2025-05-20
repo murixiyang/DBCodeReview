@@ -67,6 +67,15 @@ export class ReviewService {
     );
   }
 
+  /** Get changed file names for a gerrit change */
+  getChangedFileNames(gerritChangeId: string): Observable<string[]> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get<string[]>(`${this.baseUrl}/get-changed-files`, {
+      params,
+    });
+  }
+
   /** Get ChangeDiff for a Gerrit Change */
   getChangeDiffs(gerritChangeId: string): Observable<string> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);

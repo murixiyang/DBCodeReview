@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,6 +42,9 @@ import com.google.gerrit.extensions.client.Comment;
 import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
+import com.google.gerrit.extensions.common.DiffInfo;
+import com.google.gerrit.extensions.common.FileInfo;
+import com.google.gerrit.extensions.restapi.BinaryResult;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
@@ -50,6 +54,7 @@ import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
+import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 
@@ -131,6 +136,51 @@ public class GerritService {
         return gerritApi.changes()
                 .query("project:" + path)
                 .get();
+    }
+
+    // * Get changed file names in a gerrit change */
+    public List<String> getChangedFileNames(String changeId) throws Exception {
+        System.out.println("Service: GerritService.getChangedFileNames");
+
+        Map<String, FileInfo> files = gerritApi.changes()
+                .id(changeId)
+                .revision("current")
+                .files();
+
+        // Exclude COMMIT_MSG file
+
+        return files.keySet().stream()
+                .filter(fileName -> !fileName.equals("/COMMIT_MSG"))
+                .collect(Collectors.toList());
+    }
+
+    // * Get Before and After file content */
+    public Map<String, String[]> getChangedFileContent(String changeId, String[] fileNames) throws Exception {
+        System.out.println("Service: GerritService.getFileContent");
+
+        Map<String, String[]> fileContentMap = new HashMap<String, String[]>();
+
+        for (String fileName : fileNames) {
+            // Get old file
+            BinaryResult oldFile = gerritApi.changes()
+                    .id(changeId)
+                    .revision("current")
+                    .file(fileName).content();
+
+            // Get new file
+            BinaryResult newFile = gerritApi.changes()
+                    .id(changeId)
+                    .revision("current")
+                    .file(fileName).content();
+
+            String[] content = new String[2];
+            content[0] = oldFile.asString();
+            content[1] = newFile.asString();
+
+            fileContentMap.put(fileName, content);
+        }
+
+        return fileContentMap;
     }
 
     public String fetchRawPatch(String changeId, String revisionId) {
@@ -262,7 +312,11 @@ public class GerritService {
 
         Long gitlabProjectIdLong = Long.parseLong(gitlabProjectId);
         // Load last submitted SHA from DB
-        String baseSha = submissionTrackerSvc.getLastSubmittedGerritSha(username, gitlabProjectIdLong);
+        SubmissionTrackerEntity previousSubmission = submissionTrackerSvc.getPreviousSubmission(username,
+                gitlabProjectIdLong);
+        String baseSha = previousSubmission != null
+                ? previousSubmission.getSubmittedGerritSha()
+                : null;
 
         Path tempDir = Files.createTempDirectory("review-");
 
@@ -292,7 +346,8 @@ public class GerritService {
         String newGerritSha = extractNewSha(result);
 
         // --- Record the SHA as the new last submitted
-        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, newGerritSha, targetCommitEntity);
+        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, previousSubmission, newGerritSha,
+                targetCommitEntity);
 
         // --- Record the change request
         changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);

@@ -30,13 +30,17 @@ export class ReviewDetailComponent {
 
   ngOnInit() {
     this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
-    // load comments and the diff _in parallel_
+
     this.reviewSvc
       .getExistedComments(this.gerritChangeId)
       .subscribe((c) => (this.existedComments = c));
     this.reviewSvc.getDraftComments(this.gerritChangeId).subscribe((d) => {
       this.draftComments = d;
       this.fetchRawPatch();
+    });
+
+    this.reviewSvc.getChangedFileNames(this.gerritChangeId).subscribe((f) => {
+      console.log('changed files: ', f);
     });
   }
 
