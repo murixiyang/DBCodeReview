@@ -3,7 +3,6 @@
   <h2>Change {{ gerritChangeId }}</h2>
 
   <div *ngFor="let f of fileKeys">
-    <!-- unified-diff mode: you feed it your raw patch -->
     <ngx-side-by-side-diff
       [title]="f"
       [before]="fileContents.get(f)?.[0]"
@@ -12,11 +11,16 @@
       (selectedLineChange)="onLineClick($event)"
       class="ngx-diff-light-theme my-custom-ngx-diff-theme"
     >
-      <!-- Project published comments into the lines -->
-      <ng-template ngxDiffLineTemplate let-line let-file="file" let-side="side">
-        <ng-container *ngFor="let c of existedComments">
+      <!-- this template is rendered _after_ each line row -->
+      <ng-template
+        ngxDiffAfterLineTemplate
+        let-line
+        let-file="file"
+        let-side="side"
+      >
+        <!-- published comments -->
+        <ng-container *ngFor="let c of publishedFor(file, line)">
           <app-comment-box
-            *ngIf="c.path === file && c.line === line"
             mode="published"
             [comment]="c"
             (canceled)="cancelComment(c)"
@@ -24,14 +28,13 @@
           ></app-comment-box>
         </ng-container>
 
-        <!-- Project draft comments into the lines -->
-        <ng-container *ngFor="let d of draftComments">
+        <!-- a single draft box if you clicked here -->
+        <ng-container *ngIf="draftFor(file, line) as draft">
           <app-comment-box
-            *ngIf="d.path === file && d.line === line"
             mode="draft"
-            [comment]="d"
-            (canceled)="cancelComment(d)"
-            (saved)="saveComment(d)"
+            [comment]="draft"
+            (canceled)="cancelComment(draft)"
+            (saved)="saveComment(draft)"
           ></app-comment-box>
         </ng-container>
       </ng-template>

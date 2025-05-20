@@ -32,37 +32,4 @@ export class CommentBoxComponent {
   }
 
   constructor() {}
-
-  //   onSaveDraft(): void {
-  //     // If editting a existed comment
-  //     if (this.editting && this.existCommentInfo) {
-  //       this.onUpdateDraft(this.commentInfoToCommentInput(this.existCommentInfo));
-  //       return;
-  //     }
-
-  //     // Creating new comment
-  //     if (!this.newCommentInput) {
-  //       console.error('Invalid comment input');
-  //       return;
-  //     }
-
-  //     // Change message
-  //     this.newCommentInput.message = this.commentMsg;
-  //   }
-
-  //   onUpdateDraft(oldCommentInput: GerritCommentInput): void {
-  //     oldCommentInput.message = this.commentMsg;
-  //   }
-
-  //   onCloseDraft() {
-  //     this.commentMsg = '';
-  //     this.editting = false;
-  //     this.closeCommentBox.emit();
-  //   }
-
-  //   onEditDraft(): void {
-  //     this.edittable = true;
-  //     this.commentMsg = this.existCommentInfo?.message || '';
-  //     this.editting = true;
-  //   }
 }

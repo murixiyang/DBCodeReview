@@ -6,18 +6,22 @@ import { FormsModule } from '@angular/forms';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info.js';
 import { CommentBoxComponent } from '../comment-box/comment-box.component.js';
 import { SideBySideDiffComponent } from 'ngx-diff';
-import { NgFor } from '@angular/common';
+import { NgFor, NgIf, NgSwitch } from '@angular/common';
 
 @Component({
   selector: 'app-review-detail',
-  imports: [FormsModule, SideBySideDiffComponent, CommentBoxComponent, NgFor],
+  imports: [
+    FormsModule,
+    SideBySideDiffComponent,
+    CommentBoxComponent,
+    NgFor,
+    NgIf,
+  ],
   templateUrl: './review-detail.component.html',
   styleUrl: './review-detail.component.css',
 })
 export class ReviewDetailComponent {
   gerritChangeId!: string;
-
-  rawDiff: string = '';
 
   fileContents: Map<string, string[]> = new Map();
 
@@ -33,16 +37,14 @@ export class ReviewDetailComponent {
   ngOnInit() {
     this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
 
-    this.reviewSvc
-      .getExistedComments(this.gerritChangeId)
-      .subscribe((c) => (this.existedComments = c));
-    this.reviewSvc.getDraftComments(this.gerritChangeId).subscribe((d) => {
-      this.draftComments = d;
-      this.fetchRawPatch();
+    this.reviewSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
+      this.existedComments = c;
+      console.log('existed comments: ', c);
     });
 
-    this.reviewSvc.getChangedFileNames(this.gerritChangeId).subscribe((f) => {
-      console.log('changed files: ', f);
+    this.reviewSvc.getDraftComments(this.gerritChangeId).subscribe((d) => {
+      this.draftComments = d;
+      console.log('draft comments: ', d);
     });
 
     this.reviewSvc
@@ -58,24 +60,24 @@ export class ReviewDetailComponent {
     return Array.from(this.fileContents.keys());
   }
 
-  private fetchRawPatch() {
-    this.reviewSvc
-      .getChangeDiffs(this.gerritChangeId)
-      .subscribe((p) => (this.rawDiff = p));
+  /** Find the single draft for that file+line (or undefined) */
+  draftFor(path: string, line: number): GerritCommentInput | undefined {
+    return this.draftComments.find((d) => d.path === path && d.line === line);
   }
 
-  /**
-   * Called whenever the user clicks a line in the diff.
-   * We get { file, line, side } and can open a new draft.
-   */
+  /** Find all published comments at that file+line */
+  publishedFor(path: string, line: number): GerritCommentInfo[] {
+    return this.existedComments.filter(
+      (c) => c.path === path && c.line === line
+    );
+  }
+
   onLineClick(evt: any) {
     const { file, line, side } = evt;
-    // avoid duplicate drafts:
-    if (this.draftComments.find((d) => d.path === file && d.line === line))
-      return;
-
-    const draft: GerritCommentInput = { path: file, line, side, message: '' };
-    this.draftComments.push(draft);
+    // don’t double-add
+    if (!this.draftFor(file, line)) {
+      this.draftComments.push({ path: file, line, side, message: '' });
+    }
   }
 
   saveComment(c: GerritCommentInput) {
