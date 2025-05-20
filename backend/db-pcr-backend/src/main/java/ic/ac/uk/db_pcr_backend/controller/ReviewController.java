@@ -168,6 +168,16 @@ public class ReviewController {
         return ResponseEntity.ok(gerritSvc.getChangedFileNames(gerritChangeId));
     }
 
+    /** Get changed files content */
+    @GetMapping("/get-changed-files-content")
+    public ResponseEntity<Map<String, String[]>> getChangedFilesContent(
+            @RequestParam("gerritChangeId") String gerritChangeId) throws Exception {
+
+        System.out.println("STAGE: ReviewController.getChangedFilesContent");
+
+        return ResponseEntity.ok(gerritSvc.getChangedFileContent(gerritChangeId));
+    }
+
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
     @GetMapping("/get-change-diff")
     public String getChangeDiff(@RequestParam("gerritChangeId") String gerritChangeId) throws Exception {

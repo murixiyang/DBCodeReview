@@ -5,12 +5,12 @@ import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input.
 import { FormsModule } from '@angular/forms';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info.js';
 import { CommentBoxComponent } from '../comment-box/comment-box.component.js';
-import { UnifiedDiffComponent } from 'ngx-diff';
+import { SideBySideDiffComponent } from 'ngx-diff';
 import { NgFor } from '@angular/common';
 
 @Component({
   selector: 'app-review-detail',
-  imports: [FormsModule, UnifiedDiffComponent, CommentBoxComponent, NgFor],
+  imports: [FormsModule, SideBySideDiffComponent, CommentBoxComponent, NgFor],
   templateUrl: './review-detail.component.html',
   styleUrl: './review-detail.component.css',
 })
@@ -18,6 +18,8 @@ export class ReviewDetailComponent {
   gerritChangeId!: string;
 
   rawDiff: string = '';
+
+  fileContents: Map<string, string[]> = new Map();
 
   existedComments: GerritCommentInfo[] = [];
 
@@ -42,6 +44,18 @@ export class ReviewDetailComponent {
     this.reviewSvc.getChangedFileNames(this.gerritChangeId).subscribe((f) => {
       console.log('changed files: ', f);
     });
+
+    this.reviewSvc
+      .getChangedFileContents(this.gerritChangeId)
+      .subscribe((f) => {
+        console.log('changed file contents: ', f);
+
+        this.fileContents = new Map(Object.entries(f));
+      });
+  }
+
+  get fileKeys(): string[] {
+    return Array.from(this.fileContents.keys());
   }
 
   private fetchRawPatch() {
