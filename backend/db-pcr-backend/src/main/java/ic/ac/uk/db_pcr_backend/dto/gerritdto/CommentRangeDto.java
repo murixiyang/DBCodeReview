@@ -3,16 +3,16 @@ package ic.ac.uk.db_pcr_backend.dto.gerritdto;
 import com.google.gerrit.extensions.client.Comment;
 
 public class CommentRangeDto {
-    private int start_line;
-    private int start_character;
-    private int end_line;
-    private int end_character;
+    private int startLine;
+    private int startCharacter;
+    private int endLine;
+    private int endCharacter;
 
-    public CommentRangeDto(int start_line, int start_character, int end_line, int end_character) {
-        this.start_line = start_line;
-        this.start_character = start_character;
-        this.end_line = end_line;
-        this.end_character = end_character;
+    public CommentRangeDto(int startLine, int startCharacter, int endLine, int endCharacter) {
+        this.startLine = startLine;
+        this.startCharacter = startCharacter;
+        this.endLine = endLine;
+        this.endCharacter = endCharacter;
     }
 
     public static CommentRangeDto empty() {
@@ -29,34 +29,30 @@ public class CommentRangeDto {
 
     // --- Getters & Setters ---
     public int getStartLine() {
-        return start_line;
+        return startLine;
     }
 
-    public void setStartLine(int start_line) {
-        this.start_line = start_line;
+    public void setStartLine(int startLine) {
+        this.startLine = startLine;
     }
 
     public int getStartCharacter() {
-        return start_character;
+        return startCharacter;
     }
 
-    public void setStartCharacter(int start_character) {
-        this.start_character = start_character;
+    public void setStartCharacter(int startCharacter) {
+        this.startCharacter = startCharacter;
     }
 
     public int getEndLine() {
-        return end_line;
+        return endLine;
     }
 
-    public void setEndLine(int end_line) {
-        this.end_line = end_line;
+    public void setEndLine(int endLine) {
+        this.endLine = endLine;
     }
 
     public int getEndCharacter() {
-        return end_character;
-    }
-
-    public void setEndCharacter(int end_character) {
-        this.end_character = end_character;
+        return endCharacter;
     }
 }

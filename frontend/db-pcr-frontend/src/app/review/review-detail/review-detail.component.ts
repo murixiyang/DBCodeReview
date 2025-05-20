@@ -77,10 +77,10 @@ export class ReviewDetailComponent {
       line: 1,
       side: 'REVISION',
       range: {
-        start_line: 1,
-        start_character: 1,
-        end_line: 1,
-        end_character: 1,
+        startLine: 1,
+        startCharacter: 1,
+        endLine: 1,
+        endCharacter: 1,
       },
       message: 'This is a test comment',
     };

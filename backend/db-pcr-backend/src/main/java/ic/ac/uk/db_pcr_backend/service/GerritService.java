@@ -201,24 +201,7 @@ public class GerritService {
     public CommentInfoDto postGerritDraft(String gerritChangeId, CommentInputDto commentInput) throws RestApiException {
         System.out.println("Service: GerritService.postGerritComment");
 
-        System.out.println("DBLOG: " + commentInput.getId());
-        System.out.println("DBLOG: " + commentInput.getPath());
-        System.out.println("DBLOG: " + commentInput.getLine());
-        System.out.println("DBLOG: " + commentInput.getMessage());
-        System.out.println("DBLOG: " + commentInput.getRange());
-        System.out.println("DBLOG: " + commentInput.getIn_reply_to());
-        System.out.println("DBLOG: " + commentInput.getSide());
-
         DraftInput draft = createDraftInput(commentInput);
-
-        System.out.println("DBLOG: Draft  " + draft);
-        System.out.println("DBLOG: Draft " + draft.id);
-        System.out.println("DBLOG: Draft " + draft.path);
-        System.out.println("DBLOG: Draft " + draft.line);
-        System.out.println("DBLOG: Draft " + draft.message);
-        System.out.println("DBLOG: Draft " + draft.range);
-        System.out.println("DBLOG: Draft " + draft.inReplyTo);
-        System.out.println("DBLOG: Draft " + draft.side);
 
         CommentInfo created = gerritApi
                 .changes()
@@ -246,7 +229,7 @@ public class GerritService {
             r.endCharacter = commentInput.getRange().getEndCharacter();
             draft.range = r;
         }
-        draft.inReplyTo = commentInput.getIn_reply_to();
+        draft.inReplyTo = commentInput.getInReplyTo();
 
         return draft;
     }

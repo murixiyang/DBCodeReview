@@ -12,18 +12,18 @@ public class CommentInfoDto {
     private String side;
     private int line;
     private CommentRangeDto range;
-    private String in_reply_to;
+    private String inReplyTo;
     private String message;
     private Instant updated;
 
     public CommentInfoDto(String id, String path, String side, int line, CommentRangeDto range,
-            String in_reply_to, String message, Instant updated) {
+            String inReplyTo, String message, Instant updated) {
         this.id = id;
         this.path = path;
         this.side = side;
         this.line = line;
         this.range = range;
-        this.in_reply_to = in_reply_to;
+        this.inReplyTo = inReplyTo;
         this.message = message;
         this.updated = updated;
     }
@@ -105,12 +105,12 @@ public class CommentInfoDto {
         this.range = range;
     }
 
-    public String getIn_reply_to() {
-        return in_reply_to;
+    public String getInReplyTo() {
+        return inReplyTo;
     }
 
-    public void setIn_reply_to(String in_reply_to) {
-        this.in_reply_to = in_reply_to;
+    public void setInReplyTo(String inReplyTo) {
+        this.inReplyTo = inReplyTo;
     }
 
     public String getMessage() {
