@@ -7,18 +7,7 @@ import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input.
 import { NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommentRange } from '../../interface/gerrit/comment-range.js';
-
-interface DraftComment {
-  // editor position:
-  x: number;
-  y: number;
-  // gerrit API fields:
-  path: string;
-  side: 'PARENT' | 'REVISION';
-  line: number;
-  range?: CommentRange;
-  message: string;
-}
+import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info.js';
 
 @Component({
   selector: 'app-review-detail',
@@ -31,7 +20,9 @@ export class ReviewDetailComponent {
 
   rawDiff: string = '';
 
-  draftComments: DraftComment[] = [];
+  existedComments: GerritCommentInfo[] = [];
+
+  draftComments: GerritCommentInput[] = [];
 
   private config: Diff2HtmlUIConfig = {
     drawFileList: false,
@@ -50,12 +41,22 @@ export class ReviewDetailComponent {
 
   ngOnInit() {
     this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
-    this.loadDiffs();
 
     this.reviewSvc
       .getExistedComments(this.gerritChangeId)
       .subscribe((comments) => {
         console.log('comments', comments);
+
+        this.existedComments = comments;
+      });
+
+    this.reviewSvc
+      .getDraftComments(this.gerritChangeId)
+      .subscribe((comments) => {
+        console.log('draft comments', comments);
+        this.draftComments = comments;
+
+        this.loadDiffs();
       });
   }
 
@@ -64,8 +65,6 @@ export class ReviewDetailComponent {
       this.rawDiff = diff;
       // trigger a re-render
       setTimeout(() => this.render(), 0);
-
-      console.log('rawDiff', this.rawDiff);
     });
   }
 
@@ -81,79 +80,96 @@ export class ReviewDetailComponent {
     ui.draw();
     ui.highlightCode();
 
-    // AFTER rendering the diff, hook up line‐number clicks
-    // each line in side-by-side has d2h-code-linenumber class
-    const lineEls = container.querySelectorAll<HTMLElement>(
-      '.d2h-code-side-linenumber'
-    );
-    lineEls.forEach((el) => {
-      el.addEventListener('click', (evt) => {
-        const target = evt.currentTarget as HTMLElement;
+    // Insert existing draft comments into the diff table
+    this.existedComments.forEach((ec) => this.insertCommentRow(ec));
+    this.draftComments.forEach((dc) => this.insertCommentRow(dc));
 
-        console.log('cell classes:', target.className);
-        console.log('dataset:', target.dataset);
+    // Hook clicks to create new draft rows
+    container
+      .querySelectorAll<HTMLElement>('.d2h-code-side-linenumber')
+      .forEach((el) => {
+        el.addEventListener('click', (evt) => {
+          const target = evt.currentTarget as HTMLElement;
+          const text = target.textContent?.trim() || '';
+          const line = parseInt(text, 10);
+          if (isNaN(line)) return;
 
-        // extract path, line, side from the DOM
-        const text = target.textContent?.trim() ?? '';
-        const line = parseInt(text, 10);
-        if (isNaN(line)) {
-          console.error('Invalid line number:', text);
-          return;
-        }
-        console.log('line', line);
+          const cls = target.classList;
+          const side: 'PARENT' | 'REVISION' =
+            cls.contains('d2h-ins') ||
+            cls.contains('d2h-code-side-linenumber-new')
+              ? 'REVISION'
+              : 'PARENT';
 
-        const cls = target.classList;
-        let side: 'PARENT' | 'REVISION';
-        if (
-          cls.contains('d2h-ins') ||
-          cls.contains('d2h-code-side-linenumber-new')
-        ) {
-          side = 'REVISION';
-        } else {
-          side = 'PARENT';
-        }
-        console.log('side', side);
+          const fileHeader = target
+            .closest('.d2h-file-wrapper')
+            ?.querySelector('.d2h-file-header .d2h-file-name');
+          const path = fileHeader?.textContent?.trim() || '';
 
-        // path is in the file header: climb up to .d2h-file-name
-        const fileHeader = target
-          .closest('.d2h-file-wrapper')
-          ?.querySelector('.d2h-file-header .d2h-file-name');
-        const path = fileHeader?.textContent?.trim() || '';
-        console.log('path', path);
-
-        // get click position to place textarea
-        const rect = container.getBoundingClientRect();
-        const x = evt.clientX - rect.left;
-        const y = evt.clientY - rect.top;
-
-        const draft: DraftComment = {
-          x: x,
-          y: y,
-          path: path,
-          line: line,
-          side: side,
-          range: {
-            startLine: line,
-            startCharacter: 1,
-            endLine: line,
-            endCharacter: 1,
-          },
-          message: '',
-        };
-
-        this.draftComments.push(draft);
+          const dc: GerritCommentInput = { path, side, line, message: '' };
+          this.draftComments.push(dc);
+          this.insertCommentRow(dc);
+        });
       });
-    });
   }
 
-  saveComment(draft: DraftComment) {
-    const payload: GerritCommentInput = {
-      path: draft.path,
-      side: draft.side,
-      line: draft.line,
-      message: draft.message,
-    };
+  private insertCommentRow(dc: GerritCommentInput, existingText?: string) {
+    const container = this.diffContainer.nativeElement;
+    // 1) Find the file wrapper for this path
+    const fileWrappers = Array.from(
+      container.querySelectorAll<HTMLElement>('.d2h-file-wrapper')
+    );
+    const fileEl = fileWrappers.find((fw) => {
+      const nameEl = fw.querySelector('.d2h-file-header .d2h-file-name');
+      return nameEl?.textContent?.trim() === dc.path;
+    });
+    if (!fileEl) return;
 
+    // 2) Find the <td> whose text matches the line number
+    const lineCells = Array.from(
+      fileEl.querySelectorAll<HTMLElement>('.d2h-code-side-linenumber')
+    );
+    const lineCell = lineCells.find(
+      (td) => td.textContent?.trim() === '' + dc.line
+    );
+    if (!lineCell) return;
+
+    // 3) Get the <tr> containing that cell
+    const tr = lineCell.closest('tr');
+    if (!tr || !tr.parentNode) return;
+
+    // 4) Create a new <tr><td colspan="X">…</td></tr>
+    const commentTr = document.createElement('tr');
+    const commentTd = document.createElement('td');
+
+    // set colspan to span both sides of diff (find number of columns)
+    const colCount = tr.children.length;
+    commentTd.setAttribute('colspan', '' + colCount);
+
+    // 5) Build your comment editor inside the TD
+    const textarea = document.createElement('textarea');
+    textarea.rows = 3;
+    textarea.value = existingText ?? dc.message ?? '';
+    textarea.addEventListener('input', () => (dc.message = textarea.value));
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = existingText ? 'Update' : 'Save';
+    saveBtn.addEventListener('click', () => this.saveComment(dc));
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', () => this.cancelComment(dc));
+
+    commentTd.appendChild(textarea);
+    commentTd.appendChild(saveBtn);
+    commentTd.appendChild(cancelBtn);
+    commentTr.appendChild(commentTd);
+
+    // 6) Insert right after the target row
+    tr.parentNode.insertBefore(commentTr, tr.nextSibling);
+  }
+
+  saveComment(draft: GerritCommentInput) {
     this.reviewSvc
       .postDraftComment(this.gerritChangeId, draft)
       .subscribe((commitInfo) => {
@@ -164,28 +180,7 @@ export class ReviewDetailComponent {
       });
   }
 
-  cancelComment(draft: DraftComment) {
+  cancelComment(draft: GerritCommentInput) {
     this.draftComments = this.draftComments.filter((dc) => dc !== draft);
-  }
-
-  createDraftComment() {
-    const commentInput: GerritCommentInput = {
-      path: 'README.md',
-      line: 1,
-      side: 'REVISION',
-      range: {
-        startLine: 1,
-        startCharacter: 1,
-        endLine: 1,
-        endCharacter: 1,
-      },
-      message: 'This is a test comment',
-    };
-
-    this.reviewSvc
-      .postDraftComment(this.gerritChangeId, commentInput)
-      .subscribe((comment) => {
-        console.log('comment', comment);
-      });
   }
 }

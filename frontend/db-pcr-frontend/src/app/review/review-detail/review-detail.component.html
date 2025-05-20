@@ -6,11 +6,7 @@
 
   <!-- Inline comment editors -->
   <ng-container *ngFor="let draft of draftComments">
-    <div
-      class="comment-editor"
-      [style.top.px]="draft.y"
-      [style.left.px]="draft.x"
-    >
+    <div class="comment-editor">
       <textarea
         rows="3"
         [(ngModel)]="draft.message"
