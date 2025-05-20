@@ -2,7 +2,7 @@
   <h1>My Projects</h1>
 
   <div
-    *ngFor="let p of projects$ | async"
+    *ngFor="let p of projects"
     (click)="navigateToCommitList(p.id)"
     class="change-link"
   >
@@ -12,8 +12,8 @@
   <h1>Projects to Review</h1>
 
   <div
-    *ngFor="let p of projectsToReview$ | async"
-    (click)="navigateToReviewList(p.name)"
+    *ngFor="let p of projectsToReview"
+    (click)="navigateToReviewList(p.id)"
     class="change-link"
   >
     {{ p.name }}

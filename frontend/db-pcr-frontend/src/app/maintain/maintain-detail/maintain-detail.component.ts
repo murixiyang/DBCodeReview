@@ -2,10 +2,10 @@ import { NgFor, NgIf } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ProjectSchema } from '@gitbeaker/rest';
-import { ReviewAssignment } from '../../interface/review-assignment';
 import { MaintainService } from '../../http/maintain.service';
-import { GitlabService } from '../../http/gitlab.service';
+import { ProjectDto } from '../../interface/database/project-dto';
+import { ReviewAssignmentUsernameDto } from '../../interface/database/review-assignment-dto copy';
+import { ProjectService } from '../../http/project.service';
 
 @Component({
   selector: 'app-maintain-detail',
@@ -14,24 +14,24 @@ import { GitlabService } from '../../http/gitlab.service';
   styleUrl: './maintain-detail.component.css',
 })
 export class MaintainDetailComponent implements OnInit {
-  projects: ProjectSchema[] = [];
-  projectId!: number;
+  groupProjects: ProjectDto[] = [];
+  groupGitlabProjectId!: number;
   reviewerNum: number = 2;
-  reviewAssignments: ReviewAssignment[] = [];
+  reviewAssignments: ReviewAssignmentUsernameDto[] = [];
 
   constructor(
-    private gitlabSvc: GitlabService,
+    private projectSvc: ProjectService,
     private maintainSvc: MaintainService,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.gitlabSvc.getGroupProjects().subscribe({
+    this.projectSvc.getGroupProjects().subscribe({
       next: (ps) => {
-        this.projects = ps;
+        this.groupProjects = ps;
 
         if (ps.length) {
-          this.projectId = ps[0].id;
+          this.groupGitlabProjectId = ps[0].gitlabProjectId;
 
           this.showAssigned();
         }
@@ -41,10 +41,10 @@ export class MaintainDetailComponent implements OnInit {
   }
 
   assign(): void {
-    if (!this.projectId) return;
+    if (!this.groupGitlabProjectId) return;
 
     this.maintainSvc
-      .assignReviewers(this.projectId, this.reviewerNum)
+      .assignReviewers(this.groupGitlabProjectId, this.reviewerNum)
       .subscribe({
         next: (assignments) => (this.reviewAssignments = assignments),
         error: (err) => console.error('Assignment failed', err),
@@ -52,9 +52,9 @@ export class MaintainDetailComponent implements OnInit {
   }
 
   showAssigned(): void {
-    if (!this.projectId) return;
+    if (!this.groupGitlabProjectId) return;
 
-    this.maintainSvc.getAssignedList(this.projectId).subscribe({
+    this.maintainSvc.getAssignedList(this.groupGitlabProjectId).subscribe({
       next: (assignments) => (this.reviewAssignments = assignments),
       error: (err) => console.error('Failed to load reviewers', err),
     });

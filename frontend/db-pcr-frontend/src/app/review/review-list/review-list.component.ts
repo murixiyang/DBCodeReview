@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 import { ReviewService } from '../../http/review.service';
-import { AuthService } from '../../service/auth.service';
-import { AssignmentMetadata } from '../../interface/assignment-metadata';
-import { map, Observable } from 'rxjs';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AsyncPipe, NgFor, NgIf } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
+import { NgFor, NgIf } from '@angular/common';
 import { ReviewCommitListComponent } from '../review-commit-list/review-commit-list.component';
+import { ChangeRequestDto } from '../../interface/database/change-request-dto';
+import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
 
 @Component({
   selector: 'app-review-list',
@@ -14,42 +13,31 @@ import { ReviewCommitListComponent } from '../review-commit-list/review-commit-l
   styleUrl: './review-list.component.css',
 })
 export class ReviewListComponent {
+  groupProjectId!: string;
   projectName!: string;
-  username: string | null = null;
 
-  assignmentMetadata!: AssignmentMetadata[];
-  selectedAssignment?: AssignmentMetadata;
+  reviewAssignments!: ReviewAssignmentPseudonymDto[];
+  selectedAssignment?: ReviewAssignmentPseudonymDto;
 
   constructor(
     private reviewSvc: ReviewService,
-    private authSvc: AuthService,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    this.projectName = this.route.snapshot.paramMap.get('projectName')!;
+    this.groupProjectId = this.route.snapshot.paramMap.get('projectId')!;
 
-    // Cache username
-    this.authSvc.getUser().subscribe((user) => {
-      this.username = user;
-      console.log('Username:', this.username);
+    this.reviewSvc
+      .getReviewAssignmentPseudonymDtoList(this.groupProjectId!)
+      .subscribe((data) => {
+        this.reviewAssignments = data;
 
-      this.reviewSvc
-        .getAssignmentMetaForReviewer(this.username!)
-        .pipe(
-          map((list) => list.filter((a) => a.projectName === this.projectName))
-        )
-        .subscribe((list) => {
-          this.assignmentMetadata = list;
-
-          if (list.length) {
-            this.select(list[0]);
-          }
-        });
-    });
+        this.selectedAssignment = this.reviewAssignments[0];
+        this.projectName = this.selectedAssignment.groupProjectName;
+      });
   }
 
-  select(a: AssignmentMetadata) {
-    this.selectedAssignment = a;
+  select(assignment: ReviewAssignmentPseudonymDto) {
+    this.selectedAssignment = assignment;
   }
 }

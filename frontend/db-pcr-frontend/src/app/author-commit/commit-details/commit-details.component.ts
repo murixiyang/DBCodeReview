@@ -11,7 +11,7 @@ import { NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CommitDiffSchema } from '@gitbeaker/rest';
 import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim';
-import { GitlabService } from '../../http/gitlab.service';
+import { CommitService } from '../../http/commit.service';
 
 @Component({
   selector: 'app-commit-details',
@@ -31,7 +31,7 @@ export class CommitDetailComponent implements OnInit, AfterViewInit {
 
   constructor(
     private route: ActivatedRoute,
-    private gitLabSvc: GitlabService
+    private commitSvc: CommitService
   ) {}
 
   ngOnInit() {
@@ -42,7 +42,7 @@ export class CommitDetailComponent implements OnInit, AfterViewInit {
   }
 
   getDiffList() {
-    this.gitLabSvc.getCommitDiff(this.projectId, this.sha).subscribe((data) => {
+    this.commitSvc.getCommitDiff(this.projectId, this.sha).subscribe((data) => {
       this.diffList = data;
     });
   }
@@ -66,6 +66,8 @@ export class CommitDetailComponent implements OnInit, AfterViewInit {
         `+++ b/${diff['newPath']}`,
       ].join('\n');
       const fullDiff = `${header}\n${diff.diff}`;
+
+      console.log('fullDiff', fullDiff);
 
       // instantiate the UI wrapper
       const ui = new Diff2HtmlUI(elRef.nativeElement, fullDiff, {

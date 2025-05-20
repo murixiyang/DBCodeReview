@@ -1,26 +1,28 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { GitlabService } from '../../http/gitlab.service';
 import { Router } from '@angular/router';
 import { AsyncPipe, NgFor } from '@angular/common';
-import { ProjectSchema } from '@gitbeaker/rest';
+import { ProjectDto } from '../../interface/database/project-dto';
+import { ProjectService } from '../../http/project.service';
 
 @Component({
   selector: 'app-maintain-list',
-  imports: [NgFor, AsyncPipe],
+  imports: [NgFor],
   templateUrl: './maintain-list.component.html',
   styleUrl: './maintain-list.component.css',
 })
-export class MaintainListComponent {
-  projects$!: Observable<ProjectSchema[]>;
+export class MaintainListComponent implements OnInit {
+  groupProjects!: ProjectDto[];
 
-  constructor(private gitLabService: GitlabService, private router: Router) {}
+  constructor(private projectSvc: ProjectService, private router: Router) {}
 
   ngOnInit() {
-    this.projects$ = this.gitLabService.getGroupProjects();
+    this.projectSvc.getGroupProjects().subscribe((data) => {
+      this.groupProjects = data;
+    });
   }
 
-  navigateToCommitList(projectId: number) {
-    this.router.navigate(['/maintain', projectId]);
+  navigateToCommitList(groupProjectId: number) {
+    this.router.navigate(['/maintain', groupProjectId]);
   }
 }

@@ -2,9 +2,9 @@
 
 <label>
   Project:
-  <select [(ngModel)]="projectId">
-    <option *ngFor="let p of projects" [value]="p.id">
-      {{ p["nameWithNamespace"] }}
+  <select [(ngModel)]="groupGitlabProjectId">
+    <option *ngFor="let p of groupProjects" [value]="p.id">
+      {{ p.namespace }}/{{ p.name }}
     </option>
   </select>
 </label>
@@ -15,7 +15,7 @@
     type="number"
     [(ngModel)]="reviewerNum"
     [min]="1"
-    [max]="projects.length - 1"
+    [max]="groupProjects.length - 1"
   />
 </label>
 

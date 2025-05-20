@@ -1,97 +1,112 @@
 package ic.ac.uk.db_pcr_backend.entity;
 
 import java.time.Instant;
-import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
+
+import ic.ac.uk.db_pcr_backend.model.ProjectStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.ForeignKey;
 
 @Entity
-@Table(name = "review_assignments", uniqueConstraints = @UniqueConstraint(columnNames = "assignment_uuid"))
-public class ReviewAssignmentEntity {
+@Table(name = "review_assignments", uniqueConstraints = @UniqueConstraint(columnNames = { "author_id", "reviewer_id",
+        "group_project_id" }, name = "uk_review_assignment_author_reviewer_project"))
 
+public class ReviewAssignmentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Opaque UUID used in reviewer URLs */
-    @Column(name = "assignment_uuid", nullable = false, unique = true, updatable = false)
-    private String assignmentUuid;
+    // the author being reviewed
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ra_author"))
+    private UserEntity author;
 
-    /** The “template” project that everyone forked from */
-    @Column(nullable = false, updatable = false)
-    private String groupProjectId;
+    // the reviewer
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "reviewer_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ra_reviewer"))
+    private UserEntity reviewer;
 
-    /** The individual fork that the author made */
-    @Column(nullable = false, updatable = false)
-    private String projectName;
+    // which project (fork) this assignment refers to
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_project_id", nullable = false, foreignKey = @ForeignKey(name = "fk_ra_project"))
+    private ProjectEntity groupProject;
 
-    @Column(nullable = false, updatable = false)
-    private String authorName;
+    @CreationTimestamp
+    @Column(name = "assigned_at", nullable = false, updatable = false)
+    private Instant assignedAt;
 
-    @Column(nullable = false, updatable = false)
-    private String reviewerName;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "project_status", nullable = false, length = 20)
+    private ProjectStatus projectStatus = ProjectStatus.PENDING;
 
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt;
+    @Column(name = "project_status_at", nullable = false)
+    private Instant projectStatusAt = Instant.now();
 
-    @PrePersist
-    protected void onCreate() {
-        this.assignmentUuid = UUID.randomUUID().toString();
-        this.createdAt = Instant.now();
-    }
+    // Constructors ---
 
-    // Constructors
     public ReviewAssignmentEntity() {
     }
 
-    public ReviewAssignmentEntity(
-            String groupProjectId,
-            String projectName,
-            String authorName,
-            String reviewerName) {
-        this.groupProjectId = groupProjectId;
-        this.projectName = projectName;
-        this.authorName = authorName;
-        this.reviewerName = reviewerName;
+    public ReviewAssignmentEntity(UserEntity author, UserEntity reviewer, ProjectEntity groupProject) {
+        this.author = author;
+        this.reviewer = reviewer;
+        this.groupProject = groupProject;
     }
 
-    // Getters and Setters
     public Long getId() {
         return id;
     }
 
-    public String getAssignmentUuid() {
-        return assignmentUuid;
+    public UserEntity getAuthor() {
+        return author;
     }
 
-    public String getGroupProjectId() {
-        return groupProjectId;
+    public void setAuthor(UserEntity author) {
+        this.author = author;
     }
 
-    public String getProjectName() {
-        return projectName;
+    public UserEntity getReviewer() {
+        return reviewer;
     }
 
-    public String getAuthorName() {
-        return authorName;
+    public void setReviewer(UserEntity reviewer) {
+        this.reviewer = reviewer;
     }
 
-    public String getReviewerName() {
-        return reviewerName;
+    public ProjectEntity getGroupProject() {
+        return groupProject;
     }
 
-    public Instant getCreatedAt() {
-        return createdAt;
+    public void setGroupProject(ProjectEntity groupProject) {
+        this.groupProject = groupProject;
     }
 
-    // (No setters for immutable fields: all fields except id are set in constructor
-    // or @PrePersist)
+    public Instant getAssignedAt() {
+        return assignedAt;
+    }
 
+    public ProjectStatus getProjectStatus() {
+        return projectStatus;
+    }
+
+    public void setProjectStatus(ProjectStatus projectStatus) {
+        this.projectStatus = projectStatus;
+        this.projectStatusAt = Instant.now();
+    }
+
+    public Instant getProjectStatusAt() {
+        return projectStatusAt;
+    }
 }

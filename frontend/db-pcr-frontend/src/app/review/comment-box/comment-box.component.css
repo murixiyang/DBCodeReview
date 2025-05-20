@@ -1,0 +1,66 @@
+/* review-detail.component.css */
+
+/* Make sure the table cell itself doesn’t scroll horizontally */
+.tr-comment td {
+  padding: 0;
+  border: none;
+  /* prevent the table cell from forcing a scrollbar */
+  overflow: visible;
+}
+
+/* Comment box should span 100% of its parent <td> */
+.comment-box {
+  width: 100%; /* fill the cell */
+  box-sizing: border-box; /* include padding in that width */
+  margin: 5px 0; /* small vertical spacing only */
+  display: flex;
+  flex-direction: column;
+  background-color: #fef7e0;
+  padding: 10px; /* move padding inside the width */
+  border-radius: 4px;
+}
+
+/* Textarea should stretch fully inside the comment-box */
+.comment-box textarea {
+  width: 100%; /* fill the comment-box */
+  box-sizing: border-box; /* include its padding/border */
+  padding: 5px;
+  font-size: 12px;
+  font-family: "Consolas", "Courier New", monospace;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: vertical;
+}
+
+/* Button container should also fill the box */
+.comment-box-buttons {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* Buttons are unchanged */
+.comment-box button {
+  padding: 5px 10px;
+  background-color: #3a5ddc;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.comment-box button:hover {
+  background-color: #2b4bb7;
+}
+
+/* Read-only display */
+.comment-display {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 0;
+  font-family: "Consolas", "Courier New", monospace;
+  color: #333;
+}

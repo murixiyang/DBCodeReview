@@ -2,8 +2,8 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { SPRING_URL_MAINTAIN } from '../service/constant.service';
 import { Observable } from 'rxjs';
-import { ReviewAssignment } from '../interface/review-assignment';
-import { ProjectSchema } from '@gitbeaker/rest';
+import { ReviewAssignmentPseudonymDto } from '../interface/database/review-assignment-dto';
+import { ReviewAssignmentUsernameDto } from '../interface/database/review-assignment-dto copy';
 
 @Injectable({
   providedIn: 'root',
@@ -15,23 +15,32 @@ export class MaintainService {
 
   /** To generate the list of maintainers */
   assignReviewers(
-    projectId: number,
+    groupGitlabProjectId: number,
     reviewerNum: number
-  ): Observable<ReviewAssignment[]> {
+  ): Observable<ReviewAssignmentUsernameDto[]> {
     const params = new HttpParams()
-      .set('projectId', projectId.toString())
+      .set('groupGitlabProjectId', groupGitlabProjectId.toString())
       .set('reviewerNum', reviewerNum.toString());
 
-    return this.http.post<ReviewAssignment[]>(`${this.baseUrl}/assign`, null, {
-      params,
-    });
+    return this.http.post<ReviewAssignmentUsernameDto[]>(
+      `${this.baseUrl}/assign`,
+      null,
+      {
+        params,
+      }
+    );
   }
 
-  /** Get the list of assignments for a project */
-  getAssignedList(projectId: number): Observable<ReviewAssignment[]> {
-    const params = new HttpParams().set('projectId', projectId.toString());
+  /** Get the list of assignments for a project with real username */
+  getAssignedList(
+    groupGitlabProjectId: number
+  ): Observable<ReviewAssignmentUsernameDto[]> {
+    const params = new HttpParams().set(
+      'groupGitlabProjectId',
+      groupGitlabProjectId.toString()
+    );
 
-    return this.http.get<ReviewAssignment[]>(
+    return this.http.get<ReviewAssignmentUsernameDto[]>(
       `${this.baseUrl}/get-assigned-list`,
       {
         params,

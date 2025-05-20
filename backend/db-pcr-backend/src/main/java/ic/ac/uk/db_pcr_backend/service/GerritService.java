@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
@@ -34,28 +35,43 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
 
 import com.google.gerrit.extensions.api.GerritApi;
+import com.google.gerrit.extensions.api.changes.DraftInput;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
-import com.google.gerrit.extensions.client.ListChangesOption;
+import com.google.gerrit.extensions.client.Comment;
+import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
-import com.google.gerrit.extensions.common.CommitInfo;
-import com.google.gerrit.extensions.common.DiffInfo;
-import com.google.gerrit.extensions.common.FileInfo;
+import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
-import ic.ac.uk.db_pcr_backend.dto.gerritdto.ChangeDiffDto;
-import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
-import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepository;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
+import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
+import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
+import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
+import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 
 @Service
 public class GerritService {
     private final RestTemplateBuilder builder;
 
-    private final GitLabService gitLabSvc;
+    @Autowired
+    private GitLabService gitLabSvc;
 
-    private final String gerritHttpUrl;
+    @Autowired
+    private SubmissionTrackerService submissionTrackerSvc;
+
+    @Autowired
+    private ChangeRequestService changeRequestSvc;
+
+    @Autowired
+    private GitlabCommitRepo commitRepo;
+
+    @Autowired
+    private ChangeRequestRepo changeRequestRepo;
+
     private final String gerritAuthUrl;
     private final String gerritUsername;
     private final String gerritHttpPassword;
@@ -65,22 +81,16 @@ public class GerritService {
     private final GerritRestApiFactory gerritApiFactory;
     private final GerritApi gerritApi;
 
-    private final SubmissionTrackerRepository submissionTrackerRepo;
-
     public GerritService(
             RestTemplateBuilder builder,
-            GitLabService gitLabService,
             @Value("${gerrit.url}") String gerritHttpUrl,
             @Value("${gerrit.auth.url}") String gerritAuthUrl,
             @Value("${gerrit.username}") String gerritUsername,
             @Value("${gerrit.password}") String gerritHttpPassword,
-            @Value("${gerrit.branch:master}") String gerritBranch,
-            SubmissionTrackerRepository submissionTrackerRepo) {
+            @Value("${gerrit.branch:master}") String gerritBranch) {
 
         this.builder = builder;
 
-        this.gitLabSvc = gitLabService;
-        this.gerritHttpUrl = gerritHttpUrl;
         this.gerritAuthUrl = gerritAuthUrl;
         this.gerritUsername = gerritUsername;
         this.gerritHttpPassword = gerritHttpPassword;
@@ -89,13 +99,34 @@ public class GerritService {
         this.gerritAuthData = new GerritAuthData.Basic(
                 gerritHttpUrl, gerritUsername, gerritHttpPassword);
         this.gerritApiFactory = new GerritRestApiFactory();
-        this.submissionTrackerRepo = submissionTrackerRepo;
 
         this.gerritApi = gerritApiFactory.create(gerritAuthData);
     }
 
+    public String getGerritChangeIdByCommitId(Long commitId) throws IllegalArgumentException {
+        System.out.println("Service: GerritService.getGerritChangeIdByCommitId");
+
+        // Find Commit
+        GitlabCommitEntity commit = commitRepo.findById(commitId).orElseThrow(() -> new IllegalArgumentException(
+                "Unknown commit id " + commitId));
+
+        // Find the related ChangeRequest
+        // Will find multiple, each related to 1 reviewer, but all have the same
+        // changeId
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo.findByCommit(commit);
+
+        if (changeRequests == null || changeRequests.size() == 0) {
+            // Throw exception
+            throw new IllegalArgumentException("No change requests found for commit id " + commitId);
+        }
+
+        return changeRequests.get(0).getGerritChangeId();
+
+    }
+
     // * Fetch commits list using repo Path */
     public List<ChangeInfo> getCommitsFromProjectPath(String path) throws Exception {
+        System.out.println("Service: GerritService.getCommitsFromProjectPath");
 
         return gerritApi.changes()
                 .query("project:" + path)
@@ -103,6 +134,8 @@ public class GerritService {
     }
 
     public String fetchRawPatch(String changeId, String revisionId) {
+        System.out.println("Service: GerritService.fetchRawPatch");
+
         String url = "/changes/" + URLEncoder.encode(changeId, StandardCharsets.UTF_8)
                 + "/revisions/" + revisionId
                 + "/patch?download=true";
@@ -113,7 +146,6 @@ public class GerritService {
                 .build();
 
         String rawB64 = rest.getForObject(url, String.class);
-        System.out.println("DBLOG: Raw patch: " + rawB64);
         // Gerrit may still prepend the XSSI guard; strip up to the first letter of the
         // patch
         String stripped = rawB64.replaceFirst("(?s)^.*?(?=RnVmZik|ZGlmZik|diff)", "");
@@ -121,7 +153,6 @@ public class GerritService {
         // Now decode the base64 to get the real unified diff text
         byte[] decoded = Base64.getDecoder().decode(stripped);
         String patch = new String(decoded, StandardCharsets.UTF_8);
-        System.out.println("DBLOG: Decoded patch: " + patch);
 
         int idx = patch.indexOf("diff --git");
         if (idx > 0) {
@@ -131,63 +162,95 @@ public class GerritService {
         return patch;
     }
 
-    // * Get ChangeDiff by changeId */
-    public List<ChangeDiffDto> getDiffs(String changeId) throws RestApiException {
-        // 1) Fetch the map of files changed in the current patchset
-        Map<String, FileInfo> files = gerritApi
-                .changes()
-                .id(changeId)
-                .current() // shorthand for .revision("current")
-                .files();
+    public List<CommentInfoDto> getGerritChangeComments(String gerritChangeId) throws RestApiException {
+        System.out.println("Service: GerritService.getGerritChangeComments");
 
-        // 2) For each file (skip the pseudo-file "/COMMIT_MSG"), fetch its DiffInfo
-        return files.keySet().stream()
-                .filter(path -> !path.equals("/COMMIT_MSG"))
-                .map(path -> {
-                    try {
-                        DiffInfo diffInfo = gerritApi
-                                .changes()
-                                .id(changeId)
-                                .revision("current")
-                                .file(path)
-                                .diff();
-                        // 3) Render a unified‐diff header + body
-                        String header = String.join("\n",
-                                "diff --git a/" + path + " b/" + path,
-                                "--- a/" + path,
-                                "+++ b/" + path);
-                        String body = diffInfo.content.stream()
-                                .flatMap(ci -> {
-                                    // Determine which list is non-null
-                                    List<String> lines;
-                                    String prefix;
-                                    if (ci.ab != null) {
-                                        lines = ci.ab;
-                                        prefix = " ";
-                                    } else if (ci.a != null) {
-                                        lines = ci.a;
-                                        prefix = "-";
-                                    } else {
-                                        lines = ci.b;
-                                        prefix = "+";
-                                    }
-                                    // Prefix each line and return as a stream
-                                    return lines.stream().map(line -> prefix + line);
-                                })
-                                .collect(Collectors.joining("\n"));
-                        return new ChangeDiffDto(path, path, header + "\n" + body);
-                    } catch (RestApiException e) {
-                        throw new RuntimeException("Error fetching diff for " + path, e);
-                    }
+        // 1) fetch the map: filePath → [ CommentInfo, … ]
+        Map<String, List<CommentInfo>> commentMap = gerritApi.changes().id(gerritChangeId).comments();
+
+        // 2) flatten but carry along the key (filePath)
+        List<CommentInfoDto> comments = commentMap.entrySet().stream()
+                .flatMap(entry -> {
+                    String filePath = entry.getKey();
+                    return entry.getValue().stream()
+                            .map(ci -> CommentInfoDto.fromGerritType(filePath, ci));
                 })
                 .collect(Collectors.toList());
+
+        return comments;
     }
 
+    public List<CommentInfoDto> getGerritChangeDraftComments(String gerritChangeId) throws RestApiException {
+        System.out.println("Service: GerritService.getGerritChangeDraftComments");
+
+        // 1) fetch the map: filePath → [ CommentInfo, … ]
+        Map<String, List<CommentInfo>> draftMap = gerritApi.changes().id(gerritChangeId).drafts();
+
+        // 2) flatten but carry along the key (filePath)
+        List<CommentInfoDto> drafts = draftMap.entrySet().stream()
+                .flatMap(entry -> {
+                    String filePath = entry.getKey();
+                    return entry.getValue().stream()
+                            .map(ci -> CommentInfoDto.fromGerritType(filePath, ci));
+                })
+                .collect(Collectors.toList());
+
+        return drafts;
+    }
+
+    public CommentInfoDto postGerritDraft(String gerritChangeId, CommentInputDto commentInput) throws RestApiException {
+        System.out.println("Service: GerritService.postGerritComment");
+
+        DraftInput draft = createDraftInput(commentInput);
+
+        CommentInfo created = gerritApi
+                .changes()
+                .id(gerritChangeId)
+                .revision("current")
+                .createDraft(draft)
+                .get();
+
+        return CommentInfoDto.fromGerritType(commentInput.getPath(), created);
+    }
+
+    private DraftInput createDraftInput(CommentInputDto commentInput) {
+        System.out.println("Service: GerritService.createDraftInput");
+
+        DraftInput draft = new DraftInput();
+        draft.path = commentInput.getPath();
+        draft.side = Side.valueOf(commentInput.getSide());
+        draft.line = commentInput.getLine();
+        draft.message = commentInput.getMessage();
+        if (commentInput.getRange() != null) {
+            Comment.Range r = new Comment.Range();
+            r.startLine = commentInput.getRange().getStartLine();
+            r.startCharacter = commentInput.getRange().getStartCharacter();
+            r.endLine = commentInput.getRange().getEndLine();
+            r.endCharacter = commentInput.getRange().getEndCharacter();
+            draft.range = r;
+        }
+        draft.inReplyTo = commentInput.getInReplyTo();
+
+        return draft;
+    }
+
+    public void submitDraftAsComment(String gerritChangeId, String message) throws RestApiException {
+        System.out.println("Service: GerritService.submitDraftAsComment");
+
+    }
+
+    /* ----------- SUBMIT FOR REVIEW ---------------- */
+
     // ** Submit one/several gitlab commits to gerrit */ */
-    public String submitForReview(String projectId, String targetSha, String gitlabToken, String username)
+    public String submitForReview(String gitlabProjectId, GitlabCommitEntity targetCommitEntity, String gitlabToken,
+            String username)
             throws Exception {
-        String cloneUrl = gitLabSvc.getProjectCloneUrl(projectId, gitlabToken);
-        String pathWithNamespace = gitLabSvc.getProjectPathWithNamespace(projectId, gitlabToken);
+        System.out.println("Service: GerritService.submitForReview");
+
+        String targetSha = targetCommitEntity.getGitlabCommitId();
+
+        String cloneUrl = gitLabSvc.getProjectCloneUrl(gitlabProjectId, gitlabToken);
+        String pathWithNamespace = gitLabSvc.getProjectPathWithNamespace(gitlabProjectId, gitlabToken);
 
         GerritApi gerritApi = gerritApiFactory.create(gerritAuthData);
         CredentialsProvider gitlabCreds = new UsernamePasswordCredentialsProvider("oauth2", gitlabToken);
@@ -197,10 +260,9 @@ public class GerritService {
         // Ensure the Gerrit project exists (create if missing)
         ensureGerritProjectExists(gerritApi, pathWithNamespace);
 
+        Long gitlabProjectIdLong = Long.parseLong(gitlabProjectId);
         // Load last submitted SHA from DB
-        SubmissionTrackerEntity tracker = submissionTrackerRepo.findByUsernameAndProjectId(username, projectId)
-                .orElseGet(() -> new SubmissionTrackerEntity(username, projectId, null));
-        String baseSha = tracker.getLastSubmittedSha();
+        String baseSha = submissionTrackerSvc.getLastSubmittedGerritSha(username, gitlabProjectIdLong);
 
         Path tempDir = Files.createTempDirectory("review-");
 
@@ -229,15 +291,18 @@ public class GerritService {
         PushResult result = pushToGerrit(git, gerritCreds);
         String newGerritSha = extractNewSha(result);
 
-        // --- 7) Record the SHA as the new last submitted
-        tracker.setLastSubmittedSha(newGerritSha);
-        submissionTrackerRepo.save(tracker);
+        // --- Record the SHA as the new last submitted
+        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, newGerritSha, targetCommitEntity);
 
-        System.out.println("DBLOG: Pushed commit to Gerrit: " + changeId);
+        // --- Record the change request
+        changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);
+
         return changeId;
     }
 
     private void ensureGerritProjectExists(GerritApi api, String path) throws RestApiException {
+        System.out.println("Service: GerritService.ensureGerritProjectExists");
+
         try {
             api.projects().name(path).get();
         } catch (RuntimeException e) {
@@ -253,6 +318,8 @@ public class GerritService {
     }
 
     private void createEmptyGerritProject(String path, GerritApi api) throws RestApiException {
+        System.out.println("Service: GerritService.createEmptyGerritProject");
+
         ProjectInput in = new ProjectInput();
         in.name = path;
         in.createEmptyCommit = true;
@@ -261,6 +328,9 @@ public class GerritService {
 
     private Git cloneGerritRepo(Path tempDir, String pathWithNamespace, CredentialsProvider gerritCreds)
             throws GitAPIException {
+
+        System.out.println("Service: GerritService.cloneGerritRepo");
+
         return Git.cloneRepository()
                 .setURI(gerritAuthUrl + "/" + pathWithNamespace + ".git")
                 .setDirectory(tempDir.toFile())
@@ -270,6 +340,9 @@ public class GerritService {
     }
 
     private void fetchGerritChanges(Git git, CredentialsProvider gerritCreds) throws GitAPIException {
+
+        System.out.println("Service: GerritService.fetchGerritChanges");
+
         git.fetch()
                 .setRemote("origin")
                 .setCredentialsProvider(gerritCreds)
@@ -281,6 +354,8 @@ public class GerritService {
 
     private void fetchGitLabCommits(Git git, String cloneUrl, CredentialsProvider gitlabCreds) throws Exception {
 
+        System.out.println("Service: GerritService.fetchGitLabCommits");
+
         git.remoteAdd().setName("gitlab").setUri(new URIish(cloneUrl)).call();
         git.fetch()
                 .setRemote("gitlab")
@@ -290,6 +365,8 @@ public class GerritService {
     }
 
     private void checkoutReviewBranch(Git git, String reviewBranch, RevCommit base) throws Exception {
+        System.out.println("Service: GerritService.checkoutReviewBranch");
+
         if (base != null) {
             git.checkout()
                     .setName(reviewBranch)
@@ -307,6 +384,8 @@ public class GerritService {
     }
 
     private RevCommit parseCommit(Git git, String sha) throws IOException {
+        System.out.println("Service: GerritService.parseCommit");
+
         // Resolve the SHA string to an ObjectId
         ObjectId id = git.getRepository().resolve(sha);
         if (id == null) {
@@ -320,6 +399,8 @@ public class GerritService {
     }
 
     private String computeChangeId(RevCommit source) throws IOException {
+        System.out.println("Service: GerritService.computeChangeId");
+
         ObjectId tree = source.getTree().getId();
         ObjectId parent = source.getParentCount() > 0
                 ? source.getParent(0).getId()
@@ -334,6 +415,8 @@ public class GerritService {
     private void applyDiffAsPatch(Git git,
             RevCommit base,
             RevCommit target) throws Exception {
+        System.out.println("Service: GerritService.applyDiffAsPatch");
+
         Repository repo = git.getRepository();
 
         // If base is null (first review), use HEAD of the branch as base
@@ -359,6 +442,8 @@ public class GerritService {
     }
 
     private void commitWithChangeId(Git git, String changeId, String originalMsg) throws Exception {
+        System.out.println("Service: GerritService.commitWithChangeId");
+
         String fullMsg = originalMsg + "\n\nChange-Id: " + changeId;
         git.commit()
                 .setAll(true) // commit the staged squash
@@ -367,6 +452,8 @@ public class GerritService {
     }
 
     private PushResult pushToGerrit(Git git, CredentialsProvider gerritCreds) throws GitAPIException {
+        System.out.println("Service: GerritService.pushToGerrit");
+
         return git.push()
                 .setRemote("origin")
                 .setRefSpecs(new RefSpec("HEAD:refs/for/" + gerritBranch))
@@ -376,6 +463,8 @@ public class GerritService {
     }
 
     private String extractNewSha(PushResult pr) {
+        System.out.println("Service: GerritService.extractNewSha");
+
         return pr.getRemoteUpdates().stream()
                 .map(u -> u.getNewObjectId().getName())
                 .findFirst()

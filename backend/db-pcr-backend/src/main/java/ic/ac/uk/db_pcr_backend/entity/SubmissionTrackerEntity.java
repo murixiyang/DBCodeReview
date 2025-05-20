@@ -1,62 +1,107 @@
 package ic.ac.uk.db_pcr_backend.entity;
 
+import java.time.Instant;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.ForeignKey;
 
 @Entity
-@Table(name = "submission_tracker", uniqueConstraints = @UniqueConstraint(columnNames = { "username", "projectId" }))
-public class SubmissionTrackerEntity {
+@Table(name = "submission_tracker", uniqueConstraints = @UniqueConstraint(columnNames = { "author_id", "project_id",
+        "commit_id" }, name = "uk_submission_event"))
 
+public class SubmissionTrackerEntity {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username;
-    private String projectId;
-    private String lastSubmittedSha;
+    /** Who is submitting (the author) */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "author_id", nullable = false, foreignKey = @ForeignKey(name = "fk_st_author"))
+    private UserEntity author;
+
+    /** Which project they’re submitting *from* */
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "project_id", nullable = false, foreignKey = @ForeignKey(name = "fk_st_project"))
+    private ProjectEntity project;
+
+    /** The last SHA we pushed to Gerrit */
+    @Column(name = "last_submitted_gerrit_sha", nullable = false)
+    private String lastSubmittedGerritSha;
+
+    /** The last Gitlab Commit we pushed to GitLab */
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "commit_id", foreignKey = @ForeignKey(name = "fk_se_commit"))
+    private GitlabCommitEntity lastSubmittedCommit;
+
+    /** When this row was submitted */
+    @CreationTimestamp
+    @Column(name = "submitted_at", nullable = false, updatable = false)
+    private Instant submittedAt;
 
     public SubmissionTrackerEntity() {
     }
 
-    public SubmissionTrackerEntity(String username, String projectId, String lastSubmittedSha) {
-        this.username = username;
-        this.projectId = projectId;
-        this.lastSubmittedSha = lastSubmittedSha;
+    public SubmissionTrackerEntity(UserEntity author, ProjectEntity project, String lastSubmittedGerritSha,
+            GitlabCommitEntity lastSubmittedCommit) {
+        this.author = author;
+        this.project = project;
+        this.lastSubmittedGerritSha = lastSubmittedGerritSha;
+        this.lastSubmittedCommit = lastSubmittedCommit;
     }
 
-    // Getters and Setters
+    // --- getters & setters ---
     public Long getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public UserEntity getAuthor() {
+        return author;
     }
 
-    public String getUsername() {
-        return username;
+    public void setAuthor(UserEntity author) {
+        this.author = author;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public ProjectEntity getProject() {
+        return project;
     }
 
-    public String getProjectId() {
-        return projectId;
+    public void setProject(ProjectEntity project) {
+        this.project = project;
     }
 
-    public void setProjectId(String projectId) {
-        this.projectId = projectId;
+    public String getLastSubmittedGerritSha() {
+        return lastSubmittedGerritSha;
     }
 
-    public String getLastSubmittedSha() {
-        return lastSubmittedSha;
+    public void setLastSubmittedGerritSha(String lastSubmittedGerritSha) {
+        this.lastSubmittedGerritSha = lastSubmittedGerritSha;
     }
 
-    public void setLastSubmittedSha(String lastSubmittedSha) {
-        this.lastSubmittedSha = lastSubmittedSha;
+    public GitlabCommitEntity getLastSubmittedCommit() {
+        return lastSubmittedCommit;
+    }
+
+    public void setLastSubmittedCommit(GitlabCommitEntity lastSubmittedCommit) {
+        this.lastSubmittedCommit = lastSubmittedCommit;
+    }
+
+    public Instant getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public void setSubmittedAt(Instant submittedAt) {
+        this.submittedAt = submittedAt;
     }
 }

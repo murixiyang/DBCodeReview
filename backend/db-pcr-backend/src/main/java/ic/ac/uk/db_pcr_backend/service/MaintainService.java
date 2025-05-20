@@ -1,83 +1,101 @@
 package ic.ac.uk.db_pcr_backend.service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.gitlab4j.api.models.Member;
-import org.gitlab4j.api.models.Project;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
-import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepository;
+import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.model.RoleType;
+import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
+import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
+import ic.ac.uk.db_pcr_backend.repository.UserRepo;
+
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MaintainService {
 
-    private final GitLabService gitlabSvc;
-    private final PseudoNameService pseudoNameSvc;
+    @Autowired
+    private GitLabService gitlabSvc;
 
-    private final ReviewAssignmentRepository reviewAssignmentRepo;
+    @Autowired
+    private PseudoNameService pseudoNameSvc;
 
-    public MaintainService(
-            GitLabService gitLabService,
-            PseudoNameService pseudoNameService,
-            ReviewAssignmentRepository repo) {
-        this.gitlabSvc = gitLabService;
-        this.pseudoNameSvc = pseudoNameService;
-        this.reviewAssignmentRepo = repo;
-    }
+    @Autowired
+    private ProjectRepo projectRepo;
+
+    @Autowired
+    private UserRepo userRepo;
+
+    @Autowired
+    private ReviewAssignmentRepo reviewAssignmentRepo;
 
     @Transactional
-    public List<ReviewAssignmentEntity> assignReviewers(String groupId, String groupProjectId,
+    public List<ReviewAssignmentEntity> assignReviewers(String gitlabGroupId, String projectId,
             int reviewersPerStudent,
             String oauthToken) throws Exception {
 
-        // Fetch all “developer” members (students)
-        List<Member> students = gitlabSvc.getDevInGroup(groupId, oauthToken);
+        System.out.println("Service: MaintainService.assignReviewers");
 
+        // Fetch all “developer” members (students)
+        List<Member> students = gitlabSvc.getDevInGroup(gitlabGroupId, oauthToken);
+
+        // Check assignment number is valid
         int studentNum = students.size();
         if (reviewersPerStudent < 1 || reviewersPerStudent >= studentNum) {
             throw new IllegalArgumentException("n must be between 1 and number of students–1");
         }
 
+        // Get the associated project and users
+        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
+                .orElseThrow();
+        List<UserEntity> users = students.stream()
+                .map(student -> userRepo
+                        .findByGitlabUserId(student.getId())
+                        .orElseGet(() -> userRepo.save(
+                                new UserEntity(student.getId(), student.getUsername(), null))))
+                .toList();
+
         // Clear any existing assignments for this project
-        reviewAssignmentRepo.deleteByGroupProjectId(groupProjectId);
+        reviewAssignmentRepo.deleteByGroupProject(project.getParentProject());
 
-        // Shuffle students for randomness
-        Collections.shuffle(students);
-
-        Project groupProject = gitlabSvc.getGroupProjectById(groupId, groupProjectId, oauthToken);
-        String projectName = groupProject.getName();
-
-        // Build assignments
-        List<ReviewAssignmentEntity> assignments = new ArrayList<>();
-        for (int i = 0; i < studentNum; i++) {
-            Member author = students.get(i);
-
-            // Find author's fork project id
-            String authorName = author.getUsername();
-
+        // Create mapping of authors to reviewers
+        var result = new ArrayList<ReviewAssignmentEntity>();
+        int n = users.size();
+        for (int i = 0; i < n; i++) {
+            UserEntity author = users.get(i);
             for (int k = 1; k <= reviewersPerStudent; k++) {
-                Member reviewer = students.get((i + k) % studentNum);
-                ReviewAssignmentEntity assignment = new ReviewAssignmentEntity(
-                        groupProjectId,
-                        projectName,
-                        authorName,
-                        reviewer.getUsername());
+                UserEntity reviewer = users.get((i + k) % n);
 
-                assignments.add(assignment);
+                // 1) Create pseudonyms for author and reviewer
+                pseudoNameSvc.getOrCreatePseudoName(project, author, RoleType.AUTHOR);
+                pseudoNameSvc.getOrCreatePseudoName(project, reviewer, RoleType.REVIEWER);
+
+                // 2) build and collect the assignment
+                ReviewAssignmentEntity ra = new ReviewAssignmentEntity(author, reviewer, project);
+                result.add(ra);
             }
         }
 
-        // Store into database
-        return reviewAssignmentRepo.saveAll(assignments);
+        // 3) save all assignments
+        return reviewAssignmentRepo.saveAll(result);
     }
 
-    /** Helper to fetch existing assignments as DTOs if you need them. */
-    public List<ReviewAssignmentEntity> getAssignmentsForProject(String groupProjectId) {
-        return reviewAssignmentRepo.findByGroupProjectId(groupProjectId);
+    /* Get assigned list for project */
+    @Transactional(readOnly = true)
+    public List<ReviewAssignmentEntity> getReviewAssignmentsForProject(Long gitlabProjectId) {
+
+        System.out.println("Service: MaintainService.getReviewAssignmentsForProject");
+
+        ProjectEntity project = projectRepo
+                .findByGitlabProjectId(gitlabProjectId)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown project id: " + gitlabProjectId));
+        return reviewAssignmentRepo.findByGroupProject(project);
     }
 
 }
