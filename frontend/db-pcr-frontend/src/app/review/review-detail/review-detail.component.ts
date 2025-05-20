@@ -1,13 +1,20 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  ApplicationRef,
+  Component,
+  ComponentFactoryResolver,
+  ElementRef,
+  EmbeddedViewRef,
+  Injector,
+  ViewChild,
+} from '@angular/core';
 import { Diff2HtmlUIConfig } from 'diff2html/lib/ui/js/diff2html-ui-base.js';
 import { Diff2HtmlUI } from 'diff2html/lib/ui/js/diff2html-ui-slim.js';
 import { ActivatedRoute } from '@angular/router';
 import { ReviewService } from '../../http/review.service.js';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input.js';
-import { NgFor } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { CommentRange } from '../../interface/gerrit/comment-range.js';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info.js';
+import { CommentBoxComponent } from '../comment-box/comment-box.component.js';
 
 @Component({
   selector: 'app-review-detail',
@@ -36,7 +43,10 @@ export class ReviewDetailComponent {
 
   constructor(
     private route: ActivatedRoute,
-    private reviewSvc: ReviewService
+    private reviewSvc: ReviewService,
+    private appRef: ApplicationRef,
+    private resolver: ComponentFactoryResolver,
+    private injector: Injector
   ) {}
 
   ngOnInit() {
@@ -140,66 +150,38 @@ export class ReviewDetailComponent {
     if (!tr || !tr.parentNode) return;
 
     const commentTr = document.createElement('tr');
-    commentTr.classList.add(
-      'tr-comment',
-      mode === 'draft' ? 'draft' : 'published'
-    );
-
+    commentTr.classList.add('tr-comment', mode);
     const commentTd = document.createElement('td');
     commentTd.colSpan = tr.children.length;
 
-    // build comment-box
-    const box = document.createElement('div');
-    box.classList.add('comment-box');
-    box.addEventListener('click', (e) => e.stopPropagation());
-
-    if (mode === 'published') {
-      // published read-only
-      const header = document.createElement('div');
-      header.classList.add('comment-header');
-      header.textContent = `@${
-        (commentInfo as any).authorName || 'User'
-      } — ${new Date(
-        (commentInfo as any).updated || Date.now()
-      ).toLocaleString()}`;
-
-      const body = document.createElement('div');
-      body.classList.add('comment-body');
-      body.textContent = commentInfo.message!;
-
-      box.append(header, body);
-    } else {
-      // draft editable
-      const textarea = document.createElement('textarea');
-      textarea.rows = 3;
-      textarea.value = commentInfo.message || '';
-      textarea.addEventListener(
-        'input',
-        () => (commentInfo.message = textarea.value)
-      );
-
-      const btnGroup = document.createElement('div');
-      btnGroup.classList.add('comment-box-buttons');
-
-      const cancelBtn = document.createElement('button');
-      cancelBtn.textContent = 'Cancel';
-      cancelBtn.addEventListener('click', () =>
-        this.cancelComment(commentInfo as GerritCommentInput)
-      );
-
-      const saveBtn = document.createElement('button');
-      saveBtn.textContent = 'Save';
-      saveBtn.addEventListener('click', () =>
-        this.saveComment(commentInfo as GerritCommentInput)
-      );
-
-      btnGroup.append(cancelBtn, saveBtn);
-      box.append(textarea, btnGroup);
-    }
-
-    commentTd.appendChild(box);
+    // Append cell into the row
+    tr.parentNode!.insertBefore(commentTr, tr.nextSibling);
     commentTr.appendChild(commentTd);
-    tr.parentNode.insertBefore(commentTr, tr.nextSibling);
+
+    // Create comment box component
+    const factory = this.resolver.resolveComponentFactory(CommentBoxComponent);
+    const compRef = factory.create(this.injector);
+    compRef.setInput('mode', mode);
+    compRef.setInput('comment', commentInfo);
+
+    // Listen for events
+    compRef.instance.saved.subscribe((c: GerritCommentInput) => {
+      this.saveComment(c);
+    });
+    compRef.instance.canceled.subscribe((c: GerritCommentInput) => {
+      this.cancelComment(c);
+    });
+
+    // Attach to Angular change detection
+    this.appRef.attachView(compRef.hostView);
+
+    // Get the DOM node and append
+    const domElem = (compRef.hostView as EmbeddedViewRef<any>)
+      .rootNodes[0] as HTMLElement;
+    commentTd.appendChild(domElem);
+
+    // Kick off change detection on that component
+    compRef.changeDetectorRef.detectChanges();
   }
 
   saveComment(draft: GerritCommentInput) {

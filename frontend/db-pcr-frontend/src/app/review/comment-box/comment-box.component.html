@@ -1,0 +1,23 @@
+<!-- editable draft -->
+<ng-container *ngIf="mode === 'draft'; else readOnly">
+  <div class="comment-box" (click)="$event.stopPropagation()">
+    <textarea
+      [(ngModel)]="comment.message"
+      placeholder="Write a comment…"
+    ></textarea>
+    <div class="comment-box-buttons">
+      <button (click)="onCancelDraft()">Cancel</button>
+      <button (click)="onSaveDraft()">Save</button>
+    </div>
+  </div>
+</ng-container>
+
+<ng-template #readOnly>
+  <div class="comment-box" (click)="$event.stopPropagation()">
+    <ng-container *ngIf="mode === 'published'">
+      <div class="comment-display">
+        {{ comment.message }}
+      </div>
+    </ng-container>
+  </div>
+</ng-template>
