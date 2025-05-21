@@ -8,7 +8,9 @@
   width: 40px;
   padding: 0;
   text-align: center;
-  color: #999;
+  color: #aaaaaa;
+  background-color: #f1f1f1;
+  font-family: "Consolas", Courier, monospace;
   vertical-align: top;
 }
 .code-col {
@@ -17,9 +19,11 @@
 }
 .code-col pre {
   margin: 0;
+  padding: 0 0 0 16px;
   line-height: 1.2;
   white-space: pre;
-  font-family: monospace;
+  font-size: 14.4px;
+  font-family: "Consolas", Courier, monospace;
 }
 .new-code.diff-insert {
   background-color: #d6ffd6;
