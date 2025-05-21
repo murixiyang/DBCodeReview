@@ -33,11 +33,16 @@ export class DiffTableComponent implements OnChanges {
   newDraft?: GerritCommentInput;
   selectedIndex: number | null = null;
 
+  // these power the header
+  insertedCount = 0;
+  deletedCount = 0;
+
   constructor(private reviewSvc: ReviewService) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['oldText'] || changes['newText']) {
       this.lines = this.buildLines(this.oldText, this.newText);
+      this.updateHeaderInfo();
     }
   }
 
@@ -88,6 +93,12 @@ export class DiffTableComponent implements OnChanges {
     });
 
     return lines;
+  }
+
+  updateHeaderInfo() {
+    // totals
+    this.insertedCount = this.lines.filter((l) => l.type === 'insert').length;
+    this.deletedCount = this.lines.filter((l) => l.type === 'delete').length;
   }
 
   hasComments(newNumber: number | null, side?: 'PARENT' | 'REVISION'): boolean {
