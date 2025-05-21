@@ -42,11 +42,15 @@
     class="comment-box new"
     (click)="$event.stopPropagation()"
   >
-    <span class="author">Me</span>
+    <div class="header">
+      <span class="author">Me</span>
+    </div>
 
     <textarea
+      #autosize
       [(ngModel)]="comment.message"
       placeholder="Write a comment…"
+      (input)="autoResize(autosize)"
     ></textarea>
     <div class="buttons">
       <button (click)="onCancel()">Cancel</button>
@@ -60,10 +64,15 @@
     class="comment-box update"
     (click)="$event.stopPropagation()"
   >
-    <span class="author">Me</span>
+    <div class="header">
+      <span class="author">Me</span>
+    </div>
+
     <textarea
+      #autosize
       [(ngModel)]="comment.message"
-      placeholder="Edit your comment…"
+      placeholder="Write a comment…"
+      (input)="autoResize(autosize)"
     ></textarea>
     <div class="buttons">
       <button (click)="onCancel()">Cancel</button>

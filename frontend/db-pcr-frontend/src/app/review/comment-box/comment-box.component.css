@@ -1,38 +1,59 @@
 /* comment-box.component.css */
 .comment-box {
   border: 1px solid #ccc;
-  margin: 4px 0;
+  margin: 4px 50px 4px 30px;
   padding: 6px;
   font-family: monospace;
   position: relative;
+
+  box-shadow: 0px 1px 2px 0px rgba(60, 64, 67, 0.3),
+    0px 2px 6px 2px rgba(60, 64, 67, 0.15);
+  border-radius: 4px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.comment-box button {
+  color: #1565c0;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.comment-box button:hover {
+  text-decoration: underline;
+}
+
+.comment-box .buttons {
+  text-align: right;
+}
+
+.comment-box textarea {
+  width: 100%;
+  height: 3em;
+  resize: none;
+  overflow: auto;
 }
 
 /* published */
 .comment-box.published {
   background: #fff8c6;
 }
-.header {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-}
+
 .comment-box.published .btn-reply {
   background: none;
   border: none;
-  color: #006;
+  color: #1565c0;
   cursor: pointer;
 }
 
 /* draft */
 .comment-box.draft {
-  background: #f0f0f0;
-}
-.comment-box.draft textarea {
-  width: 100%;
-  height: 3em;
-}
-.comment-box.draft .buttons {
-  text-align: right;
+  background: #e8eaed;
 }
 .comment-box.draft button {
   margin-left: 4px;
@@ -40,14 +61,11 @@
 
 /* new */
 .comment-box.new {
-  background: #fafafa;
+  background: #e8eaed;
 }
 .comment-box.new textarea {
   width: 100%;
   height: 3em;
-}
-.comment-box.new .buttons {
-  text-align: right;
 }
 .comment-box.new button {
   margin-left: 4px;
@@ -55,10 +73,6 @@
 
 .comment-box.update {
   background: #eef; /* slightly different UI hint */
-}
-.comment-box.update textarea {
-  width: 100%;
-  height: 3em;
 }
 
 /* placeholder */

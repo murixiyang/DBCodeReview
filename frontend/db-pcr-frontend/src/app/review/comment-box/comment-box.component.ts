@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
@@ -37,6 +37,14 @@ export class CommentBoxComponent {
 
   /** reply (for published) */
   @Output() reply = new EventEmitter<GerritCommentInfo>();
+
+  @ViewChild('autosize') autosizeTextarea!: ElementRef<HTMLTextAreaElement>;
+
+  /** call on each input to let it grow as needed */
+  autoResize(textarea: HTMLTextAreaElement) {
+    textarea.style.height = 'auto'; // reset to shrink if content was removed
+    textarea.style.height = textarea.scrollHeight + 'px'; // expand to fit all text
+  }
 
   onSave() {
     if (this.comment && 'message' in this.comment) {
