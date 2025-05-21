@@ -89,28 +89,48 @@ export class DiffTableComponent implements OnChanges {
     return lines;
   }
 
-  hasComments(newNumber: number | null): boolean {
-    if (newNumber === null) return false;
-    const pub = this.publishedFor(this.file, newNumber);
-    const draft = this.draftFor(this.file, newNumber);
+  //   hasComments(newNumber: number | null, side?: 'PARENT' | 'REVISION'): boolean {
+  //     if (newNumber === null) return false;
+  //     const pub = this.publishedFor(this.file, newNumber, side);
+  //     const draft = this.draftFor(this.file, newNumber, side);
 
-    console.log(
-      'linenumber: ',
-      newNumber,
-      'has comments: ' + (pub && pub.length > 0) || !!draft
-    );
-    return (pub && pub.length > 0) || !!draft;
+  //     console.log(
+  //       'linenumber: ',
+  //       newNumber,
+  //       'has comments: ' + (pub && pub.length > 0) || !!draft
+  //     );
+
+  //     return (pub && pub.length > 0) || !!draft;
+  //   }
+
+  hasComments(newNumber: number | null, side?: 'PARENT' | 'REVISION'): boolean {
+    if (newNumber === null) return false;
+
+    const published = this.publishedFor(this.file, newNumber, side) || [];
+    const draft = this.draftFor(this.file, newNumber, side);
+
+    return published.length > 0 || draft.length > 0;
   }
 
   /** Find the single draft for that file+line (or undefined) */
-  draftFor(path: string, line: number): GerritCommentInput[] | undefined {
-    return this.draftComments.filter((d) => d.path === path && d.line === line);
+  draftFor(
+    path: string,
+    line: number,
+    side?: 'PARENT' | 'REVISION'
+  ): GerritCommentInput[] {
+    return this.draftComments.filter(
+      (d) => d.path === path && d.line === line && d.side === side
+    );
   }
 
   /** Find all published comments at that file+line */
-  publishedFor(path: string, line: number): GerritCommentInfo[] {
+  publishedFor(
+    path: string,
+    line: number,
+    side?: 'PARENT' | 'REVISION'
+  ): GerritCommentInfo[] {
     return this.existedComments.filter(
-      (c) => c.path === path && c.line === line
+      (c) => c.path === path && c.line === line && c.side === side
     );
   }
 }

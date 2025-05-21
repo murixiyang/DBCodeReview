@@ -1,13 +1,18 @@
+.diff-container {
+  display: flex;
+  width: 100%;
+  border: 1px solid #dfdfdf;
+  margin-top: 20px;
+}
+.pane {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .diff-table {
   width: 100%;
-  margin-top: 20px;
-  border: #dfdfdf 1px solid;
+  border-collapse: collapse;
   table-layout: fixed;
-  border-spacing: 0;
-}
-
-.diff-scroll-x {
-  overflow-x: auto;
 }
 
 .num-col {
