@@ -3,6 +3,7 @@
   <div class="pane old-pane">
     <table class="diff-table">
       <ng-container *ngFor="let line of lines">
+        <!-- code row -->
         <tr>
           <td class="num-col">{{ line.oldNumber || "-" }}</td>
           <td
@@ -16,8 +17,9 @@
           </td>
         </tr>
 
-        <tr *ngIf="hasComments(line.newNumber, 'PARENT')">
-          <td colspan="2" class="comment-cell">
+        <!-- real comments on PARENT side -->
+        <tr *ngIf="hasComments(line.newNumber, 'PARENT')" class="comment-cell">
+          <td colspan="2">
             <ng-container
               *ngFor="let c of publishedFor(file, line.newNumber!, 'PARENT')"
             >
@@ -30,6 +32,17 @@
             </ng-container>
           </td>
         </tr>
+
+        <!-- placeholder when NEW has comments but OLD does not -->
+        <tr
+          *ngIf="
+            !hasComments(line.newNumber, 'PARENT') &&
+            hasComments(line.newNumber, 'REVISION')
+          "
+          class="comment-placeholder"
+        >
+          <td colspan="2">&nbsp;</td>
+        </tr>
       </ng-container>
     </table>
   </div>
@@ -38,6 +51,7 @@
   <div class="pane new-pane">
     <table class="diff-table">
       <ng-container *ngFor="let line of lines">
+        <!-- code row -->
         <tr>
           <td class="num-col">{{ line.newNumber || "-" }}</td>
           <td
@@ -51,8 +65,23 @@
           </td>
         </tr>
 
-        <tr *ngIf="hasComments(line.newNumber, 'REVISION')">
-          <td colspan="2" class="comment-cell">
+        <!-- placeholder when OLD has comments but NEW does not -->
+        <tr
+          *ngIf="
+            !hasComments(line.newNumber, 'REVISION') &&
+            hasComments(line.newNumber, 'PARENT')
+          "
+          class="comment-placeholder"
+        >
+          <td colspan="2">&nbsp;</td>
+        </tr>
+
+        <!-- real comments on REVISION side -->
+        <tr
+          *ngIf="hasComments(line.newNumber, 'REVISION')"
+          class="comment-cell"
+        >
+          <td colspan="2">
             <ng-container
               *ngFor="let c of publishedFor(file, line.newNumber!, 'REVISION')"
             >
@@ -64,6 +93,17 @@
               <app-comment-box mode="draft" [comment]="d"></app-comment-box>
             </ng-container>
           </td>
+        </tr>
+
+        <!-- placeholder when NEW has comments but OLD does not -->
+        <tr
+          *ngIf="
+            !hasComments(line.newNumber, 'REVISION') &&
+            hasComments(line.newNumber, 'PARENT')
+          "
+          class="comment-placeholder"
+        >
+          <td colspan="2">&nbsp;</td>
         </tr>
       </ng-container>
     </table>
