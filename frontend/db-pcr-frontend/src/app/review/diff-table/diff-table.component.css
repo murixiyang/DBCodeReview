@@ -1,43 +1,68 @@
-/* Header wrapper */
-.diff-header {
-  margin-top: 20px;
-  display: flex;
-  align-items: center;
-  background: #f7f7f7;
+.diff-grid {
+  display: grid;
+  /* four tracks: gutter (32px), code (1fr), gutter (32px), code (1fr) */
+  grid-template-columns: 32px 1fr 32px 1fr;
+  grid-template-rows: auto /* header */ 1fr /* tables */;
+  gap: 0;
+  width: 100%;
+}
+
+/* Left header panel */
+.diff-header-file {
+  grid-column: 1 / span 2; /* over old‐num + old‐code */
+  grid-row: 1;
   padding: 8px 12px;
+  background: #f7f7f7;
   border: 1px solid #dfdfdf;
   border-bottom: none;
-
+  border-right: none;
   font-size: 14.4px;
   font-family: "Consolas", Courier, monospace;
 }
 
-.diff-header-file {
-  font-weight: bold;
+/* Right header panel */
+.diff-header-stats {
+  grid-column: 3 / span 2; /* over new‐num + new‐code */
+  grid-row: 1;
+  padding: 8px 12px;
+  background: #f7f7f7;
+  border: 1px solid #dfdfdf;
+  border-bottom: none;
+  border-left: none;
+  text-align: right;
+  font-size: 14.4px;
+  font-family: "Consolas", Courier, monospace;
 }
 
-.diff-header-stats {
-  margin-left: 30px;
-  text-align: right;
-}
 .diff-header-stats .insertions {
   color: color-mix(in srgb, green, #000 20%);
   margin-right: 10px;
 }
+
 .diff-header-stats .deletions {
   color: color-mix(in srgb, red, #000 20%);
 }
 
-.diff-container {
-  display: flex;
-  width: 100%;
-  border: 1px solid #dfdfdf;
-}
-.pane {
-  flex: 1;
+/* Left code pane */
+.old-pane {
+  grid-column: 1 / span 2;
+  grid-row: 2;
   overflow-x: auto;
   overflow-y: hidden;
+  border: 1px solid #dfdfdf;
+  border-right: none;
 }
+
+/* Right code pane */
+.new-pane {
+  grid-column: 3 / span 2;
+  grid-row: 2;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #dfdfdf;
+  border-left: none;
+}
+
 .diff-table {
   width: 100%;
   border-collapse: collapse;

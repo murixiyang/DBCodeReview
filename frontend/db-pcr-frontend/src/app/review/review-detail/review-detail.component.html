@@ -2,7 +2,7 @@
 <div class="page-container">
   <h2>Change {{ gerritChangeId }}</h2>
 
-  <div *ngFor="let f of fileKeys">
+  <div *ngFor="let f of fileKeys" class="diff-container">
     <!-- <ngx-side-by-side-diff
       [title]="f"
       [before]="fileContents.get(f)?.[0]"
