@@ -3,41 +3,23 @@
   <h2>Change {{ gerritChangeId }}</h2>
 
   <div *ngFor="let f of fileKeys">
-    <ngx-side-by-side-diff
+    <!-- <ngx-side-by-side-diff
       [title]="f"
       [before]="fileContents.get(f)?.[0]"
       [after]="fileContents.get(f)?.[1]"
       [lineContextSize]="4"
-      (selectedLineChange)="onLineClick($event)"
-      class="ngx-diff-light-theme my-custom-ngx-diff-theme"
+      (selectedLineChange)="onLineClick(f, 'NEW', $event)"
+      class="ngx-diff-light-theme"
     >
-      <!-- this template is rendered _after_ each line row -->
-      <ng-template
-        ngxDiffAfterLineTemplate
-        let-line
-        let-file="file"
-        let-side="side"
-      >
-        <!-- published comments -->
-        <ng-container *ngFor="let c of publishedFor(file, line)">
-          <app-comment-box
-            mode="published"
-            [comment]="c"
-            (canceled)="cancelComment(c)"
-            (saved)="saveComment(c)"
-          ></app-comment-box>
-        </ng-container>
+    </ngx-side-by-side-diff> -->
 
-        <!-- a single draft box if you clicked here -->
-        <ng-container *ngIf="draftFor(file, line) as draft">
-          <app-comment-box
-            mode="draft"
-            [comment]="draft"
-            (canceled)="cancelComment(draft)"
-            (saved)="saveComment(draft)"
-          ></app-comment-box>
-        </ng-container>
-      </ng-template>
-    </ngx-side-by-side-diff>
+    <app-diff-table
+      [gerritChangeId]="gerritChangeId"
+      [oldText]="fileContents.get(f)?.[0]!"
+      [newText]="fileContents.get(f)?.[1]!"
+      [file]="f"
+      [existedComments]="filteredExistedComments(f)"
+      [draftComments]="filteredDraftComments(f)"
+    ></app-diff-table>
   </div>
 </div>

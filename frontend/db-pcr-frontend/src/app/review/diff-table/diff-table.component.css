@@ -1,0 +1,32 @@
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.diff-table td {
+  padding: 4px;
+  vertical-align: top;
+}
+.old-num,
+.new-num {
+  width: 40px;
+  text-align: right;
+  padding-right: 10px;
+  color: #999;
+}
+.code-cell {
+  font-family: monospace;
+  white-space: pre;
+}
+.diff-insert .code-cell {
+  background-color: #e6ffed;
+}
+.diff-delete .code-cell {
+  background-color: #ffeef0;
+}
+.diff-equal .code-cell {
+  background-color: transparent;
+}
+.comment-cell {
+  background-color: #f9f9f9;
+  padding: 8px;
+}

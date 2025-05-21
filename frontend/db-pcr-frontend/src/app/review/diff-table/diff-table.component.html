@@ -1,0 +1,34 @@
+<table class="diff-table">
+  <ng-container *ngFor="let line of lines">
+    <tr
+      [ngClass]="{
+        'diff-equal': line.type === 'equal',
+        'diff-insert': line.type === 'insert',
+        'diff-delete': line.type === 'delete'
+      }"
+    >
+      <td class="old-num">{{ line.oldNumber || "" }}</td>
+      <td class="new-num">{{ line.newNumber || "" }}</td>
+      <td class="code-cell">
+        <pre>{{ line.text }}</pre>
+      </td>
+    </tr>
+    <tr *ngIf="hasComments(line.newNumber)">
+      <td colspan="3" class="comment-cell">
+        <ng-container *ngFor="let c of publishedFor(file, line.newNumber!)">
+          <app-comment-box mode="published" [comment]="c"></app-comment-box>
+        </ng-container>
+
+        <ng-container *ngFor="let d of draftFor(file, line.newNumber!)">
+          <app-comment-box mode="draft" [comment]="d"></app-comment-box>
+        </ng-container>
+
+        <!-- <app-comment-box
+          *ngIf="draftFor(file, line.newNumber!) as draft"
+          mode="draft"
+          [comment]="draft"
+        ></app-comment-box> -->
+      </td>
+    </tr>
+  </ng-container>
+</table>

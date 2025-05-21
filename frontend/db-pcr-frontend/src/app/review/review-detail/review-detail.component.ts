@@ -4,19 +4,14 @@ import { ReviewService } from '../../http/review.service.js';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input.js';
 import { FormsModule } from '@angular/forms';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info.js';
-import { CommentBoxComponent } from '../comment-box/comment-box.component.js';
 import { SideBySideDiffComponent } from 'ngx-diff';
-import { NgFor, NgIf, NgSwitch } from '@angular/common';
+import { NgFor } from '@angular/common';
+import { DiffTableComponent } from '../diff-table/diff-table.component.js';
 
 @Component({
+  standalone: true,
   selector: 'app-review-detail',
-  imports: [
-    FormsModule,
-    SideBySideDiffComponent,
-    CommentBoxComponent,
-    NgFor,
-    NgIf,
-  ],
+  imports: [FormsModule, SideBySideDiffComponent, NgFor, DiffTableComponent],
   templateUrl: './review-detail.component.html',
   styleUrl: './review-detail.component.css',
 })
@@ -60,24 +55,27 @@ export class ReviewDetailComponent {
     return Array.from(this.fileContents.keys());
   }
 
-  /** Find the single draft for that file+line (or undefined) */
-  draftFor(path: string, line: number): GerritCommentInput | undefined {
-    return this.draftComments.find((d) => d.path === path && d.line === line);
+  filteredExistedComments(filename: string): GerritCommentInfo[] {
+    return this.existedComments.filter((c) => c.path === filename);
   }
 
-  /** Find all published comments at that file+line */
-  publishedFor(path: string, line: number): GerritCommentInfo[] {
-    return this.existedComments.filter(
-      (c) => c.path === path && c.line === line
-    );
+  filteredDraftComments(filename: string): GerritCommentInput[] {
+    return this.draftComments.filter((c) => c.path === filename);
   }
 
-  onLineClick(evt: any) {
-    const { file, line, side } = evt;
-    // don’t double-add
-    if (!this.draftFor(file, line)) {
-      this.draftComments.push({ path: file, line, side, message: '' });
-    }
+  onLineClick(fileName: string, side: 'OLD' | 'NEW', evt: any) {
+    console.log('line clicked: ', evt);
+
+    const { index, line, lineNumberInNewText, lineNumberInOldText, type } = evt;
+
+    this.draftComments.push({
+      path: fileName,
+      line: side === 'NEW' ? lineNumberInNewText : lineNumberInOldText,
+      side: side,
+      message: '',
+    });
+
+    console.log('draft comments: ', this.draftComments);
   }
 
   saveComment(c: GerritCommentInput) {
