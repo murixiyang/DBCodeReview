@@ -31,16 +31,6 @@ export class ReviewDetailComponent {
   ngOnInit() {
     this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
 
-    this.reviewSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
-      this.existedComments = c;
-      console.log('existed comments: ', c);
-    });
-
-    this.reviewSvc.getDraftComments(this.gerritChangeId).subscribe((d) => {
-      this.draftComments = d;
-      console.log('draft comments: ', d);
-    });
-
     this.reviewSvc
       .getChangedFileContents(this.gerritChangeId)
       .subscribe((f) => {
@@ -54,26 +44,5 @@ export class ReviewDetailComponent {
     return Array.from(this.fileContents.keys());
   }
 
-  filteredExistedComments(filename: string): GerritCommentInfo[] {
-    return this.existedComments.filter((c) => c.path === filename);
-  }
 
-  filteredDraftComments(filename: string): GerritCommentInput[] {
-    return this.draftComments.filter((c) => c.path === filename);
-  }
-
-  onLineClick(fileName: string, side: 'OLD' | 'NEW', evt: any) {
-    console.log('line clicked: ', evt);
-
-    const { index, line, lineNumberInNewText, lineNumberInOldText, type } = evt;
-
-    this.draftComments.push({
-      path: fileName,
-      line: side === 'NEW' ? lineNumberInNewText : lineNumberInOldText,
-      side: side,
-      message: '',
-    });
-
-    console.log('draft comments: ', this.draftComments);
-  }
 }

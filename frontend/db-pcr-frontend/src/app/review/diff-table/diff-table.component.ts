@@ -5,6 +5,7 @@ import { CommentBoxComponent } from '../comment-box/comment-box.component';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { ReviewService } from '../../http/review.service';
+import { filter } from 'rxjs';
 
 interface DiffLine {
   oldNumber: number | null;
@@ -24,9 +25,10 @@ export class DiffTableComponent implements OnChanges {
   @Input() gerritChangeId!: string;
   @Input() oldText!: string;
   @Input() newText!: string;
-  @Input() existedComments!: GerritCommentInfo[];
-  @Input() draftComments!: GerritCommentInput[];
   @Input() file!: string;
+
+  existedComments: GerritCommentInfo[] = [];
+  draftComments: GerritCommentInput[] = [];
 
   lines: DiffLine[] = [];
 
@@ -46,7 +48,32 @@ export class DiffTableComponent implements OnChanges {
     }
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.fetechExistedComments();
+    this.fetchDraftComments();
+  }
+
+  fetechExistedComments() {
+    this.reviewSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
+      this.existedComments = this.filterCommentForFile(c);
+      console.log('existed comments: ', c);
+    });
+  }
+
+  fetchDraftComments() {
+    this.reviewSvc.getDraftComments(this.gerritChangeId).subscribe((d) => {
+      this.draftComments = this.filterDraftForFile(d);
+      console.log('draft comments: ', d);
+    });
+  }
+
+  filterCommentForFile(comments: GerritCommentInfo[]): GerritCommentInfo[] {
+    return comments.filter((c) => c.path === this.file);
+  }
+
+  filterDraftForFile(comments: GerritCommentInput[]): GerritCommentInput[] {
+    return comments.filter((c) => c.path === this.file);
+  }
 
   buildLines(oldText: string, newText: string): DiffLine[] {
     const dmp = new DiffMatchPatch();
@@ -146,9 +173,11 @@ export class DiffTableComponent implements OnChanges {
     console.log('Save draft: ', draft);
     this.reviewSvc
       .postDraftComment(this.gerritChangeId, draft)
-      .subscribe(() => {
+      .subscribe((savedDraft: GerritCommentInput) => {
         this.selectedIndex = null;
         this.newDraft = undefined;
+
+        this.fetchDraftComments();
       });
   }
 
