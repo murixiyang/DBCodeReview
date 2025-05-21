@@ -11,7 +11,7 @@
 .comment-box.published {
   background: #fff8c6;
 }
-.comment-box.published .header {
+.header {
   display: flex;
   justify-content: space-between;
   font-weight: bold;

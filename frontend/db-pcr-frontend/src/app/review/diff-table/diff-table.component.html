@@ -53,7 +53,6 @@
             hasComments(line.newNumber, 'REVISION')
           "
         >
-          <!-- <td colspan="2">&nbsp;</td> -->
           <ng-container>
             <app-comment-box variant="placeholder"></app-comment-box>
           </ng-container>
@@ -100,7 +99,6 @@
             hasComments(line.newNumber, 'PARENT')
           "
         >
-          <!-- <td colspan="2">&nbsp;</td> -->
           <ng-container>
             <app-comment-box mode="placeholder"></app-comment-box>
           </ng-container>
@@ -120,6 +118,7 @@
                 [comment]="c"
               ></app-comment-box>
             </ng-container>
+
             <ng-container
               *ngFor="let d of draftFor(file, line.newNumber!, 'REVISION')"
             >

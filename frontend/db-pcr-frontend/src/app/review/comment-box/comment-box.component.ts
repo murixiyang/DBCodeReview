@@ -21,7 +21,10 @@ export class CommentBoxComponent {
   /** save (for new & draft) */
   @Output() saved = new EventEmitter<GerritCommentInput>();
 
-  /** cancel (for new & draft) */
+  /** edit (for draft) */
+  @Output() edited = new EventEmitter<GerritCommentInput>();
+
+  /** cancel (for new ) */
   @Output() canceled = new EventEmitter<void>();
 
   /** delete (for draft) */
@@ -33,6 +36,12 @@ export class CommentBoxComponent {
   onSave() {
     if (this.comment && 'message' in this.comment) {
       this.saved.emit(this.comment as GerritCommentInput);
+    }
+  }
+
+  onEdit() {
+    if (this.comment && 'message' in this.comment) {
+      this.edited.emit(this.comment as GerritCommentInput);
     }
   }
 

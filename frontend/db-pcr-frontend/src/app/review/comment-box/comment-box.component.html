@@ -23,16 +23,16 @@
     class="comment-box draft"
     (click)="$event.stopPropagation()"
   >
-    <span class="author">Me</span>
+    <div class="header">
+      <span class="author">Me</span>
+    </div>
 
-    <textarea
-      [(ngModel)]="comment.message"
-      placeholder="Edit your draft…"
-    ></textarea>
+    <div class="body">
+      {{ comment.message }}
+    </div>
     <div class="buttons">
       <button (click)="onDelete()">Delete</button>
-      <button (click)="onCancel()">Cancel</button>
-      <button (click)="onSave()">Save</button>
+      <button (click)="onEdit()">Edit</button>
     </div>
   </div>
 
