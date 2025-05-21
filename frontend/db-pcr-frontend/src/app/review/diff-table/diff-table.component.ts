@@ -9,7 +9,8 @@ import { ReviewService } from '../../http/review.service';
 interface DiffLine {
   oldNumber: number | null;
   newNumber: number | null;
-  text: string;
+  oldText: string;
+  newText: string;
   type: 'equal' | 'insert' | 'delete';
 }
 
@@ -20,7 +21,6 @@ interface DiffLine {
   styleUrl: './diff-table.component.css',
 })
 export class DiffTableComponent implements OnChanges {
-  @Input() gerritChangeId!: string;
   @Input() oldText!: string;
   @Input() newText!: string;
   @Input() existedComments!: GerritCommentInfo[];
@@ -35,8 +35,8 @@ export class DiffTableComponent implements OnChanges {
     if (changes['oldText'] || changes['newText']) {
       this.lines = this.buildLines(this.oldText, this.newText);
 
-      console.log('oldText: ', this.oldText);
-      console.log('newText: ', this.newText);
+      //   console.log('oldText: ', this.oldText);
+      //   console.log('newText: ', this.newText);
     }
   }
 
@@ -44,27 +44,43 @@ export class DiffTableComponent implements OnChanges {
 
   buildLines(oldText: string, newText: string): DiffLine[] {
     const dmp = new DiffMatchPatch();
-    const ops = dmp.diff_main(oldText, newText);
+
+    // Convert texts to chars, mapping each unique line to a placeholder char
+    const helpers = dmp as any;
+    const { chars1, chars2, lineArray } = helpers.diff_linesToChars_(
+      oldText,
+      newText
+    );
+
+    // Compute diff on the char sequences (line-level)
+    const ops = dmp.diff_main(chars1, chars2, false);
+    // Optionally tidy up
     dmp.diff_cleanupSemantic(ops);
+    // Rehydrate the lines from placeholders
+    helpers.diff_charsToLines_(ops, lineArray);
 
     const lines: DiffLine[] = [];
     let oldNum = 1,
       newNum = 1;
 
-    ops.forEach((op) => {
-      const [kind, chunk] = op;
+    ops.forEach(([kind, chunk]) => {
       const type =
         kind === DiffOp.Equal
           ? 'equal'
           : kind === DiffOp.Insert
           ? 'insert'
           : 'delete';
+
+      // Each chunk now contains full lines ending with "\n" except possibly last
       const segments = chunk.split('\n');
-      segments.forEach((segment) => {
+      // Last split is empty if chunk ended with newline
+      segments.forEach((segment, idx) => {
+        if (segment === '' && idx === segments.length - 1) return;
         lines.push({
           oldNumber: type === 'insert' ? null : oldNum++,
           newNumber: type === 'delete' ? null : newNum++,
-          text: segment,
+          oldText: type === 'insert' ? '' : segment,
+          newText: type === 'delete' ? '' : segment,
           type,
         });
       });
@@ -77,6 +93,12 @@ export class DiffTableComponent implements OnChanges {
     if (newNumber === null) return false;
     const pub = this.publishedFor(this.file, newNumber);
     const draft = this.draftFor(this.file, newNumber);
+
+    console.log(
+      'linenumber: ',
+      newNumber,
+      'has comments: ' + (pub && pub.length > 0) || !!draft
+    );
     return (pub && pub.length > 0) || !!draft;
   }
 

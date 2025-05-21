@@ -1,32 +1,32 @@
 .diff-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
+  border-spacing: 0;
 }
-.diff-table td {
-  padding: 4px;
+.num-col {
+  width: 40px;
+  padding: 0;
+  text-align: center;
+  color: #999;
   vertical-align: top;
 }
-.old-num,
-.new-num {
-  width: 40px;
-  text-align: right;
-  padding-right: 10px;
-  color: #999;
+.code-col {
+  width: calc((100% - 80px) / 2);
+  vertical-align: top;
 }
-.code-cell {
-  font-family: monospace;
+.code-col pre {
+  margin: 0;
+  line-height: 1.2;
   white-space: pre;
+  font-family: monospace;
 }
-.diff-insert .code-cell {
-  background-color: #e6ffed;
+.new-code.diff-insert {
+  background-color: #d6ffd6;
 }
-.diff-delete .code-cell {
-  background-color: #ffeef0;
-}
-.diff-equal .code-cell {
-  background-color: transparent;
+.new-code.diff-delete {
+  background-color: #ffd6d6;
 }
 .comment-cell {
   background-color: #f9f9f9;
-  padding: 8px;
 }
