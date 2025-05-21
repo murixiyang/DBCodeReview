@@ -31,7 +31,7 @@ public class CommentInfoDto {
                 .map(Enum::toString)
                 .orElse("REVISION"); // usually the default side
         int line = Optional.ofNullable(info.line).orElse(0);
-        String inReplyTo = Optional.ofNullable(info.inReplyTo).orElse("");
+        String inReplyTo = Optional.ofNullable(info.inReplyTo).orElse(null);
         String message = Optional.ofNullable(info.message).orElse("");
         Instant updated = info.updated.toInstant();
 

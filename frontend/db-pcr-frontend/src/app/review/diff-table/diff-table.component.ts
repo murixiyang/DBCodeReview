@@ -33,6 +33,7 @@ export class DiffTableComponent implements OnChanges {
   lines: DiffLine[] = [];
 
   newDraft?: GerritCommentInput;
+  editingDraft?: GerritCommentInput;
   selectedIndex: number | null = null;
 
   // these power the header
@@ -184,5 +185,33 @@ export class DiffTableComponent implements OnChanges {
   onCancelDraft() {
     this.selectedIndex = null;
     this.newDraft = undefined;
+    this.editingDraft = undefined;
+  }
+
+  onEditDraft(d: GerritCommentInput) {
+    console.log('Edit draft: ', d);
+    this.editingDraft = { ...d };
+  }
+
+  onUpdateDraft(updated: GerritCommentInput, side: 'PARENT' | 'REVISION') {
+    console.log('Update draft: ', updated);
+
+    this.reviewSvc
+      .updateDraftComment(this.gerritChangeId, updated)
+      .subscribe(() => {
+        this.fetchDraftComments();
+        this.editingDraft = undefined;
+      });
+  }
+
+  onCancelUpdate() {
+    this.editingDraft = undefined;
+  }
+
+  onDeleteDraft(d: GerritCommentInput) {
+    this.reviewSvc.deleteDraftComment(this.gerritChangeId, d).subscribe(() => {
+      console.log('Delete draft: ', d);
+      this.fetchDraftComments();
+    });
   }
 }

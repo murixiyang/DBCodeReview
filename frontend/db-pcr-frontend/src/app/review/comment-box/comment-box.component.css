@@ -53,6 +53,14 @@
   margin-left: 4px;
 }
 
+.comment-box.update {
+  background: #eef; /* slightly different UI hint */
+}
+.comment-box.update textarea {
+  width: 100%;
+  height: 3em;
+}
+
 /* placeholder */
 .comment-box.placeholder {
   /* same height as a real comment-box plus margins */

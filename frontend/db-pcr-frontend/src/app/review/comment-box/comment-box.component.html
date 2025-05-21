@@ -54,6 +54,24 @@
     </div>
   </div>
 
+  <!-- UPDATE (editable draft) -->
+  <div
+    *ngSwitchCase="'update'"
+    class="comment-box update"
+    (click)="$event.stopPropagation()"
+  >
+    <span class="author">Me</span>
+    <textarea
+      [(ngModel)]="comment.message"
+      placeholder="Edit your comment…"
+    ></textarea>
+    <div class="buttons">
+      <button (click)="onCancel()">Cancel</button>
+      <button (click)="onSave()">Update</button>
+      <!-- renamed -->
+    </div>
+  </div>
+
   <!-- PLACEHOLDER -->
   <div *ngSwitchCase="'placeholder'" class="comment-box placeholder"></div>
 </ng-container>

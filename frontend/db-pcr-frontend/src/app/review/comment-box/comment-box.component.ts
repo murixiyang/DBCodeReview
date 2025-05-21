@@ -4,7 +4,12 @@ import { NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 
-export type CommentVariant = 'published' | 'draft' | 'new' | 'placeholder';
+export type CommentVariant =
+  | 'published'
+  | 'draft'
+  | 'new'
+  | 'update'
+  | 'placeholder';
 
 @Component({
   selector: 'app-comment-box',

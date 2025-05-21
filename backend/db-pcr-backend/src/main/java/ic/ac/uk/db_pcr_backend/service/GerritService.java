@@ -315,6 +315,8 @@ public class GerritService {
     public CommentInfoDto postGerritDraft(String gerritChangeId, CommentInputDto commentInput) throws RestApiException {
         System.out.println("Service: GerritService.postGerritComment");
 
+        System.out.println("DBLOG: received comment: " + commentInput);
+
         DraftInput draft = createDraftInput(commentInput);
 
         CommentInfo created = gerritApi
@@ -331,13 +333,41 @@ public class GerritService {
         System.out.println("Service: GerritService.createDraftInput");
 
         DraftInput draft = new DraftInput();
+        if (commentInput.getId() != null) {
+            draft.id = commentInput.getId();
+        }
         draft.path = commentInput.getPath();
         draft.side = Side.valueOf(commentInput.getSide());
         draft.line = commentInput.getLine();
         draft.message = commentInput.getMessage();
         draft.inReplyTo = commentInput.getInReplyTo();
 
+        System.out.println("DBLOG: created draft: " + draft);
+
         return draft;
+    }
+
+    public CommentInfoDto updateGerritDraft(String gerritChangeId, CommentInputDto commentInput)
+            throws RestApiException {
+        System.out.println("Service: GerritService.updateGerritDraft");
+
+        CommentInfo updated = gerritApi.changes()
+                .id(gerritChangeId)
+                .revision("current")
+                .draft(commentInput.getId()).update(createDraftInput(commentInput));
+
+        return CommentInfoDto.fromGerritType(commentInput.getPath(), updated);
+    }
+
+    public void deleteGerritDraft(String gerritChangeId, CommentInputDto commentInput)
+            throws RestApiException {
+        System.out.println("Service: GerritService.deleteGerritDraft");
+
+        gerritApi.changes()
+                .id(gerritChangeId)
+                .revision("current")
+                .draft(commentInput.getId()).delete();
+
     }
 
     public void submitDraftAsComment(String gerritChangeId, String message) throws RestApiException {

@@ -12,8 +12,10 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -248,6 +250,28 @@ public class ReviewController {
 
         return ResponseEntity.ok(gerritSvc.postGerritDraft(
                 gerritChangeId, commentInput));
+    }
+
+    @PutMapping("/update-gerrit-draft-comment")
+    public ResponseEntity<CommentInfoDto> updateGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody CommentInputDto commentInput) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.updateGerritDraftComment");
+
+        return ResponseEntity.ok(gerritSvc.updateGerritDraft(
+                gerritChangeId, commentInput));
+    }
+
+    @DeleteMapping("/delete-gerrit-draft-comment")
+    public ResponseEntity<Void> deleteGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody CommentInputDto commentInput) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.deleteGerritDraftComment");
+
+        gerritSvc.deleteGerritDraft(gerritChangeId, commentInput);
+        return ResponseEntity.noContent().build();
     }
 
 }

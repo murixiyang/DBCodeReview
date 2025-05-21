@@ -138,4 +138,34 @@ export class ReviewService {
       }
     );
   }
+
+  /** Update a draft comment on a Gerrit Change */
+  updateDraftComment(
+    gerritChangeId: string,
+    commentInput: GerritCommentInput
+  ): Observable<GerritCommentInfo> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    return this.http.put<GerritCommentInfo>(
+      `${this.baseUrl}/update-gerrit-draft-comment`,
+      commentInput,
+      { params }
+    );
+  }
+
+  /** Delete a draft comment on a Gerrit Change */
+  deleteDraftComment(
+    gerritChangeId: string,
+    commentInput: GerritCommentInput
+  ): Observable<void> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    // HttpClient.delete() doesn’t accept a body, so we use the generic request() form:
+    return this.http.request<void>(
+      'DELETE',
+      `${this.baseUrl}/delete-gerrit-draft-comment`,
+      {
+        params,
+        body: commentInput,
+      }
+    );
+  }
 }
