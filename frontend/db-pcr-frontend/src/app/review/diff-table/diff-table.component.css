@@ -1,11 +1,17 @@
 .diff-table {
   width: 100%;
-  border-collapse: collapse;
+  margin-top: 20px;
+  border: #dfdfdf 1px solid;
   table-layout: fixed;
   border-spacing: 0;
 }
+
+.diff-scroll-x {
+  overflow-x: auto;
+}
+
 .num-col {
-  width: 40px;
+  width: 32px;
   padding: 0;
   text-align: center;
   color: #aaaaaa;
@@ -15,6 +21,7 @@
 }
 .code-col {
   width: calc((100% - 80px) / 2);
+  padding: 0;
   vertical-align: top;
 }
 .code-col pre {
@@ -24,13 +31,18 @@
   white-space: pre;
   font-size: 14.4px;
   font-family: "Consolas", Courier, monospace;
+  display: block;
+  min-width: 100%;
 }
-.new-code.diff-insert {
+
+.diff-insert {
   background-color: #d6ffd6;
 }
-.new-code.diff-delete {
+.diff-delete {
   background-color: #ffd6d6;
 }
+
 .comment-cell {
   background-color: #f9f9f9;
+  padding: 4px;
 }

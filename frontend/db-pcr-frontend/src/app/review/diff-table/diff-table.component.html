@@ -1,40 +1,41 @@
-<table class="diff-table">
-  <ng-container *ngFor="let line of lines">
-    <tr>
-      <!-- Old side  -->
-      <td class="num-col old-num">{{ line.oldNumber || "-" }}</td>
-      <td
-        class="code-col old-code"
-        [ngClass]="{
-          'diff-insert': line.type === 'insert',
-          'diff-delete': line.type === 'delete'
-        }"
-      >
-        <pre>{{ line.oldText }}</pre>
-      </td>
+<div class="diff-scroll-x">
+  <table class="diff-table">
+    <ng-container *ngFor="let line of lines">
+      <tr>
+        <!-- Old side -->
+        <td class="num-col old-num">{{ line.oldNumber || "-" }}</td>
+        <td
+          class="code-col old-code"
+          [ngClass]="{
+            'diff-insert': line.type === 'insert',
+            'diff-delete': line.type === 'delete'
+          }"
+        >
+          <pre>{{ line.oldText }}</pre>
+        </td>
 
-      <!-- New side -->
-      <td class="num-col new-num">{{ line.newNumber || "-" }}</td>
-      <td
-        class="code-col new-code"
-        [ngClass]="{
-          'diff-insert': line.type === 'insert',
-          'diff-delete': line.type === 'delete'
-        }"
-      >
-        <pre>{{ line.newText }}</pre>
-      </td>
-    </tr>
-
-    <tr *ngIf="hasComments(line.newNumber)">
-      <td colspan="4" class="comment-cell">
-        <ng-container *ngFor="let c of publishedFor(file, line.newNumber!)">
-          <app-comment-box mode="published" [comment]="c"></app-comment-box>
-        </ng-container>
-        <ng-container *ngFor="let d of draftFor(file, line.newNumber!)">
-          <app-comment-box mode="draft" [comment]="d"></app-comment-box>
-        </ng-container>
-      </td>
-    </tr>
-  </ng-container>
-</table>
+        <!-- New side -->
+        <td class="num-col new-num">{{ line.newNumber || "-" }}</td>
+        <td
+          class="code-col new-code"
+          [ngClass]="{
+            'diff-insert': line.type === 'insert',
+            'diff-delete': line.type === 'delete'
+          }"
+        >
+          <pre>{{ line.newText }}</pre>
+        </td>
+      </tr>
+      <tr *ngIf="hasComments(line.newNumber)">
+        <td colspan="4" class="comment-cell">
+          <ng-container *ngFor="let c of publishedFor(file, line.newNumber!)">
+            <app-comment-box mode="published" [comment]="c"></app-comment-box>
+          </ng-container>
+          <ng-container *ngFor="let d of draftFor(file, line.newNumber!)">
+            <app-comment-box mode="draft" [comment]="d"></app-comment-box>
+          </ng-container>
+        </td>
+      </tr>
+    </ng-container>
+  </table>
+</div>
