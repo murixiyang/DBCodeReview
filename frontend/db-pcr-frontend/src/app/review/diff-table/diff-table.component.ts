@@ -30,7 +30,7 @@ export class DiffTableComponent implements OnChanges {
 
   lines: DiffLine[] = [];
 
-  newDraft: GerritCommentInput | null = null;
+  newDraft?: GerritCommentInput;
   selectedIndex: number | null = null;
 
   constructor(private reviewSvc: ReviewService) {}
@@ -121,30 +121,28 @@ export class DiffTableComponent implements OnChanges {
     );
   }
 
+  // called when user clicks a code row
   selectLine(idx: number) {
-    // toggle off if you click again
-    if (this.selectedIndex === idx) {
-      this.selectedIndex = null;
-      this.newDraft = null;
-    } else {
-      this.selectedIndex = idx;
-      const line = this.lines[idx];
-      const ln = line.newNumber ?? line.oldNumber!;
-      this.newDraft = { path: this.file, line: ln, message: '' };
-    }
+    const line = this.lines[idx];
+    const ln = line.newNumber ?? line.oldNumber!;
+    this.selectedIndex = idx;
+    this.newDraft = { path: this.file, line: ln, message: '' };
   }
 
-  onSaveDraft(draft: GerritCommentInput) {
+  onSaveDraft(draft: GerritCommentInput, side?: 'PARENT' | 'REVISION') {
+    draft.side = side;
+
+    console.log('Save draft: ', draft);
     this.reviewSvc
       .postDraftComment(this.gerritChangeId, draft)
       .subscribe(() => {
         this.selectedIndex = null;
-        this.newDraft = null;
+        this.newDraft = undefined;
       });
   }
 
-  cancelComment(c: GerritCommentInput) {
+  onCancelDraft(c: GerritCommentInput) {
     this.selectedIndex = null;
-    this.newDraft = null;
+    this.newDraft = undefined;
   }
 }

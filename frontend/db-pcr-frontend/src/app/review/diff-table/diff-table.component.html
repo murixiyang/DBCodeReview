@@ -44,6 +44,18 @@
         >
           <td colspan="2">&nbsp;</td>
         </tr>
+
+        <!-- new‐comment box when that line is selected -->
+        <tr *ngIf="selectedIndex === i" class="comment-cell new-comment">
+          <td colspan="2">
+            <app-comment-box
+              mode="draft"
+              [comment]="newDraft!"
+              (saved)="onSaveDraft($event, 'PARENT')"
+              (canceled)="onCancelDraft($event)"
+            ></app-comment-box>
+          </td>
+        </tr>
       </ng-container>
     </table>
   </div>
@@ -97,15 +109,16 @@
           </td>
         </tr>
 
-        <!-- placeholder when NEW has comments but OLD does not -->
-        <tr
-          *ngIf="
-            !hasComments(line.newNumber, 'REVISION') &&
-            hasComments(line.newNumber, 'PARENT')
-          "
-          class="comment-placeholder"
-        >
-          <td colspan="2">&nbsp;</td>
+        <!-- new‐comment box when that line is selected -->
+        <tr *ngIf="selectedIndex === i" class="comment-cell new-comment">
+          <td colspan="2">
+            <app-comment-box
+              mode="draft"
+              [comment]="newDraft!"
+              (saved)="onSaveDraft($event, 'REVISION')"
+              (canceled)="onCancelDraft($event)"
+            ></app-comment-box>
+          </td>
         </tr>
       </ng-container>
     </table>
