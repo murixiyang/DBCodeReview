@@ -335,14 +335,6 @@ public class GerritService {
         draft.side = Side.valueOf(commentInput.getSide());
         draft.line = commentInput.getLine();
         draft.message = commentInput.getMessage();
-        if (commentInput.getRange() != null) {
-            Comment.Range r = new Comment.Range();
-            r.startLine = commentInput.getRange().getStartLine();
-            r.startCharacter = commentInput.getRange().getStartCharacter();
-            r.endLine = commentInput.getRange().getEndLine();
-            r.endCharacter = commentInput.getRange().getEndCharacter();
-            draft.range = r;
-        }
         draft.inReplyTo = commentInput.getInReplyTo();
 
         return draft;
