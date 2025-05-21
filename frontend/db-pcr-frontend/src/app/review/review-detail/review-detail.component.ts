@@ -4,14 +4,13 @@ import { ReviewService } from '../../http/review.service.js';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input.js';
 import { FormsModule } from '@angular/forms';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info.js';
-import { SideBySideDiffComponent } from 'ngx-diff';
 import { NgFor } from '@angular/common';
 import { DiffTableComponent } from '../diff-table/diff-table.component.js';
 
 @Component({
   standalone: true,
   selector: 'app-review-detail',
-  imports: [FormsModule, SideBySideDiffComponent, NgFor, DiffTableComponent],
+  imports: [FormsModule, NgFor, DiffTableComponent],
   templateUrl: './review-detail.component.html',
   styleUrl: './review-detail.component.css',
 })

@@ -1,34 +1,55 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgIf } from '@angular/common';
+import { NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 
+export type CommentVariant = 'published' | 'draft' | 'new' | 'placeholder';
+
 @Component({
   selector: 'app-comment-box',
-  imports: [FormsModule, NgIf],
+  imports: [FormsModule, NgSwitch, NgSwitchCase],
   templateUrl: './comment-box.component.html',
   styleUrl: './comment-box.component.css',
 })
 export class CommentBoxComponent {
-  /** mode: 'draft' to edit, 'published' to read-only */
-  @Input() mode!: 'draft' | 'published';
+  @Input() variant!: CommentVariant;
 
   /** Either a draft input or an existing comment */
   @Input() comment!: GerritCommentInput | GerritCommentInfo;
 
-  /** Emitted when Save/Update clicked */
+  /** save (for new & draft) */
   @Output() saved = new EventEmitter<GerritCommentInput>();
 
-  /** Emitted when Cancel or Discard clicked */
-  @Output() canceled = new EventEmitter<GerritCommentInput>();
+  /** cancel (for new & draft) */
+  @Output() canceled = new EventEmitter<void>();
 
-  onSaveDraft() {
-    this.saved.emit(this.comment);
+  /** delete (for draft) */
+  @Output() deleted = new EventEmitter<GerritCommentInput>();
+
+  /** reply (for published) */
+  @Output() reply = new EventEmitter<GerritCommentInfo>();
+
+  onSave() {
+    if (this.comment && 'message' in this.comment) {
+      this.saved.emit(this.comment as GerritCommentInput);
+    }
   }
 
-  onCancelDraft() {
-    this.canceled.emit(this.comment);
+  onCancel() {
+    this.canceled.emit();
+  }
+
+  onDelete() {
+    if (this.comment && 'message' in this.comment) {
+      this.deleted.emit(this.comment as GerritCommentInput);
+    }
+  }
+
+  onReply() {
+    if (this.comment && 'message' in this.comment) {
+      this.reply.emit(this.comment as GerritCommentInfo);
+    }
   }
 
   constructor() {}

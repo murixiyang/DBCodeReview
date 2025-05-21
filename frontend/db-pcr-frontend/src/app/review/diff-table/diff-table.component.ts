@@ -152,7 +152,7 @@ export class DiffTableComponent implements OnChanges {
       });
   }
 
-  onCancelDraft(c: GerritCommentInput) {
+  onCancelDraft() {
     this.selectedIndex = null;
     this.newDraft = undefined;
   }

@@ -33,12 +33,15 @@
             <ng-container
               *ngFor="let c of publishedFor(file, line.newNumber!, 'PARENT')"
             >
-              <app-comment-box mode="published" [comment]="c"></app-comment-box>
+              <app-comment-box
+                variant="published"
+                [comment]="c"
+              ></app-comment-box>
             </ng-container>
             <ng-container
               *ngFor="let d of draftFor(file, line.newNumber!, 'PARENT')"
             >
-              <app-comment-box mode="draft" [comment]="d"></app-comment-box>
+              <app-comment-box variant="draft" [comment]="d"></app-comment-box>
             </ng-container>
           </td>
         </tr>
@@ -49,19 +52,21 @@
             !hasComments(line.newNumber, 'PARENT') &&
             hasComments(line.newNumber, 'REVISION')
           "
-          class="comment-placeholder"
         >
-          <td colspan="2">&nbsp;</td>
+          <!-- <td colspan="2">&nbsp;</td> -->
+          <ng-container>
+            <app-comment-box variant="placeholder"></app-comment-box>
+          </ng-container>
         </tr>
 
         <!-- new‐comment box when that line is selected -->
         <tr *ngIf="selectedIndex === i" class="comment-cell new-comment">
           <td colspan="2">
             <app-comment-box
-              mode="draft"
+              variant="new"
               [comment]="newDraft!"
               (saved)="onSaveDraft($event, 'PARENT')"
-              (canceled)="onCancelDraft($event)"
+              (canceled)="onCancelDraft()"
             ></app-comment-box>
           </td>
         </tr>
@@ -94,9 +99,11 @@
             !hasComments(line.newNumber, 'REVISION') &&
             hasComments(line.newNumber, 'PARENT')
           "
-          class="comment-placeholder"
         >
-          <td colspan="2">&nbsp;</td>
+          <!-- <td colspan="2">&nbsp;</td> -->
+          <ng-container>
+            <app-comment-box mode="placeholder"></app-comment-box>
+          </ng-container>
         </tr>
 
         <!-- real comments on REVISION side -->
@@ -108,12 +115,15 @@
             <ng-container
               *ngFor="let c of publishedFor(file, line.newNumber!, 'REVISION')"
             >
-              <app-comment-box mode="published" [comment]="c"></app-comment-box>
+              <app-comment-box
+                variant="published"
+                [comment]="c"
+              ></app-comment-box>
             </ng-container>
             <ng-container
               *ngFor="let d of draftFor(file, line.newNumber!, 'REVISION')"
             >
-              <app-comment-box mode="draft" [comment]="d"></app-comment-box>
+              <app-comment-box variant="draft" [comment]="d"></app-comment-box>
             </ng-container>
           </td>
         </tr>
@@ -122,10 +132,10 @@
         <tr *ngIf="selectedIndex === i" class="comment-cell new-comment">
           <td colspan="2">
             <app-comment-box
-              mode="draft"
+              variant="new"
               [comment]="newDraft!"
               (saved)="onSaveDraft($event, 'REVISION')"
-              (canceled)="onCancelDraft($event)"
+              (canceled)="onCancelDraft()"
             ></app-comment-box>
           </td>
         </tr>

@@ -1,66 +1,61 @@
-/* review-detail.component.css */
-
-/* Make sure the table cell itself doesn’t scroll horizontally */
-.tr-comment td {
-  padding: 0;
-  border: none;
-  /* prevent the table cell from forcing a scrollbar */
-  overflow: visible;
-}
-
-/* Comment box should span 100% of its parent <td> */
+/* comment-box.component.css */
 .comment-box {
-  width: 100%; /* fill the cell */
-  box-sizing: border-box; /* include padding in that width */
-  margin: 5px 0; /* small vertical spacing only */
-  display: flex;
-  flex-direction: column;
-  background-color: #fef7e0;
-  padding: 10px; /* move padding inside the width */
-  border-radius: 4px;
-}
-
-/* Textarea should stretch fully inside the comment-box */
-.comment-box textarea {
-  width: 100%; /* fill the comment-box */
-  box-sizing: border-box; /* include its padding/border */
-  padding: 5px;
-  font-size: 12px;
-  font-family: "Consolas", "Courier New", monospace;
   border: 1px solid #ccc;
-  border-radius: 5px;
-  resize: vertical;
+  margin: 4px 0;
+  padding: 6px;
+  font-family: monospace;
+  position: relative;
 }
 
-/* Button container should also fill the box */
-.comment-box-buttons {
-  width: 100%;
+/* published */
+.comment-box.published {
+  background: #fff8c6;
+}
+.comment-box.published .header {
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 8px;
+  justify-content: space-between;
+  font-weight: bold;
 }
-
-/* Buttons are unchanged */
-.comment-box button {
-  padding: 5px 10px;
-  background-color: #3a5ddc;
-  color: white;
+.comment-box.published .btn-reply {
+  background: none;
   border: none;
+  color: #006;
   cursor: pointer;
-  border-radius: 4px;
-  font-size: 0.85rem;
 }
 
-.comment-box button:hover {
-  background-color: #2b4bb7;
+/* draft */
+.comment-box.draft {
+  background: #f0f0f0;
 }
-
-/* Read-only display */
-.comment-display {
+.comment-box.draft textarea {
   width: 100%;
-  box-sizing: border-box;
-  padding: 8px 0;
-  font-family: "Consolas", "Courier New", monospace;
-  color: #333;
+  height: 3em;
+}
+.comment-box.draft .buttons {
+  text-align: right;
+}
+.comment-box.draft button {
+  margin-left: 4px;
+}
+
+/* new */
+.comment-box.new {
+  background: #fafafa;
+}
+.comment-box.new textarea {
+  width: 100%;
+  height: 3em;
+}
+.comment-box.new .buttons {
+  text-align: right;
+}
+.comment-box.new button {
+  margin-left: 4px;
+}
+
+/* placeholder */
+.comment-box.placeholder {
+  /* same height as a real comment-box plus margins */
+  height: 4em;
+  visibility: hidden;
 }
