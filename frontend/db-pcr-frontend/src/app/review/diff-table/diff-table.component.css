@@ -47,6 +47,10 @@
   background-color: #ffd6d6;
 }
 
+.diff-selected {
+  background-color: #d6d6ff;
+}
+
 .comment-cell {
   background-color: #f9f9f9;
   padding: 4px;

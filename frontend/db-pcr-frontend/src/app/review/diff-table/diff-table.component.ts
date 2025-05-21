@@ -21,6 +21,7 @@ interface DiffLine {
   styleUrl: './diff-table.component.css',
 })
 export class DiffTableComponent implements OnChanges {
+  @Input() gerritChangeId!: string;
   @Input() oldText!: string;
   @Input() newText!: string;
   @Input() existedComments!: GerritCommentInfo[];
@@ -29,14 +30,14 @@ export class DiffTableComponent implements OnChanges {
 
   lines: DiffLine[] = [];
 
+  newDraft: GerritCommentInput | null = null;
+  selectedIndex: number | null = null;
+
   constructor(private reviewSvc: ReviewService) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['oldText'] || changes['newText']) {
       this.lines = this.buildLines(this.oldText, this.newText);
-
-      //   console.log('oldText: ', this.oldText);
-      //   console.log('newText: ', this.newText);
     }
   }
 
@@ -89,20 +90,6 @@ export class DiffTableComponent implements OnChanges {
     return lines;
   }
 
-  //   hasComments(newNumber: number | null, side?: 'PARENT' | 'REVISION'): boolean {
-  //     if (newNumber === null) return false;
-  //     const pub = this.publishedFor(this.file, newNumber, side);
-  //     const draft = this.draftFor(this.file, newNumber, side);
-
-  //     console.log(
-  //       'linenumber: ',
-  //       newNumber,
-  //       'has comments: ' + (pub && pub.length > 0) || !!draft
-  //     );
-
-  //     return (pub && pub.length > 0) || !!draft;
-  //   }
-
   hasComments(newNumber: number | null, side?: 'PARENT' | 'REVISION'): boolean {
     if (newNumber === null) return false;
 
@@ -132,5 +119,32 @@ export class DiffTableComponent implements OnChanges {
     return this.existedComments.filter(
       (c) => c.path === path && c.line === line && c.side === side
     );
+  }
+
+  selectLine(idx: number) {
+    // toggle off if you click again
+    if (this.selectedIndex === idx) {
+      this.selectedIndex = null;
+      this.newDraft = null;
+    } else {
+      this.selectedIndex = idx;
+      const line = this.lines[idx];
+      const ln = line.newNumber ?? line.oldNumber!;
+      this.newDraft = { path: this.file, line: ln, message: '' };
+    }
+  }
+
+  onSaveDraft(draft: GerritCommentInput) {
+    this.reviewSvc
+      .postDraftComment(this.gerritChangeId, draft)
+      .subscribe(() => {
+        this.selectedIndex = null;
+        this.newDraft = null;
+      });
+  }
+
+  cancelComment(c: GerritCommentInput) {
+    this.selectedIndex = null;
+    this.newDraft = null;
   }
 }

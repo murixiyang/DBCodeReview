@@ -2,17 +2,18 @@
   <!-- Old Pane -->
   <div class="pane old-pane">
     <table class="diff-table">
-      <ng-container *ngFor="let line of lines">
+      <ng-container *ngFor="let line of lines; let i = index">
         <!-- code row -->
-        <tr>
+        <tr
+          (click)="selectLine(i)"
+          [ngClass]="{
+            'diff-insert': line.type === 'insert',
+            'diff-delete': line.type === 'delete',
+            'diff-selected': selectedIndex === i
+          }"
+        >
           <td class="num-col">{{ line.oldNumber || "-" }}</td>
-          <td
-            class="code-col"
-            [ngClass]="{
-              'diff-insert': line.type === 'insert',
-              'diff-delete': line.type === 'delete'
-            }"
-          >
+          <td class="code-col">
             <pre>{{ line.oldText }}</pre>
           </td>
         </tr>
@@ -50,17 +51,18 @@
   <!-- New Pane -->
   <div class="pane new-pane">
     <table class="diff-table">
-      <ng-container *ngFor="let line of lines">
+      <ng-container *ngFor="let line of lines; let i = index">
         <!-- code row -->
-        <tr>
+        <tr
+          (click)="selectLine(i)"
+          [ngClass]="{
+            'diff-insert': line.type === 'insert',
+            'diff-delete': line.type === 'delete',
+            'diff-selected': selectedIndex === i
+          }"
+        >
           <td class="num-col">{{ line.newNumber || "-" }}</td>
-          <td
-            class="code-col"
-            [ngClass]="{
-              'diff-insert': line.type === 'insert',
-              'diff-delete': line.type === 'delete'
-            }"
-          >
+          <td class="code-col">
             <pre>{{ line.newText }}</pre>
           </td>
         </tr>

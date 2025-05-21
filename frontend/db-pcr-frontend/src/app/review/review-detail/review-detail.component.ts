@@ -77,15 +77,4 @@ export class ReviewDetailComponent {
 
     console.log('draft comments: ', this.draftComments);
   }
-
-  saveComment(c: GerritCommentInput) {
-    this.reviewSvc.postDraftComment(this.gerritChangeId, c).subscribe(() => {
-      // once saved, you might reload existedComments and drop this draft
-      this.draftComments = this.draftComments.filter((d) => d !== c);
-    });
-  }
-
-  cancelComment(c: GerritCommentInput) {
-    this.draftComments = this.draftComments.filter((d) => d !== c);
-  }
 }
