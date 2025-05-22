@@ -11,9 +11,8 @@
       <span class="author">Author Name</span>
       <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
     </div>
-    <div class="body">
-      {{ comment.message }}
-    </div>
+    <div class="comment-display" [innerText]="comment.message"></div>
+
     <div class="buttons">
       <button (click)="onReply()">Reply</button>
     </div>
@@ -30,9 +29,7 @@
       <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
     </div>
 
-    <div class="body">
-      {{ comment.message }}
-    </div>
+    <div class="comment-display" [innerText]="comment.message"></div>
     <div class="buttons">
       <button (click)="onDelete()">Delete</button>
       <button (click)="onEdit()">Edit</button>
@@ -81,7 +78,6 @@
     <div class="buttons">
       <button (click)="onCancel()">Cancel</button>
       <button (click)="onSave()">Update</button>
-      <!-- renamed -->
     </div>
   </div>
 

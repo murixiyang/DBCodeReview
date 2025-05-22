@@ -111,14 +111,8 @@
   background-color: #d6d6ff;
 }
 
-.comment-cell {
-  background-color: #f9f9f9;
-  padding: 4px;
-}
-
-.comment-placeholder td {
-  height: 1.5em;
-  padding: 21px;
-  background: transparent;
+.placeholder-row td {
   visibility: hidden;
+  padding: 0;
+  border: none;
 }

@@ -20,6 +20,13 @@
   font-weight: bold;
 }
 
+.comment-display {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 10px;
+  font-family: inherit;
+}
+
 .comment-box button {
   color: #1565c0;
   cursor: pointer;

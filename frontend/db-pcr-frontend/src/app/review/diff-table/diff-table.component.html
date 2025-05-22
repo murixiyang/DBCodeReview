@@ -26,13 +26,11 @@
           </td>
         </tr>
 
-        <!-- placeholder when NEW has comments but OLD does not -->
+        <!-- Placeholder comment -->
         <tr
-          *ngIf="
-            !hasComments(line.newNumber, 'PARENT') &&
-            hasComments(line.newNumber, 'REVISION')
-          "
+          *ngIf="hasComments(line.newNumber, 'REVISION') || selectedIndex === i"
           class="comment-cell placeholder-row"
+          [style.height.px]="placeholderHeights[i] || 0"
         >
           <td colspan="2">
             <app-comment-box variant="placeholder"></app-comment-box>
@@ -61,21 +59,10 @@
           </td>
         </tr>
 
-        <!-- placeholder when OLD has comments but NEW does not -->
-        <tr
-          *ngIf="
-            !hasComments(line.newNumber, 'REVISION') &&
-            hasComments(line.newNumber, 'PARENT')
-          "
-          class="comment-cell placeholder-row"
-        >
-          <td colspan="2">
-            <app-comment-box variant="placeholder"></app-comment-box>
-          </td>
-        </tr>
-
         <!-- real comments on REVISION side -->
         <tr
+          #measureRow
+          [attr.data-line]="i"
           *ngIf="hasComments(line.newNumber, 'REVISION')"
           class="comment-cell"
         >
@@ -126,7 +113,12 @@
         </tr>
 
         <!-- new‐comment box when that line is selected -->
-        <tr *ngIf="selectedIndex === i" class="comment-cell new-comment">
+        <tr
+          #measureRow
+          [attr.data-line]="i"
+          *ngIf="selectedIndex === i"
+          class="comment-cell new-comment"
+        >
           <td colspan="2">
             <app-comment-box
               variant="new"

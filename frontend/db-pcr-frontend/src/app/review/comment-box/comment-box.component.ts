@@ -7,7 +7,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
+import { DatePipe, NgSwitch, NgSwitchCase } from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 

@@ -1,5 +1,13 @@
 import { NgClass, NgFor, NgIf } from '@angular/common';
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnChanges,
+  QueryList,
+  SimpleChanges,
+  ViewChildren,
+} from '@angular/core';
 import { DiffMatchPatch, DiffOp } from 'diff-match-patch-ts';
 import { CommentBoxComponent } from '../comment-box/comment-box.component';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
@@ -39,9 +47,15 @@ export class DiffTableComponent implements OnChanges {
   replyingTo?: GerritCommentInfo;
   replyDraft?: GerritCommentInput;
 
-  // these power the header
+  // Header
   insertedCount = 0;
   deletedCount = 0;
+
+  // Placeholder commentbox
+  @ViewChildren('measureRow', { read: ElementRef })
+  measuredRows!: QueryList<ElementRef<HTMLTableRowElement>>;
+  /** placeholderHeights[i] = total height (px) of all comment rows for line i */
+  placeholderHeights: number[] = [];
 
   constructor(private reviewSvc: ReviewService) {}
 
@@ -55,6 +69,30 @@ export class DiffTableComponent implements OnChanges {
   ngOnInit() {
     this.fetechExistedComments();
     this.fetchDraftComments();
+  }
+
+  ngAfterViewInit() {
+    // initial compute
+    this.updatePlaceholderHeights();
+
+    // recompute whenever the set of rows changes (e.g. user adds/deletes a comment)
+    this.measuredRows.changes.subscribe(() => {
+      // Give the DOM a tick to finish rendering
+      setTimeout(() => this.updatePlaceholderHeights());
+    });
+  }
+
+  private updatePlaceholderHeights() {
+    // reset
+    this.placeholderHeights = [];
+
+    // group & sum
+    this.measuredRows.forEach((rowEl) => {
+      const lineIdx = Number(rowEl.nativeElement.dataset['line']);
+      const h = rowEl.nativeElement.getBoundingClientRect().height;
+      this.placeholderHeights[lineIdx] =
+        (this.placeholderHeights[lineIdx] || 0) + h;
+    });
   }
 
   fetechExistedComments() {
