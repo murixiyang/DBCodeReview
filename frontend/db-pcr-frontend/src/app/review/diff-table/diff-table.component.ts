@@ -97,14 +97,27 @@ export class DiffTableComponent implements OnChanges {
 
   fetechExistedComments() {
     this.reviewSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
-      this.existedComments = this.filterCommentForFile(c);
+      // filter and sort
+      const filtered = c.filter((comment) => comment.path === this.file);
+      this.existedComments = filtered.sort((a, b) => {
+        const ta = new Date(a.updated ?? Date.now()).getTime();
+        const tb = new Date(b.updated ?? Date.now()).getTime();
+        return ta - tb;
+      });
+
       console.log('existed comments: ', c);
     });
   }
 
   fetchDraftComments() {
     this.reviewSvc.getDraftComments(this.gerritChangeId).subscribe((d) => {
-      this.draftComments = this.filterDraftForFile(d);
+      const filtered = d.filter((draft) => draft.path === this.file);
+      this.draftComments = filtered.sort((a, b) => {
+        const ta = new Date(a.updated ?? Date.now()).getTime();
+        const tb = new Date(b.updated ?? Date.now()).getTime();
+        return ta - tb;
+      });
+
       console.log('draft comments: ', d);
     });
   }
