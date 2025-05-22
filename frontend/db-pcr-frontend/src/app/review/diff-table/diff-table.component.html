@@ -14,7 +14,6 @@
       <ng-container *ngFor="let line of lines; let i = index">
         <!-- code row -->
         <tr
-          (click)="selectLine(i)"
           [ngClass]="{
             'diff-insert': line.type === 'insert',
             'diff-delete': line.type === 'delete',
@@ -24,42 +23,6 @@
           <td class="num-col">{{ line.oldNumber || "-" }}</td>
           <td class="code-col">
             <pre>{{ line.oldText }}</pre>
-          </td>
-        </tr>
-
-        <!-- real comments on PARENT side -->
-        <tr *ngIf="hasComments(line.newNumber, 'PARENT')" class="comment-cell">
-          <td colspan="2">
-            <ng-container
-              *ngFor="let c of publishedFor(file, line.newNumber!, 'PARENT')"
-            >
-              <app-comment-box
-                variant="published"
-                [comment]="c"
-              ></app-comment-box>
-            </ng-container>
-            <ng-container
-              *ngFor="let d of draftFor(file, line.newNumber!, 'PARENT')"
-            >
-              <!-- If this is the one being edited… -->
-              <app-comment-box
-                *ngIf="editingDraft?.id === d.id; else showDraft"
-                variant="update"
-                [comment]="editingDraft!"
-                (saved)="onUpdateDraft($event, 'REVISION')"
-                (canceled)="onCancelUpdate()"
-              ></app-comment-box>
-
-              <!-- Otherwise, show the normal draft view -->
-              <ng-template #showDraft>
-                <app-comment-box
-                  variant="draft"
-                  [comment]="d"
-                  (edited)="onEditDraft($event)"
-                  (deleted)="onDeleteDraft($event)"
-                ></app-comment-box>
-              </ng-template>
-            </ng-container>
           </td>
         </tr>
 
@@ -73,18 +36,6 @@
         >
           <td colspan="2">
             <app-comment-box variant="placeholder"></app-comment-box>
-          </td>
-        </tr>
-
-        <!-- new‐comment box when that line is selected -->
-        <tr *ngIf="selectedIndex === i" class="comment-cell new-comment">
-          <td colspan="2">
-            <app-comment-box
-              variant="new"
-              [comment]="newDraft!"
-              (saved)="onSaveDraft($event, 'PARENT')"
-              (canceled)="onCancelDraft()"
-            ></app-comment-box>
           </td>
         </tr>
       </ng-container>
@@ -132,9 +83,20 @@
             <ng-container
               *ngFor="let c of publishedFor(file, line.newNumber!, 'REVISION')"
             >
+              <!-- 1) the published comment -->
               <app-comment-box
                 variant="published"
                 [comment]="c"
+                (reply)="onReply(c, 'REVISION')"
+              ></app-comment-box>
+
+              <!-- 2) the inline reply‐box, only for that comment -->
+              <app-comment-box
+                *ngIf="replyingTo?.id === c.id"
+                variant="new"
+                [comment]="replyDraft!"
+                (saved)="onSaveReply($event)"
+                (canceled)="onCancelReply()"
               ></app-comment-box>
             </ng-container>
 
@@ -146,7 +108,7 @@
                 *ngIf="editingDraft?.id === d.id; else showDraft"
                 variant="update"
                 [comment]="editingDraft!"
-                (saved)="onUpdateDraft($event, 'REVISION')"
+                (saved)="onUpdateDraft($event)"
                 (canceled)="onCancelUpdate()"
               ></app-comment-box>
 

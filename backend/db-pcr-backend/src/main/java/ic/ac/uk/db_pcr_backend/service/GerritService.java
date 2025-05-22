@@ -315,8 +315,6 @@ public class GerritService {
     public CommentInfoDto postGerritDraft(String gerritChangeId, CommentInputDto commentInput) throws RestApiException {
         System.out.println("Service: GerritService.postGerritComment");
 
-        System.out.println("DBLOG: received comment: " + commentInput);
-
         DraftInput draft = createDraftInput(commentInput);
 
         CommentInfo created = gerritApi

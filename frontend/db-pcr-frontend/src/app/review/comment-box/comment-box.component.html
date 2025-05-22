@@ -9,11 +9,13 @@
     <div class="header">
       <!-- <span class="author">{{ (comment as GerritCommentInfo).author }}</span> -->
       <span class="author">Author Name</span>
-
-      <button class="btn-reply" (click)="onReply()">Reply</button>
+      <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
     </div>
     <div class="body">
       {{ comment.message }}
+    </div>
+    <div class="buttons">
+      <button (click)="onReply()">Reply</button>
     </div>
   </div>
 
@@ -25,6 +27,7 @@
   >
     <div class="header">
       <span class="author">Me</span>
+      <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
     </div>
 
     <div class="body">
@@ -66,6 +69,7 @@
   >
     <div class="header">
       <span class="author">Me</span>
+      <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
     </div>
 
     <textarea
