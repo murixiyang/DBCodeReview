@@ -3,7 +3,6 @@ package ic.ac.uk.db_pcr_backend.dto.gerritdto;
 import java.time.Instant;
 import java.util.Optional;
 
-import com.google.gerrit.extensions.client.Comment;
 import com.google.gerrit.extensions.common.CommentInfo;
 
 public class CommentInfoDto {
@@ -11,18 +10,16 @@ public class CommentInfoDto {
     private String path;
     private String side;
     private int line;
-    private CommentRangeDto range;
     private String inReplyTo;
     private String message;
     private Instant updated;
 
-    public CommentInfoDto(String id, String path, String side, int line, CommentRangeDto range,
+    public CommentInfoDto(String id, String path, String side, int line,
             String inReplyTo, String message, Instant updated) {
         this.id = id;
         this.path = path;
         this.side = side;
         this.line = line;
-        this.range = range;
         this.inReplyTo = inReplyTo;
         this.message = message;
         this.updated = updated;
@@ -34,10 +31,7 @@ public class CommentInfoDto {
                 .map(Enum::toString)
                 .orElse("REVISION"); // usually the default side
         int line = Optional.ofNullable(info.line).orElse(0);
-        CommentRangeDto range = Optional.ofNullable(info.range)
-                .map(CommentInfoDto::fromGerritRange)
-                .orElseGet(CommentRangeDto::empty);
-        String inReplyTo = Optional.ofNullable(info.inReplyTo).orElse("");
+        String inReplyTo = Optional.ofNullable(info.inReplyTo).orElse(null);
         String message = Optional.ofNullable(info.message).orElse("");
         Instant updated = info.updated.toInstant();
 
@@ -46,22 +40,9 @@ public class CommentInfoDto {
                 path,
                 side,
                 line,
-                range,
                 inReplyTo,
                 message,
                 updated);
-    }
-
-    // Helper to convert Gerrit Comment.Range to CommentRangeDto
-    private static CommentRangeDto fromGerritRange(Comment.Range range) {
-        if (range == null) {
-            return CommentRangeDto.empty();
-        }
-        return new CommentRangeDto(
-                range.startLine,
-                range.startCharacter,
-                range.endLine,
-                range.endCharacter);
     }
 
     // --- Getters & Setters ---
@@ -95,14 +76,6 @@ public class CommentInfoDto {
 
     public void setLine(int line) {
         this.line = line;
-    }
-
-    public CommentRangeDto getRange() {
-        return range;
-    }
-
-    public void setRange(CommentRangeDto range) {
-        this.range = range;
     }
 
     public String getInReplyTo() {

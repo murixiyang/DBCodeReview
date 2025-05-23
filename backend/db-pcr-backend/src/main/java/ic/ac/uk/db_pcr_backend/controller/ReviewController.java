@@ -12,8 +12,10 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,8 +28,10 @@ import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
+import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
+import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
@@ -124,7 +128,7 @@ public class ReviewController {
     }
 
     /**
-     * Get the review assignment pseudonym by id
+     * Get the review assignment pseudonym by group project id
      */
     @Transactional(readOnly = true)
     @GetMapping("/get-review-assignment-pseudonym")
@@ -156,6 +160,57 @@ public class ReviewController {
                 .toArray(ReviewAssignmentPseudonymDto[]::new);
 
         return ResponseEntity.ok(dtoArray);
+    }
+
+    /**
+     * Get author pseudonym for a gerrit change id
+     */
+    @Transactional(readOnly = true)
+    @GetMapping("/get-author-pseudonym")
+    public ResponseEntity<String> getAuthorPseudonymForChangeId(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
+
+        System.out.println("STAGE: ReviewController.getAuthorPseudonymForChangeId");
+
+        // Find the change request
+        List<ChangeRequestEntity> changeRequestList = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
+
+        if (changeRequestList.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+
+        // Will find multiple change request, but they all have the same author
+        ChangeRequestEntity changeRequest = changeRequestList.get(0);
+
+        // Find the review assignment
+        ReviewAssignmentEntity assignment = changeRequest.getAssignment();
+
+        ProjectUserPseudonymEntity authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(assignment,
+                RoleType.AUTHOR);
+
+        return ResponseEntity.ok(authorMask.getPseudonym().getName());
+    }
+
+    /** Get list of changed file names in a gerrit change */
+    @GetMapping("/get-changed-files")
+    public ResponseEntity<List<String>> getChangedFiles(
+            @RequestParam("gerritChangeId") String gerritChangeId) throws Exception {
+
+        System.out.println("STAGE: ReviewController.getChangedFiles");
+
+        return ResponseEntity.ok(gerritSvc.getChangedFileNames(gerritChangeId));
+    }
+
+    /** Get changed files content */
+    @GetMapping("/get-changed-files-content")
+    public ResponseEntity<Map<String, String[]>> getChangedFilesContent(
+            @RequestParam("gerritChangeId") String gerritChangeId) throws Exception {
+
+        System.out.println("STAGE: ReviewController.getChangedFilesContent");
+
+        return ResponseEntity.ok(gerritSvc.getChangedFileContent(gerritChangeId));
     }
 
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
@@ -228,6 +283,28 @@ public class ReviewController {
 
         return ResponseEntity.ok(gerritSvc.postGerritDraft(
                 gerritChangeId, commentInput));
+    }
+
+    @PutMapping("/update-gerrit-draft-comment")
+    public ResponseEntity<CommentInfoDto> updateGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody CommentInputDto commentInput) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.updateGerritDraftComment");
+
+        return ResponseEntity.ok(gerritSvc.updateGerritDraft(
+                gerritChangeId, commentInput));
+    }
+
+    @DeleteMapping("/delete-gerrit-draft-comment")
+    public ResponseEntity<Void> deleteGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody CommentInputDto commentInput) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.deleteGerritDraftComment");
+
+        gerritSvc.deleteGerritDraft(gerritChangeId, commentInput);
+        return ResponseEntity.noContent().build();
     }
 
 }

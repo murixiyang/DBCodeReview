@@ -54,6 +54,16 @@ export class ReviewService {
     );
   }
 
+  /** Get Author Pseudonym by gerrit change id */
+  getAuthorPseudonym(gerritChangeId: string): Observable<string> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get(`${this.baseUrl}/get-author-pseudonym`, {
+      params,
+      responseType: 'text',
+    });
+  }
+
   /** Post a request review from Gitlab commit to Gerrit */
   postRequestReview(
     projectId: string,
@@ -64,6 +74,29 @@ export class ReviewService {
       `${this.baseUrl}/post-request-review`,
       null,
       { params }
+    );
+  }
+
+  /** Get changed file names for a gerrit change */
+  getChangedFileNames(gerritChangeId: string): Observable<string[]> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get<string[]>(`${this.baseUrl}/get-changed-files`, {
+      params,
+    });
+  }
+
+  /** Get changed file contents for a gerrit change */
+  getChangedFileContents(
+    gerritChangeId: string
+  ): Observable<Map<string, string[]>> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get<Map<string, string[]>>(
+      `${this.baseUrl}/get-changed-files-content`,
+      {
+        params,
+      }
     );
   }
 
@@ -112,6 +145,36 @@ export class ReviewService {
       commentInput,
       {
         params,
+      }
+    );
+  }
+
+  /** Update a draft comment on a Gerrit Change */
+  updateDraftComment(
+    gerritChangeId: string,
+    commentInput: GerritCommentInput
+  ): Observable<GerritCommentInfo> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    return this.http.put<GerritCommentInfo>(
+      `${this.baseUrl}/update-gerrit-draft-comment`,
+      commentInput,
+      { params }
+    );
+  }
+
+  /** Delete a draft comment on a Gerrit Change */
+  deleteDraftComment(
+    gerritChangeId: string,
+    commentInput: GerritCommentInput
+  ): Observable<void> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    // HttpClient.delete() doesn’t accept a body, so we use the generic request() form:
+    return this.http.request<void>(
+      'DELETE',
+      `${this.baseUrl}/delete-gerrit-draft-comment`,
+      {
+        params,
+        body: commentInput,
       }
     );
   }

@@ -1,66 +1,93 @@
-/* review-detail.component.css */
-
-/* Make sure the table cell itself doesn’t scroll horizontally */
-.tr-comment td {
-  padding: 0;
-  border: none;
-  /* prevent the table cell from forcing a scrollbar */
-  overflow: visible;
-}
-
-/* Comment box should span 100% of its parent <td> */
+/* comment-box.component.css */
 .comment-box {
-  width: 100%; /* fill the cell */
-  box-sizing: border-box; /* include padding in that width */
-  margin: 5px 0; /* small vertical spacing only */
-  display: flex;
-  flex-direction: column;
-  background-color: #fef7e0;
-  padding: 10px; /* move padding inside the width */
-  border-radius: 4px;
-}
-
-/* Textarea should stretch fully inside the comment-box */
-.comment-box textarea {
-  width: 100%; /* fill the comment-box */
-  box-sizing: border-box; /* include its padding/border */
-  padding: 5px;
-  font-size: 12px;
-  font-family: "Consolas", "Courier New", monospace;
   border: 1px solid #ccc;
-  border-radius: 5px;
-  resize: vertical;
-}
+  margin: 4px 50px 4px 30px;
+  padding: 6px;
+  font-family: monospace;
+  position: relative;
 
-/* Button container should also fill the box */
-.comment-box-buttons {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-/* Buttons are unchanged */
-.comment-box button {
-  padding: 5px 10px;
-  background-color: #3a5ddc;
-  color: white;
-  border: none;
-  cursor: pointer;
+  box-shadow: 0px 1px 2px 0px rgba(60, 64, 67, 0.3),
+    0px 2px 6px 2px rgba(60, 64, 67, 0.15);
   border-radius: 4px;
-  font-size: 0.85rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.author {
+  font-weight: bold;
+}
+
+.comment-display {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 10px;
+  font-family: inherit;
+}
+
+.comment-box button {
+  color: #1565c0;
+  cursor: pointer;
+  background: none;
+  border: none;
 }
 
 .comment-box button:hover {
-  background-color: #2b4bb7;
+  text-decoration: underline;
 }
 
-/* Read-only display */
-.comment-display {
+.comment-box .buttons {
+  text-align: right;
+}
+
+.comment-box textarea {
   width: 100%;
-  box-sizing: border-box;
-  padding: 8px 0;
-  font-family: "Consolas", "Courier New", monospace;
-  color: #333;
+  height: 3em;
+  resize: none;
+  overflow: auto;
+}
+
+/* published */
+.comment-box.published {
+  background: #fff8c6;
+}
+
+.comment-box.published .btn-reply {
+  background: none;
+  border: none;
+  color: #1565c0;
+  cursor: pointer;
+}
+
+/* draft */
+.comment-box.draft {
+  background: #e8eaed;
+}
+.comment-box.draft button {
+  margin-left: 4px;
+}
+
+/* new */
+.comment-box.new {
+  background: #e8eaed;
+}
+.comment-box.new textarea {
+  width: 100%;
+  height: 3em;
+}
+.comment-box.new button {
+  margin-left: 4px;
+}
+
+.comment-box.update {
+  background: #eef; /* slightly different UI hint */
+}
+
+/* placeholder */
+.comment-box.placeholder {
+  /* same height as a real comment-box plus margins */
+  height: 4em;
+  visibility: hidden;
 }

@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -41,6 +42,8 @@ import com.google.gerrit.extensions.client.Comment;
 import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
 import com.google.gerrit.extensions.common.CommentInfo;
+import com.google.gerrit.extensions.common.FileInfo;
+import com.google.gerrit.extensions.restapi.BinaryResult;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
@@ -50,8 +53,10 @@ import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
+import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
+import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepo;
 
 @Service
 public class GerritService {
@@ -71,6 +76,9 @@ public class GerritService {
 
     @Autowired
     private ChangeRequestRepo changeRequestRepo;
+
+    @Autowired
+    private SubmissionTrackerRepo submissionTrackerRepo;
 
     private final String gerritAuthUrl;
     private final String gerritUsername;
@@ -131,6 +139,112 @@ public class GerritService {
         return gerritApi.changes()
                 .query("project:" + path)
                 .get();
+    }
+
+    // * Get changed file names in a gerrit change */
+    public List<String> getChangedFileNames(String changeId) throws Exception {
+        System.out.println("Service: GerritService.getChangedFileNames");
+
+        Map<String, FileInfo> files = gerritApi.changes()
+                .id(changeId)
+                .revision("current")
+                .files();
+
+        // Exclude COMMIT_MSG file
+
+        return files.keySet().stream()
+                .filter(fileName -> !fileName.equals("/COMMIT_MSG"))
+                .collect(Collectors.toList());
+    }
+
+    // * Get Before and After file content */
+    public Map<String, String[]> getChangedFileContent(String changeId) throws Exception {
+        System.out.println("Service: GerritService.getFileContent");
+
+        List<String> fileNames = getChangedFileNames(changeId);
+
+        String previousChangeId = null;
+
+        // Find ChangeRequest by changeId
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo.findByGerritChangeId(changeId);
+        if (changeRequests == null || changeRequests.size() == 0) {
+            // Throw exception
+            throw new IllegalArgumentException("No change requests found for changeId " + changeId);
+        }
+
+        // All of the change requests have the same commit Id
+        Long commitId = changeRequests.get(0).getCommit().getId();
+
+        // Find the related commit
+        GitlabCommitEntity commit = commitRepo.findById(commitId).orElseThrow(() -> new IllegalArgumentException(
+                "Unknown commit id " + commitId));
+
+        // Use commitId to find the submissionTracker and get previous submission
+        SubmissionTrackerEntity submission = submissionTrackerRepo.findBySubmittedCommit(commit)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Unknown commit id " + commitId));
+
+        SubmissionTrackerEntity previousSubmission = submission.getPreviousSubmission();
+
+        // If not the first commit, find the previous commit
+        if (previousSubmission != null) {
+            GitlabCommitEntity previousCommitEntity = previousSubmission.getSubmittedCommit();
+            List<ChangeRequestEntity> previousChangeRequest = changeRequestRepo.findByCommit(previousCommitEntity);
+
+            // They all share the same changeId
+            if (previousChangeRequest != null && previousChangeRequest.size() > 0) {
+                previousChangeId = previousChangeRequest.get(0).getGerritChangeId();
+            }
+        }
+
+        Map<String, String[]> fileContentMap = new HashMap<String, String[]>();
+
+        for (String fileName : fileNames) {
+            BinaryResult oldFile = null;
+
+            String[] content = new String[2];
+            content[0] = "";
+            content[1] = "";
+
+            // If teher is a previous changeId, get the old file
+            if (previousChangeId != null) {
+                // Get old file
+                try {
+                    oldFile = gerritApi.changes()
+                            .id(previousChangeId)
+                            .revision("current")
+                            .file(fileName).content();
+
+                    content[0] = oldFile != null ? new String(
+                            Base64.getDecoder().decode(oldFile.asString()),
+                            StandardCharsets.UTF_8) : "";
+
+                } catch (RestApiException e) {
+                    // Handle the case where the file does not exist in the previous change
+                    System.out.println("File " + fileName + " does not exist in previous change " + previousChangeId);
+                }
+            }
+
+            try {
+                // Get new file
+                BinaryResult newFile = gerritApi.changes()
+                        .id(changeId)
+                        .revision("current")
+                        .file(fileName).content();
+
+                content[1] = new String(
+                        Base64.getDecoder().decode(newFile.asString()),
+                        StandardCharsets.UTF_8);
+
+            } catch (RestApiException e) {
+                // Handle the case where the file does not exist in the current change
+                System.out.println("File " + fileName + " does not exist in current change " + changeId);
+            }
+
+            fileContentMap.put(fileName, content);
+        }
+
+        return fileContentMap;
     }
 
     public String fetchRawPatch(String changeId, String revisionId) {
@@ -217,21 +331,41 @@ public class GerritService {
         System.out.println("Service: GerritService.createDraftInput");
 
         DraftInput draft = new DraftInput();
+        if (commentInput.getId() != null) {
+            draft.id = commentInput.getId();
+        }
         draft.path = commentInput.getPath();
         draft.side = Side.valueOf(commentInput.getSide());
         draft.line = commentInput.getLine();
         draft.message = commentInput.getMessage();
-        if (commentInput.getRange() != null) {
-            Comment.Range r = new Comment.Range();
-            r.startLine = commentInput.getRange().getStartLine();
-            r.startCharacter = commentInput.getRange().getStartCharacter();
-            r.endLine = commentInput.getRange().getEndLine();
-            r.endCharacter = commentInput.getRange().getEndCharacter();
-            draft.range = r;
-        }
         draft.inReplyTo = commentInput.getInReplyTo();
 
+        System.out.println("DBLOG: created draft: " + draft);
+
         return draft;
+    }
+
+    public CommentInfoDto updateGerritDraft(String gerritChangeId, CommentInputDto commentInput)
+            throws RestApiException {
+        System.out.println("Service: GerritService.updateGerritDraft");
+
+        CommentInfo updated = gerritApi.changes()
+                .id(gerritChangeId)
+                .revision("current")
+                .draft(commentInput.getId()).update(createDraftInput(commentInput));
+
+        return CommentInfoDto.fromGerritType(commentInput.getPath(), updated);
+    }
+
+    public void deleteGerritDraft(String gerritChangeId, CommentInputDto commentInput)
+            throws RestApiException {
+        System.out.println("Service: GerritService.deleteGerritDraft");
+
+        gerritApi.changes()
+                .id(gerritChangeId)
+                .revision("current")
+                .draft(commentInput.getId()).delete();
+
     }
 
     public void submitDraftAsComment(String gerritChangeId, String message) throws RestApiException {
@@ -262,7 +396,11 @@ public class GerritService {
 
         Long gitlabProjectIdLong = Long.parseLong(gitlabProjectId);
         // Load last submitted SHA from DB
-        String baseSha = submissionTrackerSvc.getLastSubmittedGerritSha(username, gitlabProjectIdLong);
+        SubmissionTrackerEntity previousSubmission = submissionTrackerSvc.getPreviousSubmission(username,
+                gitlabProjectIdLong);
+        String baseSha = previousSubmission != null
+                ? previousSubmission.getSubmittedGerritSha()
+                : null;
 
         Path tempDir = Files.createTempDirectory("review-");
 
@@ -292,7 +430,8 @@ public class GerritService {
         String newGerritSha = extractNewSha(result);
 
         // --- Record the SHA as the new last submitted
-        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, newGerritSha, targetCommitEntity);
+        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, previousSubmission, newGerritSha,
+                targetCommitEntity);
 
         // --- Record the change request
         changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);

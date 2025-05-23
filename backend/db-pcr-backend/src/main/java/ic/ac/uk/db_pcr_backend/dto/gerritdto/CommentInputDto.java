@@ -8,19 +8,17 @@ public class CommentInputDto {
     private String path; // file path
     private String side; // 'PARENT' or 'REVISION'
     private int line; // if 0, it's a file comment
-    private CommentRangeDto range;
     private String inReplyTo; // URL encoded UUID of the comment to which this comment is a reply
     private Instant updated; // updated timestamp 'yyyy-mm-dd hh:mm:ss.fffffffff'
     private String message; // If not set and an existing draft comment, the existing draft comment is
                             // deleted.
 
-    public CommentInputDto(String id, String path, String side, int line, CommentRangeDto range,
+    public CommentInputDto(String id, String path, String side, int line,
             String inReplyTo, Instant updated, String message) {
         this.id = id;
         this.path = path;
         this.side = side;
         this.line = line;
-        this.range = range;
         this.inReplyTo = inReplyTo;
         this.updated = updated;
         this.message = message;
@@ -58,14 +56,6 @@ public class CommentInputDto {
 
     public void setLine(int line) {
         this.line = line;
-    }
-
-    public CommentRangeDto getRange() {
-        return range;
-    }
-
-    public void setRange(CommentRangeDto range) {
-        this.range = range;
     }
 
     public String getInReplyTo() {

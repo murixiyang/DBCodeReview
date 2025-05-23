@@ -1,68 +1,85 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgIf } from '@angular/common';
+import { DatePipe, NgSwitch, NgSwitchCase } from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 
+export type CommentVariant =
+  | 'published'
+  | 'draft'
+  | 'new'
+  | 'update'
+  | 'placeholder';
+
 @Component({
   selector: 'app-comment-box',
-  imports: [FormsModule, NgIf],
+  imports: [FormsModule, NgSwitch, NgSwitchCase, DatePipe],
   templateUrl: './comment-box.component.html',
   styleUrl: './comment-box.component.css',
 })
 export class CommentBoxComponent {
-  /** mode: 'draft' to edit, 'published' to read-only */
-  @Input() mode!: 'draft' | 'published';
+  @Input() variant!: CommentVariant;
 
   /** Either a draft input or an existing comment */
   @Input() comment!: GerritCommentInput | GerritCommentInfo;
 
-  /** Emitted when Save/Update clicked */
+  /** save (for new & draft) */
   @Output() saved = new EventEmitter<GerritCommentInput>();
 
-  /** Emitted when Cancel or Discard clicked */
-  @Output() canceled = new EventEmitter<GerritCommentInput>();
+  /** edit (for draft) */
+  @Output() edited = new EventEmitter<GerritCommentInput>();
 
-  onSaveDraft() {
-    this.saved.emit(this.comment);
+  /** cancel (for new ) */
+  @Output() canceled = new EventEmitter<void>();
+
+  /** delete (for draft) */
+  @Output() deleted = new EventEmitter<GerritCommentInput>();
+
+  /** reply (for published) */
+  @Output() reply = new EventEmitter<GerritCommentInfo>();
+
+  @ViewChild('autosize') autosizeTextarea!: ElementRef<HTMLTextAreaElement>;
+
+  /** call on each input to let it grow as needed */
+  autoResize(textarea: HTMLTextAreaElement) {
+    textarea.style.height = 'auto'; // reset to shrink if content was removed
+    textarea.style.height = textarea.scrollHeight + 'px'; // expand to fit all text
   }
 
-  onCancelDraft() {
-    this.canceled.emit(this.comment);
+  onSave() {
+    if (this.comment && 'message' in this.comment) {
+      this.saved.emit(this.comment as GerritCommentInput);
+    }
+  }
+
+  onEdit() {
+    if (this.comment && 'message' in this.comment) {
+      this.edited.emit(this.comment as GerritCommentInput);
+    }
+  }
+
+  onCancel() {
+    this.canceled.emit();
+  }
+
+  onDelete() {
+    if (this.comment && 'message' in this.comment) {
+      this.deleted.emit(this.comment as GerritCommentInput);
+    }
+  }
+
+  onReply() {
+    if (this.comment && 'message' in this.comment) {
+      this.reply.emit(this.comment as GerritCommentInfo);
+    }
   }
 
   constructor() {}
-
-  //   onSaveDraft(): void {
-  //     // If editting a existed comment
-  //     if (this.editting && this.existCommentInfo) {
-  //       this.onUpdateDraft(this.commentInfoToCommentInput(this.existCommentInfo));
-  //       return;
-  //     }
-
-  //     // Creating new comment
-  //     if (!this.newCommentInput) {
-  //       console.error('Invalid comment input');
-  //       return;
-  //     }
-
-  //     // Change message
-  //     this.newCommentInput.message = this.commentMsg;
-  //   }
-
-  //   onUpdateDraft(oldCommentInput: GerritCommentInput): void {
-  //     oldCommentInput.message = this.commentMsg;
-  //   }
-
-  //   onCloseDraft() {
-  //     this.commentMsg = '';
-  //     this.editting = false;
-  //     this.closeCommentBox.emit();
-  //   }
-
-  //   onEditDraft(): void {
-  //     this.edittable = true;
-  //     this.commentMsg = this.existCommentInfo?.message || '';
-  //     this.editting = true;
-  //   }
 }

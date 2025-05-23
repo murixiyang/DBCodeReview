@@ -1,23 +1,86 @@
-<!-- editable draft -->
-<ng-container *ngIf="mode === 'draft'; else readOnly">
-  <div class="comment-box" (click)="$event.stopPropagation()">
-    <textarea
-      [(ngModel)]="comment.message"
-      placeholder="Write a comment…"
-    ></textarea>
-    <div class="comment-box-buttons">
-      <button (click)="onCancelDraft()">Cancel</button>
-      <button (click)="onSaveDraft()">Save</button>
+<!-- comment-box.component.html -->
+<ng-container [ngSwitch]="variant">
+  <!-- PUBLISHED -->
+  <div
+    *ngSwitchCase="'published'"
+    class="comment-box published"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="header">
+      <!-- <span class="author">{{ (comment as GerritCommentInfo).author }}</span> -->
+      <span class="author">Author Name</span>
+      <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
+    </div>
+    <div class="comment-display" [innerText]="comment.message"></div>
+
+    <div class="buttons">
+      <button (click)="onReply()">Reply</button>
     </div>
   </div>
-</ng-container>
 
-<ng-template #readOnly>
-  <div class="comment-box" (click)="$event.stopPropagation()">
-    <ng-container *ngIf="mode === 'published'">
-      <div class="comment-display">
-        {{ comment.message }}
-      </div>
-    </ng-container>
+  <!-- DRAFT -->
+  <div
+    *ngSwitchCase="'draft'"
+    class="comment-box draft"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="header">
+      <span class="author">Me</span>
+      <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
+    </div>
+
+    <div class="comment-display" [innerText]="comment.message"></div>
+    <div class="buttons">
+      <button (click)="onDelete()">Delete</button>
+      <button (click)="onEdit()">Edit</button>
+    </div>
   </div>
-</ng-template>
+
+  <!-- NEW -->
+  <div
+    *ngSwitchCase="'new'"
+    class="comment-box new"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="header">
+      <span class="author">Me</span>
+    </div>
+
+    <textarea
+      #autosize
+      [(ngModel)]="comment.message"
+      placeholder="Write a comment…"
+      (input)="autoResize(autosize)"
+    ></textarea>
+    <div class="buttons">
+      <button (click)="onCancel()">Cancel</button>
+      <button (click)="onSave()">Save</button>
+    </div>
+  </div>
+
+  <!-- UPDATE (editable draft) -->
+  <div
+    *ngSwitchCase="'update'"
+    class="comment-box update"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="header">
+      <span class="author">Me</span>
+      <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
+    </div>
+
+    <textarea
+      #autosize
+      [(ngModel)]="comment.message"
+      placeholder="Write a comment…"
+      (input)="autoResize(autosize)"
+    ></textarea>
+    <div class="buttons">
+      <button (click)="onCancel()">Cancel</button>
+      <button (click)="onSave()">Update</button>
+    </div>
+  </div>
+
+  <!-- PLACEHOLDER -->
+  <div *ngSwitchCase="'placeholder'" class="comment-box placeholder"></div>
+</ng-container>

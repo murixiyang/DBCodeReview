@@ -3,16 +3,5 @@
 }
 
 .diff-container {
-  margin-bottom: 2rem;
-  border: 1px solid #ddd;
-  position: relative;
-}
-
-:host ::ng-deep .hljs {
-  background: transparent !important;
-}
-
-.tr-comment td {
-  padding: 0;
-  border: none;
+  margin-bottom: 50px;
 }

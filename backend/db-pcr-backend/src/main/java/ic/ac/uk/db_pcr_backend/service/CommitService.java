@@ -91,7 +91,7 @@ public class CommitService {
         List<String> submitGitlabCommitIds = submissionTrackerRepo
                 .findByAuthorAndProjectOrderBySubmittedAtAsc(author, project)
                 .stream()
-                .map(e -> e.getLastSubmittedCommit().getGitlabCommitId())
+                .map(e -> e.getSubmittedCommit().getGitlabCommitId())
                 .toList();
 
         // If no commits were submitted yet, return NOT_SUBMITTED
