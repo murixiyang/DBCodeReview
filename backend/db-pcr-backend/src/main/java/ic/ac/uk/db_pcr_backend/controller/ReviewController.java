@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,7 @@ import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
+import ic.ac.uk.db_pcr_backend.service.CommentService;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
 
@@ -53,6 +55,9 @@ public class ReviewController {
 
     @Autowired
     private PseudoNameService pseudoNameSvc;
+
+    @Autowired
+    private CommentService commentSvc;
 
     @Autowired
     private UserRepo userRepo;
@@ -126,6 +131,43 @@ public class ReviewController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(changeRequests);
+    }
+
+    /**
+     * Get the review assignment pseudonym by personal project id (from author side)
+     */
+    @Transactional(readOnly = true)
+    @GetMapping("/get-author-assignment-pseudonym")
+    public ResponseEntity<ReviewAssignmentPseudonymDto[]> getAuthorAssignmentForReviewer(
+            @RequestParam("projectId") String projectId,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
+
+        System.out.println("STAGE: ReviewController.getAuthorAssignmentForReviewer");
+
+        // Find the project
+        ProjectEntity personalProejct = projectRepo.findById(Long.valueOf(projectId))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Project not found: " + projectId));
+
+        ProjectEntity groupProject = personalProejct.getParentProject();
+
+        UserEntity author = userRepo.findByUsername(oauth2User.getAttribute("username"))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reviewer not found: " + oauth2User.getAttribute("username")));
+
+        // Find the review assignment
+        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
+                .findByAuthorAndGroupProject(author, groupProject);
+
+        ReviewAssignmentPseudonymDto[] dtoArray = assignments.stream()
+                .map(asn -> {
+                    var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.AUTHOR);
+                    var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.REVIEWER);
+                    return new ReviewAssignmentPseudonymDto(asn, authorMask, reviewerMask);
+                })
+                .toArray(ReviewAssignmentPseudonymDto[]::new);
+
+        return ResponseEntity.ok(dtoArray);
     }
 
     /**
@@ -318,11 +360,18 @@ public class ReviewController {
     @PostMapping("/publish-gerrit-draft-comments")
     public ResponseEntity<Void> publishDraftComments(
             @RequestParam("gerritChangeId") String gerritChangeId,
-            @RequestBody List<String> draftIds) throws RestApiException {
+            @RequestParam("assignmentId") String assignmentId,
+            @RequestBody List<String> draftIds,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
         System.out.println("STAGE: ReviewController.publishDraftComments");
 
         gerritSvc.publishDrafts(gerritChangeId, draftIds);
+
+        // Add commentEntity to database
+        String username = oauth2User.getAttribute("username").toString();
+        commentSvc.recordCommentsForChangeId(gerritChangeId, assignmentId, draftIds, username);
+
         return ResponseEntity.noContent().build();
     }
 

@@ -38,6 +38,23 @@ export class ReviewService {
     );
   }
 
+  /** Get Author Assignment Pseudunym Dto by assignment id, getting in from author side */
+  getAuthorAssignmentPseudonymDtoList(
+    personalProjectId: string
+  ): Observable<ReviewAssignmentPseudonymDto[]> {
+    const params = new HttpParams().set(
+      'projectId',
+      personalProjectId.toString()
+    );
+
+    return this.http.get<ReviewAssignmentPseudonymDto[]>(
+      `${this.baseUrl}/get-author-assignment-pseudonym`,
+      {
+        params,
+      }
+    );
+  }
+
   /** Get ReviewAssignment Pseudunym Dto by assignment id */
   getReviewAssignmentPseudonymDtoList(
     groupProjectId: string
@@ -187,9 +204,12 @@ export class ReviewService {
   /** Publish draft comments as a review */
   publishDraftComments(
     gerritChangeId: string,
+    selectedAssignmentId: string,
     draftIds: string[]
   ): Observable<void> {
-    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('assignmentId', selectedAssignmentId);
 
     return this.http.post<void>(
       `${this.baseUrl}/publish-gerrit-draft-comments`,

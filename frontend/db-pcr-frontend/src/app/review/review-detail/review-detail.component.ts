@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ReviewService } from '../../http/review.service.js';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input.js';
 import { FormsModule } from '@angular/forms';
@@ -26,10 +26,19 @@ export class ReviewDetailComponent {
 
   draftComments: GerritCommentInput[] = [];
 
+  assignmentId!: string;
+
   constructor(
     private route: ActivatedRoute,
-    private reviewSvc: ReviewService
-  ) {}
+    private reviewSvc: ReviewService,
+    private router: Router
+  ) {
+    const nav = this.router.getCurrentNavigation();
+
+    if (nav?.extras.state && nav.extras.state['assignmentId']) {
+      this.assignmentId = nav.extras.state['assignmentId'];
+    }
+  }
 
   ngOnInit() {
     this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
@@ -45,8 +54,6 @@ export class ReviewDetailComponent {
     this.reviewSvc
       .getAuthorPseudonymCommit(this.gerritChangeId)
       .subscribe((p) => {
-        console.log('author pseudonym: ', p);
-
         this.pseudoCommitDto = p;
       });
   }

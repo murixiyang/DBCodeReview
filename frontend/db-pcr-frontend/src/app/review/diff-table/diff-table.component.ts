@@ -33,6 +33,7 @@ interface DiffLine {
   styleUrl: './diff-table.component.css',
 })
 export class DiffTableComponent implements OnChanges {
+  @Input() selectedAssignmentId!: string;
   @Input() gerritChangeId!: string;
   @Input() oldText!: string;
   @Input() newText!: string;
@@ -309,7 +310,11 @@ export class DiffTableComponent implements OnChanges {
       .filter((id): id is string => typeof id === 'string');
 
     this.reviewSvc
-      .publishDraftComments(this.gerritChangeId, draftIds)
+      .publishDraftComments(
+        this.gerritChangeId,
+        this.selectedAssignmentId,
+        draftIds
+      )
       .subscribe(() => {
         console.log('Publish review');
         this.fetchExistedComments();
@@ -321,6 +326,9 @@ export class DiffTableComponent implements OnChanges {
     this.showPublishDialog = false;
 
     console.log('Publish confirmed: ', evt);
+
+    console.log('Draft comments: ', this.draftComments);
+    console.log('This selectedAssignmentId: ', this.selectedAssignmentId);
 
     if (this.draftComments.length === 0 && evt.message === '') {
       console.log('No draft comments to publish');
@@ -345,7 +353,11 @@ export class DiffTableComponent implements OnChanges {
 
           // call your service, passing along the overall message if you like
           this.reviewSvc
-            .publishDraftComments(this.gerritChangeId, draftIds)
+            .publishDraftComments(
+              this.gerritChangeId,
+              this.selectedAssignmentId,
+              draftIds
+            )
             .subscribe(() => {
               console.log('Publish review with overall comment');
               this.fetchDraftComments();
@@ -357,7 +369,11 @@ export class DiffTableComponent implements OnChanges {
       const draftIds = this.draftComments.map((d) => d.id!);
 
       this.reviewSvc
-        .publishDraftComments(this.gerritChangeId, draftIds)
+        .publishDraftComments(
+          this.gerritChangeId,
+          this.selectedAssignmentId,
+          draftIds
+        )
         .subscribe(() => {
           console.log('Publish review without overall comment');
           this.fetchDraftComments();

@@ -20,4 +20,8 @@ public interface ChangeRequestRepo extends JpaRepository<ChangeRequestEntity, Lo
             ReviewAssignmentEntity assignment,
             GitlabCommitEntity commit);
 
+    Optional<ChangeRequestEntity> findByAssignmentAndGerritChangeId(
+            ReviewAssignmentEntity assignment,
+            String gerritChangeId);
+
 }

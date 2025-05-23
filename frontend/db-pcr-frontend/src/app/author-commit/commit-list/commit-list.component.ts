@@ -67,10 +67,20 @@ export class CommitListComponent implements OnInit {
   }
 
   checkReviewPage(commit: CommitWithStatusDto) {
-    this.commitSvc
-      .getGerritChangeIdByCommitId(commit.commit.id.toString())
-      .subscribe((gerritChangeId) => {
-        this.router.navigate(['/review/detail', gerritChangeId]);
+    // Find assignmentId
+    this.reviewSvc
+      .getAuthorAssignmentPseudonymDtoList(this.projectId)
+      .subscribe((pseudonymDtos) => {
+        this.commitSvc
+          .getGerritChangeIdByCommitId(commit.commit.id.toString())
+          .subscribe((gerritChangeId) => {
+            this.router.navigate(['/review/detail', gerritChangeId], {
+              state: {
+                // As author, can use any assignmentId related to them
+                assignmentId: pseudonymDtos[0].id,
+              },
+            });
+          });
       });
   }
 }
