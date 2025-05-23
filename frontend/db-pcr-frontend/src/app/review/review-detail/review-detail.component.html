@@ -1,11 +1,19 @@
 <!-- review-detail.component.html -->
 <div class="page-container">
-  <h2>Change {{ gerritChangeId }}</h2>
+  <div class="diff-header">
+    <h3>
+      Submitted by {{ pseudoCommitDto.authorPseudonym }} at
+      {{
+        pseudoCommitDto.commit.committedAt | date : "YYYY-MM-dd HH:mm" : "UTC"
+      }}
+    </h3>
 
-  <h2>Submitted by {{ authorPseudonym }}</h2>
+    <h3>Commit message: {{ pseudoCommitDto.commit.message }}</h3>
+  </div>
 
   <div *ngFor="let f of fileKeys" class="diff-container">
     <app-diff-table
+      #diffTable
       [gerritChangeId]="gerritChangeId"
       [oldText]="fileContents.get(f)?.[0]!"
       [newText]="fileContents.get(f)?.[1]!"

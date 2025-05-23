@@ -25,6 +25,7 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.PseudonymGitlabCommitDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
@@ -163,15 +164,15 @@ public class ReviewController {
     }
 
     /**
-     * Get author pseudonym for a gerrit change id
+     * Get author pseudonym and commit dto for a gerrit change id
      */
     @Transactional(readOnly = true)
-    @GetMapping("/get-author-pseudonym")
-    public ResponseEntity<String> getAuthorPseudonymForChangeId(
+    @GetMapping("/get-author-pseudonym-commit")
+    public ResponseEntity<PseudonymGitlabCommitDto> getAuthorPseudonymCommitForChangeId(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
-        System.out.println("STAGE: ReviewController.getAuthorPseudonymForChangeId");
+        System.out.println("STAGE: ReviewController.getAuthorPseudonymCommitForChangeId");
 
         // Find the change request
         List<ChangeRequestEntity> changeRequestList = changeRequestRepo
@@ -184,13 +185,20 @@ public class ReviewController {
         // Will find multiple change request, but they all have the same author
         ChangeRequestEntity changeRequest = changeRequestList.get(0);
 
+        // Find the commit
+        GitlabCommitEntity commit = changeRequest.getCommit();
+
         // Find the review assignment
         ReviewAssignmentEntity assignment = changeRequest.getAssignment();
 
         ProjectUserPseudonymEntity authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(assignment,
                 RoleType.AUTHOR);
 
-        return ResponseEntity.ok(authorMask.getPseudonym().getName());
+        // Dto
+        PseudonymGitlabCommitDto commitDto = new PseudonymGitlabCommitDto(
+                commit, authorMask.getPseudonym().getName());
+
+        return ResponseEntity.ok(commitDto);
     }
 
     /** Get list of changed file names in a gerrit change */

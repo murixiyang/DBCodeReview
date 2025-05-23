@@ -294,4 +294,9 @@ export class DiffTableComponent implements OnChanges {
     this.replyingTo = undefined;
     this.replyDraft = undefined;
   }
+
+  // Post the draft comments to the server
+  onSubmitReview() {
+    
+  }
 }

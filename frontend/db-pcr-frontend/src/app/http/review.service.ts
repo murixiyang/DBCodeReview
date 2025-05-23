@@ -7,6 +7,7 @@ import { ChangeRequestDto } from '../interface/database/change-request-dto';
 import { ReviewAssignmentPseudonymDto } from '../interface/database/review-assignment-dto';
 import { GerritCommentInfo } from '../interface/gerrit/gerrit-comment-info';
 import { GerritCommentInput } from '../interface/gerrit/gerrit-comment-input';
+import { PseudonymGitlabCommitDto } from '../interface/database/pseudonym-gitlab-commit-dto';
 
 @Injectable({
   providedIn: 'root',
@@ -54,14 +55,18 @@ export class ReviewService {
     );
   }
 
-  /** Get Author Pseudonym by gerrit change id */
-  getAuthorPseudonym(gerritChangeId: string): Observable<string> {
+  /** Get Author Pseudonym commit info by gerrit change id */
+  getAuthorPseudonymCommit(
+    gerritChangeId: string
+  ): Observable<PseudonymGitlabCommitDto> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
-    return this.http.get(`${this.baseUrl}/get-author-pseudonym`, {
-      params,
-      responseType: 'text',
-    });
+    return this.http.get<PseudonymGitlabCommitDto>(
+      `${this.baseUrl}/get-author-pseudonym-commit`,
+      {
+        params,
+      }
+    );
   }
 
   /** Post a request review from Gitlab commit to Gerrit */
