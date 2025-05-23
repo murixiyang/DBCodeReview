@@ -1,0 +1,23 @@
+package ic.ac.uk.db_pcr_backend.repository;
+
+import java.lang.StackWalker.Option;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import ic.ac.uk.db_pcr_backend.entity.GerritCommentEntity;
+import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
+import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
+
+public interface GerritCommentRepo extends JpaRepository<GerritCommentEntity, Long> {
+    List<GerritCommentEntity> findByGerritCommentId(String gerritCommentId);
+
+    List<GerritCommentEntity> findByChangeRequest(ReviewAssignmentEntity assignment);
+
+    List<GerritCommentEntity> findByPseudonym(GitlabCommitEntity commit);
+
+    Optional<GerritCommentEntity> findByGerritChangeIdAndGerritCommentId(
+            String gerritChangeId, String gerritCommentId);
+
+}

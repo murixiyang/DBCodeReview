@@ -2,17 +2,9 @@
 <div class="page-container">
   <h2>Change {{ gerritChangeId }}</h2>
 
-  <div *ngFor="let f of fileKeys" class="diff-container">
-    <!-- <ngx-side-by-side-diff
-      [title]="f"
-      [before]="fileContents.get(f)?.[0]"
-      [after]="fileContents.get(f)?.[1]"
-      [lineContextSize]="4"
-      (selectedLineChange)="onLineClick(f, 'NEW', $event)"
-      class="ngx-diff-light-theme"
-    >
-    </ngx-side-by-side-diff> -->
+  <!-- <h2>Submitted by {{}} at</h2> -->
 
+  <div *ngFor="let f of fileKeys" class="diff-container">
     <app-diff-table
       [gerritChangeId]="gerritChangeId"
       [oldText]="fileContents.get(f)?.[0]!"

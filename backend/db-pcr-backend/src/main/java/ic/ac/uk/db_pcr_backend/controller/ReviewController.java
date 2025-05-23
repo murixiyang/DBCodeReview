@@ -126,10 +126,45 @@ public class ReviewController {
     }
 
     /**
-     * Get the review assignment pseudonym by id
+     * Get the review assignment pseudonym by group project id
      */
     @Transactional(readOnly = true)
     @GetMapping("/get-review-assignment-pseudonym")
+    public ResponseEntity<ReviewAssignmentPseudonymDto[]> getReviewAssignmentForReviewer(
+            @RequestParam("groupProjectId") String groupProjectId,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
+
+        System.out.println("STAGE: ReviewController.getReviewAssignmentForReviewer");
+
+        // Find the project
+        ProjectEntity groupProject = projectRepo.findById(Long.valueOf(groupProjectId))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Project not found: " + groupProjectId));
+
+        UserEntity reviewer = userRepo.findByUsername(oauth2User.getAttribute("username"))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Reviewer not found: " + oauth2User.getAttribute("username")));
+
+        // Find the review assignment
+        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
+                .findByReviewerAndGroupProject(reviewer, groupProject);
+
+        ReviewAssignmentPseudonymDto[] dtoArray = assignments.stream()
+                .map(asn -> {
+                    var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.AUTHOR);
+                    var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.REVIEWER);
+                    return new ReviewAssignmentPseudonymDto(asn, authorMask, reviewerMask);
+                })
+                .toArray(ReviewAssignmentPseudonymDto[]::new);
+
+        return ResponseEntity.ok(dtoArray);
+    }
+
+    /**
+     * Get author pseudonym for a gerrit change id
+     */
+    @Transactional(readOnly = true)
+    @GetMapping("/get-author-pseudonym")
     public ResponseEntity<ReviewAssignmentPseudonymDto[]> getReviewAssignmentForReviewer(
             @RequestParam("groupProjectId") String groupProjectId,
             @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
