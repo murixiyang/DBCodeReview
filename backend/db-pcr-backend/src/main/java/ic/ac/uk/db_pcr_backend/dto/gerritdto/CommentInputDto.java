@@ -2,6 +2,9 @@ package ic.ac.uk.db_pcr_backend.dto.gerritdto;
 
 import java.time.Instant;
 
+import com.google.gerrit.extensions.api.changes.ReviewInput.CommentInput;
+import com.google.gerrit.extensions.client.Side;
+
 public class CommentInputDto {
 
     private String id; // UUID of the comment, if exists, update comment
@@ -22,6 +25,20 @@ public class CommentInputDto {
         this.inReplyTo = inReplyTo;
         this.updated = updated;
         this.message = message;
+    }
+
+    public static CommentInput fromDtoToEntity(CommentInputDto commentInputDto) {
+        CommentInput commentInput = new CommentInput();
+        commentInput.id = commentInputDto.getId();
+        commentInput.path = commentInputDto.getPath();
+        commentInput.side = Side.valueOf(commentInputDto.getSide());
+        commentInput.line = commentInputDto.getLine();
+        commentInput.inReplyTo = commentInputDto.getInReplyTo();
+        commentInput.updated = commentInputDto.getUpdated() == null ? null
+                : java.sql.Timestamp.from(commentInputDto.getUpdated());
+        commentInput.message = commentInputDto.getMessage();
+
+        return commentInput;
     }
 
     // Getter and Setter

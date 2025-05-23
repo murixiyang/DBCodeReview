@@ -68,7 +68,7 @@ export class DiffTableComponent implements OnChanges {
   }
 
   ngOnInit() {
-    this.fetechExistedComments();
+    this.fetchExistedComments();
     this.fetchDraftComments();
   }
 
@@ -97,7 +97,7 @@ export class DiffTableComponent implements OnChanges {
     });
   }
 
-  fetechExistedComments() {
+  fetchExistedComments() {
     this.reviewSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
       // Overall comments are always at line 0
       this.overallComments = c.filter((c) => c.line == 0);
@@ -292,5 +292,20 @@ export class DiffTableComponent implements OnChanges {
   }
 
   // Post the draft comments to the server
-  onSubmitReview() {}
+  onSubmitReview() {
+    // Build revie input
+
+    const reviewInput = {
+      message: '',
+      comments: this.draftComments.filter((d) => d.line == 10),
+    };
+
+    this.reviewSvc
+      .publishDraftComments(this.gerritChangeId, reviewInput)
+      .subscribe(() => {
+        console.log('Publish review');
+        this.fetchExistedComments;
+        this.fetchDraftComments();
+      });
+  }
 }

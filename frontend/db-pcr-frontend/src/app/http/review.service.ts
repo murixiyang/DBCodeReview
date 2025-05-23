@@ -8,6 +8,7 @@ import { ReviewAssignmentPseudonymDto } from '../interface/database/review-assig
 import { GerritCommentInfo } from '../interface/gerrit/gerrit-comment-info';
 import { GerritCommentInput } from '../interface/gerrit/gerrit-comment-input';
 import { PseudonymGitlabCommitDto } from '../interface/database/pseudonym-gitlab-commit-dto';
+import { GerritReviewInput } from '../interface/gerrit/gerrit-review-input';
 
 @Injectable({
   providedIn: 'root',
@@ -180,6 +181,22 @@ export class ReviewService {
       {
         params,
         body: commentInput,
+      }
+    );
+  }
+
+  /** Publish draft comments as a review */
+  publishDraftComments(
+    gerritChangeId: string,
+    reivewInput: GerritReviewInput
+  ): Observable<void> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.post<void>(
+      `${this.baseUrl}/publish-gerrit-draft-comments`,
+      reivewInput,
+      {
+        params,
       }
     );
   }

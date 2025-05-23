@@ -29,6 +29,7 @@ import ic.ac.uk.db_pcr_backend.dto.datadto.PseudonymGitlabCommitDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.ReviewInputDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
@@ -312,6 +313,17 @@ public class ReviewController {
         System.out.println("STAGE: ReviewController.deleteGerritDraftComment");
 
         gerritSvc.deleteGerritDraft(gerritChangeId, commentInput);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/publish-gerrit-draft-comments")
+    public ResponseEntity<Void> publishDraftComments(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody ReviewInputDto reviewInput) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.publishDraftComments");
+
+        gerritSvc.publishDrafts(gerritChangeId, reviewInput);
         return ResponseEntity.noContent().build();
     }
 
