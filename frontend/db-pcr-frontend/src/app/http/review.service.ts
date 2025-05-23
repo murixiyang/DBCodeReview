@@ -54,6 +54,16 @@ export class ReviewService {
     );
   }
 
+  /** Get Author Pseudonym by gerrit change id */
+  getAuthorPseudonym(gerritChangeId: string): Observable<string> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get(`${this.baseUrl}/get-author-pseudonym`, {
+      params,
+      responseType: 'text',
+    });
+  }
+
   /** Post a request review from Gitlab commit to Gerrit */
   postRequestReview(
     projectId: string,

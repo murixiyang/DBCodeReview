@@ -17,6 +17,8 @@ import { DiffTableComponent } from '../diff-table/diff-table.component.js';
 export class ReviewDetailComponent {
   gerritChangeId!: string;
 
+  authorPseudonym!: string;
+
   fileContents: Map<string, string[]> = new Map();
 
   existedComments: GerritCommentInfo[] = [];
@@ -38,11 +40,15 @@ export class ReviewDetailComponent {
 
         this.fileContents = new Map(Object.entries(f));
       });
+
+    this.reviewSvc.getAuthorPseudonym(this.gerritChangeId).subscribe((p) => {
+      console.log('author pseudonym: ', p);
+
+      this.authorPseudonym = p;
+    });
   }
 
   get fileKeys(): string[] {
     return Array.from(this.fileContents.keys());
   }
-
-
 }

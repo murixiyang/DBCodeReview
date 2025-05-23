@@ -2,7 +2,7 @@
 <div class="page-container">
   <h2>Change {{ gerritChangeId }}</h2>
 
-  <!-- <h2>Submitted by {{}} at</h2> -->
+  <h2>Submitted by {{ authorPseudonym }}</h2>
 
   <div *ngFor="let f of fileKeys" class="diff-container">
     <app-diff-table

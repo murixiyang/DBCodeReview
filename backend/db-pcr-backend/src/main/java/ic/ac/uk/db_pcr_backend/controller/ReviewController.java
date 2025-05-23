@@ -28,8 +28,10 @@ import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
+import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
+import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
@@ -165,34 +167,30 @@ public class ReviewController {
      */
     @Transactional(readOnly = true)
     @GetMapping("/get-author-pseudonym")
-    public ResponseEntity<ReviewAssignmentPseudonymDto[]> getReviewAssignmentForReviewer(
-            @RequestParam("groupProjectId") String groupProjectId,
+    public ResponseEntity<String> getAuthorPseudonymForChangeId(
+            @RequestParam("gerritChangeId") String gerritChangeId,
             @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
-        System.out.println("STAGE: ReviewController.getReviewAssignmentForReviewer");
+        System.out.println("STAGE: ReviewController.getAuthorPseudonymForChangeId");
 
-        // Find the project
-        ProjectEntity groupProject = projectRepo.findById(Long.valueOf(groupProjectId))
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Project not found: " + groupProjectId));
+        // Find the change request
+        List<ChangeRequestEntity> changeRequestList = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
 
-        UserEntity reviewer = userRepo.findByUsername(oauth2User.getAttribute("username"))
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Reviewer not found: " + oauth2User.getAttribute("username")));
+        if (changeRequestList.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+
+        // Will find multiple change request, but they all have the same author
+        ChangeRequestEntity changeRequest = changeRequestList.get(0);
 
         // Find the review assignment
-        List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
-                .findByReviewerAndGroupProject(reviewer, groupProject);
+        ReviewAssignmentEntity assignment = changeRequest.getAssignment();
 
-        ReviewAssignmentPseudonymDto[] dtoArray = assignments.stream()
-                .map(asn -> {
-                    var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.AUTHOR);
-                    var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.REVIEWER);
-                    return new ReviewAssignmentPseudonymDto(asn, authorMask, reviewerMask);
-                })
-                .toArray(ReviewAssignmentPseudonymDto[]::new);
+        ProjectUserPseudonymEntity authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(assignment,
+                RoleType.AUTHOR);
 
-        return ResponseEntity.ok(dtoArray);
+        return ResponseEntity.ok(authorMask.getPseudonym().getName());
     }
 
     /** Get list of changed file names in a gerrit change */
