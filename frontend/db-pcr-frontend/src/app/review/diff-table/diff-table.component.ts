@@ -36,6 +36,7 @@ export class DiffTableComponent implements OnChanges {
   @Input() file!: string;
 
   existedComments: GerritCommentInfo[] = [];
+  overallComments: GerritCommentInfo[] = [];
   draftComments: GerritCommentInput[] = [];
 
   lines: DiffLine[] = [];
@@ -71,6 +72,7 @@ export class DiffTableComponent implements OnChanges {
     this.fetchDraftComments();
   }
 
+  // ---- To align placehoder comment box ----- //
   ngAfterViewInit() {
     // initial compute
     this.updatePlaceholderHeights();
@@ -97,6 +99,9 @@ export class DiffTableComponent implements OnChanges {
 
   fetechExistedComments() {
     this.reviewSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
+      // Overall comments are always at line 0
+      this.overallComments = c.filter((c) => c.line == 0);
+
       // filter and sort
       const filtered = c.filter((comment) => comment.path === this.file);
       this.existedComments = filtered.sort((a, b) => {
@@ -120,14 +125,6 @@ export class DiffTableComponent implements OnChanges {
 
       console.log('draft comments: ', d);
     });
-  }
-
-  filterCommentForFile(comments: GerritCommentInfo[]): GerritCommentInfo[] {
-    return comments.filter((c) => c.path === this.file);
-  }
-
-  filterDraftForFile(comments: GerritCommentInput[]): GerritCommentInput[] {
-    return comments.filter((c) => c.path === this.file);
   }
 
   buildLines(oldText: string, newText: string): DiffLine[] {
@@ -178,7 +175,6 @@ export class DiffTableComponent implements OnChanges {
   }
 
   updateHeaderInfo() {
-    // totals
     this.insertedCount = this.lines.filter((l) => l.type === 'insert').length;
     this.deletedCount = this.lines.filter((l) => l.type === 'delete').length;
   }
@@ -296,7 +292,5 @@ export class DiffTableComponent implements OnChanges {
   }
 
   // Post the draft comments to the server
-  onSubmitReview() {
-    
-  }
+  onSubmitReview() {}
 }

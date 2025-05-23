@@ -367,8 +367,8 @@ public class GerritService {
 
     }
 
-    public void submitDraftAsComment(String gerritChangeId, String message) throws RestApiException {
-        System.out.println("Service: GerritService.submitDraftAsComment");
+    public void publishDraft(String gerritChangeId, String message) throws RestApiException {
+        System.out.println("Service: GerritService.publishDraft");
 
     }
 

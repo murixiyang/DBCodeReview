@@ -4,6 +4,17 @@
   </button>
 </div>
 
+<div>
+  Overall comment:
+  <div *ngFor="let c of overallComments">
+    <app-comment-box
+      *ngIf="c"
+      variant="published"
+      [comment]="c"
+    ></app-comment-box>
+  </div>
+</div>
+
 <div class="diff-grid">
   <!-- Header items -->
   <div class="diff-header-file">
