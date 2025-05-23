@@ -36,10 +36,8 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
 
 import com.google.gerrit.extensions.api.GerritApi;
-import com.google.gerrit.extensions.api.changes.ChangeApi;
 import com.google.gerrit.extensions.api.changes.DraftInput;
 import com.google.gerrit.extensions.api.changes.ReviewInput;
-import com.google.gerrit.extensions.api.changes.ReviewInput.CommentInput;
 import com.google.gerrit.extensions.api.changes.ReviewResult;
 import com.google.gerrit.extensions.api.changes.RevisionApi;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
@@ -340,12 +338,10 @@ public class GerritService {
             draft.id = commentInput.getId();
         }
         draft.path = commentInput.getPath();
-        draft.side = Side.valueOf(commentInput.getSide());
-        draft.line = commentInput.getLine();
+        draft.side = commentInput.getSide() == null ? null : Side.valueOf(commentInput.getSide());
+        draft.line = commentInput.getLine() == 0 ? null : commentInput.getLine();
         draft.message = commentInput.getMessage();
         draft.inReplyTo = commentInput.getInReplyTo();
-
-        System.out.println("DBLOG: created draft: " + draft);
 
         return draft;
     }

@@ -1,0 +1,21 @@
+<div class="overlay" (click)="onCancel()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <h2>Publish Comments</h2>
+    <p>
+      You are about to publish <strong>{{ count }}</strong> comment
+      {{ count > 1 ? "" : "s" }}.<br />
+      Once published they cannot be edited or deleted, and will appear
+      anonymously.
+    </p>
+    <textarea
+      [(ngModel)]="message"
+      placeholder="Optional comment on the whole commit......"
+    ></textarea>
+
+    <div class="buttons">
+      <button (click)="onCancel()">Cancel</button>
+      <button (click)="onConfirm('resolve')">Need Resolve</button>
+      <button (click)="onConfirm('approve')">Approved</button>
+    </div>
+  </div>
+</div>

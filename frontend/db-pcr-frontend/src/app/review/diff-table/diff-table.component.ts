@@ -13,7 +13,10 @@ import { CommentBoxComponent } from '../comment-box/comment-box.component';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { ReviewService } from '../../http/review.service';
-import { filter } from 'rxjs';
+import {
+  PublishAction,
+  PublishDialogComponent,
+} from '../publish-dialog/publish-dialog.component';
 
 interface DiffLine {
   oldNumber: number | null;
@@ -25,7 +28,7 @@ interface DiffLine {
 
 @Component({
   selector: 'app-diff-table',
-  imports: [NgFor, NgIf, CommentBoxComponent, NgClass],
+  imports: [NgFor, NgIf, CommentBoxComponent, NgClass, PublishDialogComponent],
   templateUrl: './diff-table.component.html',
   styleUrl: './diff-table.component.css',
 })
@@ -57,6 +60,8 @@ export class DiffTableComponent implements OnChanges {
   measuredRows!: QueryList<ElementRef<HTMLTableRowElement>>;
   /** placeholderHeights[i] = total height (px) of all comment rows for line i */
   placeholderHeights: number[] = [];
+
+  showPublishDialog = false;
 
   constructor(private reviewSvc: ReviewService) {}
 
@@ -100,7 +105,9 @@ export class DiffTableComponent implements OnChanges {
   fetchExistedComments() {
     this.reviewSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
       // Overall comments are always at line 0
-      this.overallComments = c.filter((c) => c.line == 0);
+      this.overallComments = c.filter(
+        (c) => c.line === 0 || c.path === '/PATCHSET_LEVEL'
+      );
 
       // filter and sort
       const filtered = c.filter((comment) => comment.path === this.file);
@@ -291,20 +298,71 @@ export class DiffTableComponent implements OnChanges {
     this.replyDraft = undefined;
   }
 
+  onOpenPublishDialog() {
+    this.showPublishDialog = true;
+  }
+
   // Post the draft comments to the server
   onSubmitReview() {
-    // What draft comments to publish?
-    const filteredDraftIds: string[] = this.draftComments
-      .filter((draft) => draft.line == 8)
+    const draftIds: string[] = this.draftComments
       .map((draft) => draft.id)
       .filter((id): id is string => typeof id === 'string');
 
     this.reviewSvc
-      .publishDraftComments(this.gerritChangeId, filteredDraftIds)
+      .publishDraftComments(this.gerritChangeId, draftIds)
       .subscribe(() => {
         console.log('Publish review');
         this.fetchExistedComments();
         this.fetchDraftComments();
       });
+  }
+
+  onPublishConfirmed(evt: { action: PublishAction; message: string }) {
+    this.showPublishDialog = false;
+
+    console.log('Publish confirmed: ', evt);
+
+    if (this.draftComments.length === 0 && evt.message === '') {
+      console.log('No draft comments to publish');
+      return;
+    }
+
+    if (evt.message !== '') {
+      // Create a new draft comment for the overall message
+      const overallComment: GerritCommentInput = {
+        path: '/PATCHSET_LEVEL',
+        message: evt.message,
+      };
+
+      // Post overall comment to get the ID
+      this.reviewSvc
+        .postDraftComment(this.gerritChangeId, overallComment)
+        .subscribe((savedDraft: GerritCommentInput) => {
+          this.draftComments.push(savedDraft);
+
+          // gather the IDs you want to publish
+          const draftIds = this.draftComments.map((d) => d.id!);
+
+          // call your service, passing along the overall message if you like
+          this.reviewSvc
+            .publishDraftComments(this.gerritChangeId, draftIds)
+            .subscribe(() => {
+              console.log('Publish review with overall comment');
+              this.fetchDraftComments();
+              this.fetchExistedComments();
+            });
+        });
+    } else {
+      // No overall comment, just publish the draft comments
+      const draftIds = this.draftComments.map((d) => d.id!);
+
+      this.reviewSvc
+        .publishDraftComments(this.gerritChangeId, draftIds)
+        .subscribe(() => {
+          console.log('Publish review without overall comment');
+          this.fetchDraftComments();
+          this.fetchExistedComments();
+        });
+    }
   }
 }
