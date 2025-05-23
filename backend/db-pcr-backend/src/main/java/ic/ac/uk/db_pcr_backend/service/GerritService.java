@@ -55,7 +55,7 @@ import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
-import ic.ac.uk.db_pcr_backend.dto.gerritdto.ReviewInputDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.SelectiveReviewInput;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
@@ -373,38 +373,17 @@ public class GerritService {
 
     }
 
-    public void publishDrafts(String gerritChangeId, ReviewInputDto reviewInput) throws RestApiException {
+    public void publishDrafts(String gerritChangeId, List<String> draftIds) throws RestApiException {
         System.out.println("Service: GerritService.publishDraft");
 
         RevisionApi revisionApi = gerritApi.changes().id(gerritChangeId).revision("current");
 
-        // Create the review input
-        ReviewInput review = new ReviewInput();
-
-        // Construct the comment input map (filePath → [ CommentInput])
-        Map<String, List<CommentInput>> commentMap = java.util.Arrays.asList(reviewInput.getComments()).stream()
-                .collect(Collectors.groupingBy(CommentInputDto::getPath,
-                        Collectors.mapping(dto -> CommentInputDto.fromDtoToEntity(dto),
-                                Collectors.toList())));
-
-        // Log each comment
-        commentMap.forEach((filePath, comments) -> {
-            System.out.println("DBLOG: filePath: " + filePath);
-            comments.forEach(comment -> {
-                System.out.println("DBLOG: comment Id: " + comment.commitId);
-                System.out.println("DBLOG: comment message: " + comment.message);
-                System.out.println("DBLOG: comment line: " + comment.line);
-                System.out.println("DBLOG: comment side: " + comment.side);
-                System.out.println("DBLOG: comment inReplyTo: " + comment.inReplyTo);
-                System.out.println("DBLOG: comment updated: " + comment.updated);
-                System.out.println("DBLOG: comment path: " + comment.path);
-            });
-        });
+        // Create the review input (extended ReviewInput to allow draft_ids_to_publish)
+        SelectiveReviewInput review = new SelectiveReviewInput();
 
         // Add new drafts as comments and publish
-        review.comments = commentMap;
-        review.message = reviewInput.getMessage();
         review.drafts = ReviewInput.DraftHandling.PUBLISH;
+        review.draftIdsToPublish = draftIds;
 
         // // Send the review
         ReviewResult reviewResult = revisionApi.review(review);

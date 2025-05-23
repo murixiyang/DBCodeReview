@@ -293,18 +293,17 @@ export class DiffTableComponent implements OnChanges {
 
   // Post the draft comments to the server
   onSubmitReview() {
-    // Build revie input
-
-    const reviewInput = {
-      message: '',
-      comments: this.draftComments.filter((d) => d.line == 10),
-    };
+    // What draft comments to publish?
+    const filteredDraftIds: string[] = this.draftComments
+      .filter((draft) => draft.line == 8)
+      .map((draft) => draft.id)
+      .filter((id): id is string => typeof id === 'string');
 
     this.reviewSvc
-      .publishDraftComments(this.gerritChangeId, reviewInput)
+      .publishDraftComments(this.gerritChangeId, filteredDraftIds)
       .subscribe(() => {
         console.log('Publish review');
-        this.fetchExistedComments;
+        this.fetchExistedComments();
         this.fetchDraftComments();
       });
   }
