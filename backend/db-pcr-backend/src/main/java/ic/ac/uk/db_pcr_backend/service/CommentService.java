@@ -9,8 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ic.ac.uk.db_pcr_backend.dto.datadto.PseudonymCommentInfoDto;
-import ic.ac.uk.db_pcr_backend.dto.datadto.UsernameCommentInfoDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.NameCommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GerritCommentEntity;
@@ -100,11 +99,11 @@ public class CommentService {
 
     /** Given unnamed comment, return with pseudonym attached */
     @Transactional(readOnly = true)
-    public List<PseudonymCommentInfoDto> getCommentsWithPseudonym(String gerritChangeId, List<CommentInfoDto> comments)
+    public List<NameCommentInfoDto> getCommentsWithPseudonym(String gerritChangeId, List<CommentInfoDto> comments)
             throws GitLabApiException {
         System.out.println("Service: CommentService.getCommentsWithPseudonym");
 
-        List<PseudonymCommentInfoDto> pseudonymComments = new ArrayList<>();
+        List<NameCommentInfoDto> pseudonymComments = new ArrayList<>();
 
         comments.forEach((comment) -> {
 
@@ -115,7 +114,7 @@ public class CommentService {
                             "No comments found for changeId " + gerritChangeId +
                                     " and commentId " + comment.getId()));
 
-            PseudonymCommentInfoDto pseudonymComment = new PseudonymCommentInfoDto(
+            NameCommentInfoDto pseudonymComment = new NameCommentInfoDto(
                     commentEntity.getPseudonym().getName(),
                     commentEntity.getIsAuthor(),
                     comment);
@@ -129,11 +128,11 @@ public class CommentService {
 
     /** Given unnamed comment, return with username attached */
     @Transactional(readOnly = true)
-    public List<UsernameCommentInfoDto> getCommentsWithUsername(String gerritChangeId, List<CommentInfoDto> comments)
+    public List<NameCommentInfoDto> getCommentsWithUsername(String gerritChangeId, List<CommentInfoDto> comments)
             throws GitLabApiException {
         System.out.println("Service: CommentService.getCommentsWithUsername");
 
-        List<UsernameCommentInfoDto> usernameComments = new ArrayList<>();
+        List<NameCommentInfoDto> usernameComments = new ArrayList<>();
 
         comments.forEach((comment) -> {
 
@@ -144,7 +143,7 @@ public class CommentService {
                             "No comments found for changeId " + gerritChangeId +
                                     " and commentId " + comment.getId()));
 
-            UsernameCommentInfoDto usernameComment = new UsernameCommentInfoDto(
+            NameCommentInfoDto usernameComment = new NameCommentInfoDto(
                     commentEntity.getCommentUser().getUsername(),
                     commentEntity.getIsAuthor(),
                     comment);

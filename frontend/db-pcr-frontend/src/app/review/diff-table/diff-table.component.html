@@ -15,7 +15,8 @@
     <app-comment-box
       *ngIf="c"
       variant="published"
-      [comment]="c"
+      [authorName]="c.displayName"
+      [comment]="c.commentInfo"
     ></app-comment-box>
   </div>
 </div>
@@ -93,18 +94,19 @@
               *ngFor="let c of publishedFor(file, line.newNumber!, 'REVISION')"
             >
               <!-- 1) the published comment -->
-              <div [ngClass]="{ 'reply-container': c.inReplyTo }">
+              <div [ngClass]="{ 'reply-container': c.commentInfo.inReplyTo }">
                 <app-comment-box
                   variant="published"
-                  [comment]="c"
-                  (reply)="onReply(c, 'REVISION')"
+                  [authorName]="c.displayName"
+                  [comment]="c.commentInfo"
+                  (reply)="onReply(c.commentInfo, 'REVISION')"
                 ></app-comment-box>
               </div>
 
               <!-- 2) the inline reply‐box, only for that comment -->
               <div class="reply-container">
                 <app-comment-box
-                  *ngIf="replyingTo?.id === c.id"
+                  *ngIf="replyingTo?.id === c.commentInfo.id"
                   variant="new"
                   [comment]="replyDraft!"
                   (saved)="onSaveReply($event)"

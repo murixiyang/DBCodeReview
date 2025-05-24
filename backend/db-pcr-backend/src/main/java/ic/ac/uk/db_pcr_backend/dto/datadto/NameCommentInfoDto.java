@@ -2,26 +2,27 @@ package ic.ac.uk.db_pcr_backend.dto.datadto;
 
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 
-public class PseudonymCommentInfoDto {
+public class NameCommentInfoDto {
 
-    private String pseudonym;
+    // Can be either a pseudonym or a username
+    private String displayName;
     private Boolean isAuthor;
     private CommentInfoDto commentInfo;
 
     // --- Constructors ---
-    public PseudonymCommentInfoDto(String pseudonym, Boolean isAuthor, CommentInfoDto commentInfo) {
-        this.pseudonym = pseudonym;
+    public NameCommentInfoDto(String displayName, Boolean isAuthor, CommentInfoDto commentInfo) {
+        this.displayName = displayName;
         this.isAuthor = isAuthor;
         this.commentInfo = commentInfo;
     }
 
     // --- Getters & Setters ---
-    public String getPseudonym() {
-        return pseudonym;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setPseudonym(String pseudonym) {
-        this.pseudonym = pseudonym;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public Boolean getIsAuthor() {

@@ -8,8 +8,7 @@ import { ReviewAssignmentPseudonymDto } from '../interface/database/review-assig
 import { GerritCommentInfo } from '../interface/gerrit/gerrit-comment-info';
 import { GerritCommentInput } from '../interface/gerrit/gerrit-comment-input';
 import { PseudonymGitlabCommitDto } from '../interface/database/pseudonym-gitlab-commit-dto';
-import { PseudonymCommentInfo } from '../interface/gerrit/pseudonym-comment-info';
-import { UsernameCommentInfo } from '../interface/gerrit/username-comment-info';
+import { NameCommentInfo } from '../interface/gerrit/name-comment-info';
 
 @Injectable({
   providedIn: 'root',
@@ -149,10 +148,10 @@ export class ReviewService {
   /** Get Existed comments with Pseudonym attached */
   getExistedCommentsWithPseudonym(
     gerritChangeId: string
-  ): Observable<PseudonymCommentInfo[]> {
+  ): Observable<NameCommentInfo[]> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
-    return this.http.get<PseudonymCommentInfo[]>(
+    return this.http.get<NameCommentInfo[]>(
       `${this.baseUrl}/get-gerrit-change-comments-with-pseudonym`,
       {
         params,
@@ -163,10 +162,10 @@ export class ReviewService {
   /** Get Existed comments with Username attached */
   getExistedCommentsWithUsername(
     gerritChangeId: string
-  ): Observable<UsernameCommentInfo[]> {
+  ): Observable<NameCommentInfo[]> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
-    return this.http.get<UsernameCommentInfo[]>(
+    return this.http.get<NameCommentInfo[]>(
       `${this.baseUrl}/get-gerrit-change-comments-with-username`,
       {
         params,

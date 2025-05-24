@@ -10,8 +10,6 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe, NgSwitch, NgSwitchCase } from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
-import { PseudonymCommentInfo } from '../../interface/gerrit/pseudonym-comment-info';
-import { UsernameCommentInfo } from '../../interface/gerrit/username-comment-info';
 
 export type CommentVariant =
   | 'published'
@@ -29,8 +27,10 @@ export type CommentVariant =
 export class CommentBoxComponent {
   @Input() variant!: CommentVariant;
 
+  @Input() authorName: string = '';
+
   /** Either a draft input or an existing comment */
-  @Input() comment!: GerritCommentInput | PseudonymCommentInfo | UsernameCommentInfo;
+  @Input() comment!: GerritCommentInput | GerritCommentInfo;
 
   /** save (for new & draft) */
   @Output() saved = new EventEmitter<GerritCommentInput>();

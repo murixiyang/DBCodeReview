@@ -17,6 +17,7 @@ import {
   PublishAction,
   PublishDialogComponent,
 } from '../publish-dialog/publish-dialog.component';
+import { NameCommentInfo } from '../../interface/gerrit/name-comment-info';
 
 interface DiffLine {
   oldNumber: number | null;
@@ -39,8 +40,8 @@ export class DiffTableComponent implements OnChanges {
   @Input() newText!: string;
   @Input() file!: string;
 
-  existedComments: GerritCommentInfo[] = [];
-  overallComments: GerritCommentInfo[] = [];
+  existedComments: NameCommentInfo[] = [];
+  overallComments: NameCommentInfo[] = [];
   draftComments: GerritCommentInput[] = [];
 
   lines: DiffLine[] = [];
@@ -104,22 +105,27 @@ export class DiffTableComponent implements OnChanges {
   }
 
   fetchExistedComments() {
-    this.reviewSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
-      // Overall comments are always at line 0
-      this.overallComments = c.filter(
-        (c) => c.line === 0 || c.path === '/PATCHSET_LEVEL'
-      );
+    this.reviewSvc
+      .getExistedCommentsWithPseudonym(this.gerritChangeId)
+      .subscribe((c) => {
+        // Overall comments are always at line 0
+        this.overallComments = c.filter(
+          (c) =>
+            c.commentInfo.line === 0 || c.commentInfo.path === '/PATCHSET_LEVEL'
+        );
 
-      // filter and sort
-      const filtered = c.filter((comment) => comment.path === this.file);
-      this.existedComments = filtered.sort((a, b) => {
-        const ta = new Date(a.updated ?? Date.now()).getTime();
-        const tb = new Date(b.updated ?? Date.now()).getTime();
-        return ta - tb;
+        // filter and sort
+        const filtered = c.filter(
+          (comment) => comment.commentInfo.path === this.file
+        );
+        this.existedComments = filtered.sort((a, b) => {
+          const ta = new Date(a.commentInfo.updated ?? Date.now()).getTime();
+          const tb = new Date(b.commentInfo.updated ?? Date.now()).getTime();
+          return ta - tb;
+        });
+
+        console.log('existed comments: ', c);
       });
-
-      console.log('existed comments: ', c);
-    });
   }
 
   fetchDraftComments() {
@@ -212,9 +218,12 @@ export class DiffTableComponent implements OnChanges {
     path: string,
     line: number,
     side?: 'PARENT' | 'REVISION'
-  ): GerritCommentInfo[] {
+  ): NameCommentInfo[] {
     return this.existedComments.filter(
-      (c) => c.path === path && c.line === line && c.side === side
+      (c) =>
+        c.commentInfo.path === path &&
+        c.commentInfo.line === line &&
+        c.commentInfo.side === side
     );
   }
 

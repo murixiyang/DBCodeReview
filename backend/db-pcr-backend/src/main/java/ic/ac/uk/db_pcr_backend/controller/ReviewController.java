@@ -25,11 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gerrit.extensions.restapi.RestApiException;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.NameCommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
-import ic.ac.uk.db_pcr_backend.dto.datadto.PseudonymCommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.PseudonymGitlabCommitDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
-import ic.ac.uk.db_pcr_backend.dto.datadto.UsernameCommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
@@ -318,25 +317,25 @@ public class ReviewController {
     }
 
     @GetMapping("/get-gerrit-change-comments-with-pseudonym")
-    public ResponseEntity<List<PseudonymCommentInfoDto>> getGerritChangeCommentsWithPseudonym(
+    public ResponseEntity<List<NameCommentInfoDto>> getGerritChangeCommentsWithPseudonym(
             @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeCommentsWithPseudonyms");
 
         List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId);
-        List<PseudonymCommentInfoDto> pseudonymComments = commentSvc.getCommentsWithPseudonym(gerritChangeId, comments);
+        List<NameCommentInfoDto> pseudonymComments = commentSvc.getCommentsWithPseudonym(gerritChangeId, comments);
 
         return ResponseEntity.ok(pseudonymComments);
     }
 
     @GetMapping("/get-gerrit-change-comments-with-username")
-    public ResponseEntity<List<UsernameCommentInfoDto>> getGerritChangeCommentsWithUsername(
+    public ResponseEntity<List<NameCommentInfoDto>> getGerritChangeCommentsWithUsername(
             @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeCommentsWithUsername");
 
         List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId);
-        List<UsernameCommentInfoDto> usernameComments = commentSvc.getCommentsWithUsername(gerritChangeId, comments);
+        List<NameCommentInfoDto> usernameComments = commentSvc.getCommentsWithUsername(gerritChangeId, comments);
 
         return ResponseEntity.ok(usernameComments);
     }

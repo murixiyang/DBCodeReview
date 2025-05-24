@@ -7,8 +7,7 @@
     (click)="$event.stopPropagation()"
   >
     <div class="header">
-      <!-- <span class="author">{{ (comment as GerritCommentInfo).author }}</span> -->
-      <span class="author">Author Name</span>
+      <span class="author">{{ authorName }}</span>
       <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
     </div>
     <div class="comment-display" [innerText]="comment.message"></div>
