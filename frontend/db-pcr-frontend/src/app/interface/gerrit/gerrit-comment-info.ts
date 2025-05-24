@@ -1,7 +1,7 @@
 export interface GerritCommentInfo {
   id: string;
   path: string;
-  side: string;
+  side?: string;
   line?: number;
   inReplyTo?: string;
   message: string;
