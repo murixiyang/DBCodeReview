@@ -352,12 +352,19 @@ public class ReviewController {
     @PostMapping("/post-gerrit-draft-comment")
     public ResponseEntity<CommentInfoDto> postGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
-            @RequestBody CommentInputDto commentInput) throws RestApiException {
+            @RequestParam("assignmentId") String assignmentId,
+            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.postGerritDraftComment");
 
-        return ResponseEntity.ok(gerritSvc.postGerritDraft(
-                gerritChangeId, commentInput));
+        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput);
+
+        // Save commentEntity to database
+        String username = oauth2User.getAttribute("username").toString();
+        commentSvc.recordDraftComment(gerritChangeId, assignmentId, savedDraft, username);
+
+        return ResponseEntity.ok(savedDraft);
     }
 
     @PutMapping("/update-gerrit-draft-comment")
@@ -385,17 +392,14 @@ public class ReviewController {
     @PostMapping("/publish-gerrit-draft-comments")
     public ResponseEntity<Void> publishDraftComments(
             @RequestParam("gerritChangeId") String gerritChangeId,
-            @RequestParam("assignmentId") String assignmentId,
-            @RequestBody List<String> draftIds,
-            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
+            @RequestBody List<String> draftIds) throws Exception {
 
         System.out.println("STAGE: ReviewController.publishDraftComments");
 
         gerritSvc.publishDrafts(gerritChangeId, draftIds);
 
-        // Add commentEntity to database
-        String username = oauth2User.getAttribute("username").toString();
-        commentSvc.recordCommentsForChangeId(gerritChangeId, assignmentId, draftIds, username);
+        // Mark the comments as published in the database
+        commentSvc.markCommentsPublished(gerritChangeId, draftIds);
 
         return ResponseEntity.noContent().build();
     }

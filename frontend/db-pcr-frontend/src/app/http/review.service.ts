@@ -188,9 +188,12 @@ export class ReviewService {
   /** Post a draft comment on a Gerrit Change */
   postDraftComment(
     gerritChangeId: string,
+    assignmentId: string,
     commentInput: GerritCommentInput
   ): Observable<GerritCommentInfo> {
-    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('assignmentId', assignmentId);
     return this.http.post<GerritCommentInfo>(
       `${this.baseUrl}/post-gerrit-draft-comment`,
       commentInput,
@@ -233,12 +236,9 @@ export class ReviewService {
   /** Publish draft comments as a review */
   publishDraftComments(
     gerritChangeId: string,
-    selectedAssignmentId: string,
     draftIds: string[]
   ): Observable<void> {
-    const params = new HttpParams()
-      .set('gerritChangeId', gerritChangeId)
-      .set('assignmentId', selectedAssignmentId);
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
     return this.http.post<void>(
       `${this.baseUrl}/publish-gerrit-draft-comments`,

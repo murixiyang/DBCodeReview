@@ -5,8 +5,11 @@ import java.time.Instant;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import ic.ac.uk.db_pcr_backend.model.CommentType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,11 +28,6 @@ public class GerritCommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    /** Link back to the ChangeRequest (and thus the Gerrit change-ID) */
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "change_request_id", nullable = false, foreignKey = @ForeignKey(name = "fk_comment_change_request"))
-    private ChangeRequestEntity changeRequest;
 
     @Column(name = "gerrit_change_id", nullable = false, length = 64)
     private String gerritChangeId;
@@ -51,6 +49,10 @@ public class GerritCommentEntity {
     @Column(name = "is_author", nullable = false)
     private Boolean isAuthor = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private CommentType commentType = CommentType.DRAFT;
+
     /** Timestamps */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -63,25 +65,27 @@ public class GerritCommentEntity {
     public GerritCommentEntity() {
     }
 
-    public GerritCommentEntity(ChangeRequestEntity changeRequest,
-            String gerritChangeId,
-            String gerritCommentId,
-            UserEntity commentUser,
-            PseudonymEntity pseudonym) {
-        this.changeRequest = changeRequest;
-        this.gerritChangeId = gerritChangeId;
-        this.gerritCommentId = gerritCommentId;
-        this.commentUser = commentUser;
-        this.pseudonym = pseudonym;
-    }
-
-    public GerritCommentEntity(ChangeRequestEntity changeRequest,
+    public GerritCommentEntity(
             String gerritChangeId,
             String gerritCommentId,
             UserEntity commentUser,
             PseudonymEntity pseudonym,
+            CommentType commentType) {
+        this.gerritChangeId = gerritChangeId;
+        this.gerritCommentId = gerritCommentId;
+        this.commentUser = commentUser;
+        this.pseudonym = pseudonym;
+        this.commentType = commentType;
+    }
+
+    public GerritCommentEntity(
+            String gerritChangeId,
+            String gerritCommentId,
+            UserEntity commentUser,
+            PseudonymEntity pseudonym,
+            CommentType commentType,
             Boolean isAuthor) {
-        this(changeRequest, gerritChangeId, gerritCommentId, commentUser, pseudonym);
+        this(gerritChangeId, gerritCommentId, commentUser, pseudonym, commentType);
         this.isAuthor = isAuthor;
     }
 
@@ -92,14 +96,6 @@ public class GerritCommentEntity {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public ChangeRequestEntity getChangeRequest() {
-        return changeRequest;
-    }
-
-    public void setChangeRequest(ChangeRequestEntity changeRequest) {
-        this.changeRequest = changeRequest;
     }
 
     public String getGerritChangeId() {
@@ -140,6 +136,14 @@ public class GerritCommentEntity {
 
     public void setIsAuthor(Boolean isAuthor) {
         this.isAuthor = isAuthor;
+    }
+
+    public CommentType getCommentType() {
+        return commentType;
+    }
+
+    public void setCommentType(CommentType commentType) {
+        this.commentType = commentType;
     }
 
     public Instant getCreatedAt() {

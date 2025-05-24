@@ -11,23 +11,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.NameCommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
-import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GerritCommentEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.model.CommentType;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
-import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GerritCommentRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectUserPseudonymRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 
 @Service
 public class CommentService {
-
-    @Autowired
-    private ChangeRequestRepo changeRequestRepo;
 
     @Autowired
     private ReviewAssignmentRepo reviewAssignmentRepo;
@@ -39,31 +35,25 @@ public class CommentService {
     private GerritCommentRepo gerritCommentRepo;
 
     @Transactional
-    public void recordCommentsForChangeId(String gerritChangeId, String assignmentId, List<String> commentIdList,
+    public void recordDraftComment(String gerritChangeId, String assignmentId, CommentInfoDto draftInput,
             String username)
             throws GitLabApiException {
         System.out.println("Service: CommentService.syncCommentsFor");
 
-        // 1) Load the assignment
+        // Find the assignment
         Long assignmentIdLong = Long.parseLong(assignmentId);
         ReviewAssignmentEntity assignment = reviewAssignmentRepo.findById(assignmentIdLong)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Assignment not found for id " + assignmentId));
 
-        // 2) Load the change request
-        ChangeRequestEntity changeRequest = changeRequestRepo
-                .findByAssignmentAndGerritChangeId(assignment, gerritChangeId)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "ChangeRequest not found for assignment " + assignmentId +
-                                " and changeId " + gerritChangeId));
-
-        // 3) Determine whether the current user is the author or reviewer
+        // Determine whether the current user is the author or reviewer
         UserEntity author = assignment.getAuthor();
         UserEntity reviewer = assignment.getReviewer();
 
         UserEntity commentUser;
         RoleType role;
         Boolean isAuthor = false;
+        CommentType commentType = CommentType.DRAFT;
         if (username.equals(author.getUsername())) {
             commentUser = author;
             role = RoleType.AUTHOR;
@@ -85,16 +75,27 @@ public class CommentService {
                                 project.getId() + " as " + role));
 
         // 5) Build and save one GerritCommentEntity per comment ID
-        List<GerritCommentEntity> toSave = new ArrayList<>();
-        for (String commentId : commentIdList) {
-            GerritCommentEntity e = new GerritCommentEntity(changeRequest, gerritChangeId, commentId,
-                    commentUser, pup.getPseudonym(), isAuthor);
-            toSave.add(e);
-        }
+        GerritCommentEntity commentEntity = new GerritCommentEntity(gerritChangeId, draftInput.getId(),
+                commentUser, pup.getPseudonym(), commentType, isAuthor);
 
         // 6) Persist them in one batch
-        gerritCommentRepo.saveAll(toSave);
+        gerritCommentRepo.save(commentEntity);
+    }
 
+    @Transactional
+    public void markCommentsPublished(String gerritChangeId, List<String> draftIdsToPublish)
+            throws GitLabApiException {
+        System.out.println("Service: CommentService.markCommentsPublished");
+
+        // Find all comments with the given change ID and draft IDs
+        List<GerritCommentEntity> commentsToPublish = gerritCommentRepo
+                .findByGerritChangeIdAndGerritCommentIdIn(gerritChangeId, draftIdsToPublish);
+
+        // 2) flip their status
+        commentsToPublish.forEach(d -> d.setCommentType(CommentType.PUBLISHED));
+
+        // 3) write them back
+        gerritCommentRepo.saveAll(commentsToPublish);
     }
 
     /** Given unnamed comment, return with pseudonym attached */

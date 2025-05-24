@@ -1,5 +1,6 @@
 package ic.ac.uk.db_pcr_backend.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,5 +19,10 @@ public interface GerritCommentRepo extends JpaRepository<GerritCommentEntity, Lo
 
     Optional<GerritCommentEntity> findByGerritChangeIdAndGerritCommentId(
             String gerritChangeId, String gerritCommentId);
+
+    // find all comments on this change-ID whose Gerrit IDs are in the given set
+    List<GerritCommentEntity> findByGerritChangeIdAndGerritCommentIdIn(
+            String gerritChangeId,
+            Collection<String> gerritCommentIds);
 
 }

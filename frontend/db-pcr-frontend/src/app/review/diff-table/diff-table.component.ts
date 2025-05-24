@@ -249,7 +249,7 @@ export class DiffTableComponent implements OnChanges {
 
     console.log('Save draft: ', draft);
     this.reviewSvc
-      .postDraftComment(this.gerritChangeId, draft)
+      .postDraftComment(this.gerritChangeId, this.selectedAssignmentId, draft)
       .subscribe((savedDraft: GerritCommentInput) => {
         this.selectedIndex = null;
         this.newDraft = undefined;
@@ -305,7 +305,7 @@ export class DiffTableComponent implements OnChanges {
 
   onSaveReply(draft: GerritCommentInput) {
     this.reviewSvc
-      .postDraftComment(this.gerritChangeId, draft)
+      .postDraftComment(this.gerritChangeId, this.selectedAssignmentId, draft)
       .subscribe(() => {
         this.onCancelReply();
         this.fetchDraftComments();
@@ -328,11 +328,7 @@ export class DiffTableComponent implements OnChanges {
       .filter((id): id is string => typeof id === 'string');
 
     this.reviewSvc
-      .publishDraftComments(
-        this.gerritChangeId,
-        this.selectedAssignmentId,
-        draftIds
-      )
+      .publishDraftComments(this.gerritChangeId, draftIds)
       .subscribe(() => {
         console.log('Publish review');
         this.fetchExistedComments();
@@ -362,7 +358,11 @@ export class DiffTableComponent implements OnChanges {
 
       // Post overall comment to get the ID
       this.reviewSvc
-        .postDraftComment(this.gerritChangeId, overallComment)
+        .postDraftComment(
+          this.gerritChangeId,
+          this.selectedAssignmentId,
+          overallComment
+        )
         .subscribe((savedDraft: GerritCommentInput) => {
           this.draftComments.push(savedDraft);
 
@@ -371,11 +371,7 @@ export class DiffTableComponent implements OnChanges {
 
           // call your service, passing along the overall message if you like
           this.reviewSvc
-            .publishDraftComments(
-              this.gerritChangeId,
-              this.selectedAssignmentId,
-              draftIds
-            )
+            .publishDraftComments(this.gerritChangeId, draftIds)
             .subscribe(() => {
               console.log('Publish review with overall comment');
               this.fetchDraftComments();
@@ -387,11 +383,7 @@ export class DiffTableComponent implements OnChanges {
       const draftIds = this.draftComments.map((d) => d.id!);
 
       this.reviewSvc
-        .publishDraftComments(
-          this.gerritChangeId,
-          this.selectedAssignmentId,
-          draftIds
-        )
+        .publishDraftComments(this.gerritChangeId, draftIds)
         .subscribe(() => {
           console.log('Publish review without overall comment');
           this.fetchDraftComments();
