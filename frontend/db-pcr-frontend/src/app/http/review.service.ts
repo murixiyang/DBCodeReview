@@ -173,12 +173,12 @@ export class ReviewService {
     );
   }
 
-  /** Get Existed draft comment on a Gerrit Change */
-  getDraftComments(gerritChangeId: string): Observable<GerritCommentInfo[]> {
+  /** Get Existed draft comment on a Gerrit Change for current user */
+  getUserDraftComments(gerritChangeId: string): Observable<GerritCommentInfo[]> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
     return this.http.get<GerritCommentInfo[]>(
-      `${this.baseUrl}/get-gerrit-change-draft-comments`,
+      `${this.baseUrl}/get-user-gerrit-change-draft-comments`,
       {
         params,
       }

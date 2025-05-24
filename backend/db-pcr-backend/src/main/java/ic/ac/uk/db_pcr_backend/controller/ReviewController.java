@@ -39,6 +39,7 @@ import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
+import ic.ac.uk.db_pcr_backend.repository.GerritCommentRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
@@ -74,6 +75,9 @@ public class ReviewController {
 
     @Autowired
     private ChangeRequestRepo changeRequestRepo;
+
+    @Autowired
+    private GerritCommentRepo gerritCommentRepo;
 
     @Value("${gitlab.group.id}")
     private String groupId;
@@ -349,6 +353,30 @@ public class ReviewController {
         return ResponseEntity.ok(gerritSvc.getGerritChangeDraftComments(gerritChangeId));
     }
 
+    /** Fetch draft comment for specific user only (should not see other's draft) */
+    @GetMapping("/get-user-gerrit-change-draft-comments")
+    public ResponseEntity<List<CommentInfoDto>> getGerritChangeDraftCommentsForUser(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws RestApiException {
+
+        System.out.println("STAGE: ReviewController.getGerritChangeDraftCommentsForUser");
+
+        List<CommentInfoDto> drafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId);
+
+        String username = oauth2User.getAttribute("username").toString();
+        List<CommentInfoDto> filtered = drafts.stream()
+                .filter(dto -> {
+                    return gerritCommentRepo
+                            .findByGerritChangeIdAndGerritCommentId(gerritChangeId, dto.getId())
+                            .map(entity -> entity.getCommentUser().getUsername().equals(username))
+                            .orElse(false);
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(filtered);
+    }
+
+    /** Post a draft comment to gerrit and record in database */
     @PostMapping("/post-gerrit-draft-comment")
     public ResponseEntity<CommentInfoDto> postGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,

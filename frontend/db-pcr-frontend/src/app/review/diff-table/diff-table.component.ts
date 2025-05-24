@@ -129,7 +129,7 @@ export class DiffTableComponent implements OnChanges {
   }
 
   fetchDraftComments() {
-    this.reviewSvc.getDraftComments(this.gerritChangeId).subscribe((d) => {
+    this.reviewSvc.getUserDraftComments(this.gerritChangeId).subscribe((d) => {
       const filtered = d.filter((draft) => draft.path === this.file);
       this.draftComments = filtered.sort((a, b) => {
         const ta = new Date(a.updated ?? Date.now()).getTime();
