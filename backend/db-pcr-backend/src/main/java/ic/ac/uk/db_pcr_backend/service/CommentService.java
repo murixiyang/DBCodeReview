@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.models.Commit;
-import org.gitlab4j.api.models.Project;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import ic.ac.uk.db_pcr_backend.dto.datadto.PseudonymCommentInfoDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.UsernameCommentInfoDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GerritCommentEntity;
-import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
@@ -63,9 +64,11 @@ public class CommentService {
 
         UserEntity commentUser;
         RoleType role;
+        Boolean isAuthor = false;
         if (username.equals(author.getUsername())) {
             commentUser = author;
             role = RoleType.AUTHOR;
+            isAuthor = true;
         } else if (username.equals(reviewer.getUsername())) {
             commentUser = reviewer;
             role = RoleType.REVIEWER;
@@ -86,13 +89,71 @@ public class CommentService {
         List<GerritCommentEntity> toSave = new ArrayList<>();
         for (String commentId : commentIdList) {
             GerritCommentEntity e = new GerritCommentEntity(changeRequest, gerritChangeId, commentId,
-                    commentUser, pup.getPseudonym());
+                    commentUser, pup.getPseudonym(), isAuthor);
             toSave.add(e);
         }
 
         // 6) Persist them in one batch
         gerritCommentRepo.saveAll(toSave);
 
+    }
+
+    /** Given unnamed comment, return with pseudonym attached */
+    @Transactional(readOnly = true)
+    public List<PseudonymCommentInfoDto> getCommentsWithPseudonym(String gerritChangeId, List<CommentInfoDto> comments)
+            throws GitLabApiException {
+        System.out.println("Service: CommentService.getCommentsWithPseudonym");
+
+        List<PseudonymCommentInfoDto> pseudonymComments = new ArrayList<>();
+
+        comments.forEach((comment) -> {
+
+            // Find comment in the database
+            GerritCommentEntity commentEntity = gerritCommentRepo
+                    .findByGerritChangeIdAndGerritCommentId(gerritChangeId, comment.getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "No comments found for changeId " + gerritChangeId +
+                                    " and commentId " + comment.getId()));
+
+            PseudonymCommentInfoDto pseudonymComment = new PseudonymCommentInfoDto(
+                    commentEntity.getPseudonym().getName(),
+                    commentEntity.getIsAuthor(),
+                    comment);
+
+            pseudonymComments.add(pseudonymComment);
+
+        });
+
+        return pseudonymComments;
+    }
+
+    /** Given unnamed comment, return with username attached */
+    @Transactional(readOnly = true)
+    public List<UsernameCommentInfoDto> getCommentsWithUsername(String gerritChangeId, List<CommentInfoDto> comments)
+            throws GitLabApiException {
+        System.out.println("Service: CommentService.getCommentsWithUsername");
+
+        List<UsernameCommentInfoDto> usernameComments = new ArrayList<>();
+
+        comments.forEach((comment) -> {
+
+            // Find comment in the database
+            GerritCommentEntity commentEntity = gerritCommentRepo
+                    .findByGerritChangeIdAndGerritCommentId(gerritChangeId, comment.getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "No comments found for changeId " + gerritChangeId +
+                                    " and commentId " + comment.getId()));
+
+            UsernameCommentInfoDto usernameComment = new UsernameCommentInfoDto(
+                    commentEntity.getCommentUser().getUsername(),
+                    commentEntity.getIsAuthor(),
+                    comment);
+
+            usernameComments.add(usernameComment);
+
+        });
+
+        return usernameComments;
     }
 
 }

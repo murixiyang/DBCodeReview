@@ -48,6 +48,9 @@ public class GerritCommentEntity {
     @JoinColumn(name = "pseudonym_id", nullable = false, foreignKey = @ForeignKey(name = "fk_comment_pseudonym"))
     private PseudonymEntity pseudonym;
 
+    @Column(name = "is_author", nullable = false)
+    private Boolean isAuthor = false;
+
     /** Timestamps */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -70,6 +73,16 @@ public class GerritCommentEntity {
         this.gerritCommentId = gerritCommentId;
         this.commentUser = commentUser;
         this.pseudonym = pseudonym;
+    }
+
+    public GerritCommentEntity(ChangeRequestEntity changeRequest,
+            String gerritChangeId,
+            String gerritCommentId,
+            UserEntity commentUser,
+            PseudonymEntity pseudonym,
+            Boolean isAuthor) {
+        this(changeRequest, gerritChangeId, gerritCommentId, commentUser, pseudonym);
+        this.isAuthor = isAuthor;
     }
 
     // --- Getters and Setters ---
@@ -119,6 +132,14 @@ public class GerritCommentEntity {
 
     public void setPseudonym(PseudonymEntity pseudonym) {
         this.pseudonym = pseudonym;
+    }
+
+    public Boolean getIsAuthor() {
+        return isAuthor;
+    }
+
+    public void setIsAuthor(Boolean isAuthor) {
+        this.isAuthor = isAuthor;
     }
 
     public Instant getCreatedAt() {

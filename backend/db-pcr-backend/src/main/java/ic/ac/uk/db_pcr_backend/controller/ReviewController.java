@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.gitlab4j.api.models.Project;
+import org.gitlab4j.api.GitLabApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +26,10 @@ import com.google.gerrit.extensions.restapi.RestApiException;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.ChangeRequestDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ProjectDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.PseudonymCommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.PseudonymGitlabCommitDto;
 import ic.ac.uk.db_pcr_backend.dto.datadto.ReviewAssignmentPseudonymDto;
+import ic.ac.uk.db_pcr_backend.dto.datadto.UsernameCommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
@@ -313,6 +315,30 @@ public class ReviewController {
         System.out.println("STAGE: ReviewController.getGerritChangeComments");
 
         return ResponseEntity.ok(gerritSvc.getGerritChangeComments(gerritChangeId));
+    }
+
+    @GetMapping("/get-gerrit-change-comments-with-pseudonym")
+    public ResponseEntity<List<PseudonymCommentInfoDto>> getGerritChangeCommentsWithPseudonym(
+            @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException, GitLabApiException {
+
+        System.out.println("STAGE: ReviewController.getGerritChangeCommentsWithPseudonyms");
+
+        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId);
+        List<PseudonymCommentInfoDto> pseudonymComments = commentSvc.getCommentsWithPseudonym(gerritChangeId, comments);
+
+        return ResponseEntity.ok(pseudonymComments);
+    }
+
+    @GetMapping("/get-gerrit-change-comments-with-username")
+    public ResponseEntity<List<UsernameCommentInfoDto>> getGerritChangeCommentsWithUsername(
+            @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException, GitLabApiException {
+
+        System.out.println("STAGE: ReviewController.getGerritChangeCommentsWithUsername");
+
+        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId);
+        List<UsernameCommentInfoDto> usernameComments = commentSvc.getCommentsWithUsername(gerritChangeId, comments);
+
+        return ResponseEntity.ok(usernameComments);
     }
 
     @GetMapping("/get-gerrit-change-draft-comments")
