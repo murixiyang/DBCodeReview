@@ -82,7 +82,7 @@ public class ReviewController {
      * Return all the Projects this username is a reviewer *for*,
      * based on the assignments table.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     @GetMapping("/get-projects-to-review")
     public ResponseEntity<List<ProjectDto>> getProjectsToReview(
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,

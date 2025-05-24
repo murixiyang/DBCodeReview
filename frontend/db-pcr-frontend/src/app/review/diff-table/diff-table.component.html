@@ -15,7 +15,7 @@
     <app-comment-box
       *ngIf="c"
       variant="published"
-      [authorName]="c.displayName"
+      [authorName]="getDisplayName(c)"
       [comment]="c.commentInfo"
     ></app-comment-box>
   </div>
@@ -97,7 +97,7 @@
               <div [ngClass]="{ 'reply-container': c.commentInfo.inReplyTo }">
                 <app-comment-box
                   variant="published"
-                  [authorName]="c.displayName"
+                  [authorName]="getDisplayName(c)"
                   [comment]="c.commentInfo"
                   (reply)="onReply(c.commentInfo, 'REVISION')"
                 ></app-comment-box>

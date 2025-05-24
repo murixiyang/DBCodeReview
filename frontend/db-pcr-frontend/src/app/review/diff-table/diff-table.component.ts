@@ -235,6 +235,15 @@ export class DiffTableComponent implements OnChanges {
     this.newDraft = { path: this.file, line: ln, message: '' };
   }
 
+  // Get commenter's display name
+  getDisplayName(comment: NameCommentInfo): string {
+    if (comment.isAuthor) {
+      return comment.displayName + ' (Author)';
+    } else {
+      return comment.displayName;
+    }
+  }
+
   onSaveDraft(draft: GerritCommentInput, side?: 'PARENT' | 'REVISION') {
     draft.side = side;
 
