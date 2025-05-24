@@ -118,24 +118,26 @@
             <ng-container
               *ngFor="let d of draftFor(file, line.newNumber!, 'REVISION')"
             >
-              <!-- If this is the one being edited… -->
-              <app-comment-box
-                *ngIf="editingDraft?.id === d.id; else showDraft"
-                variant="update"
-                [comment]="editingDraft!"
-                (saved)="onUpdateDraft($event)"
-                (canceled)="onCancelUpdate()"
-              ></app-comment-box>
-
-              <!-- Otherwise, show the normal draft view -->
-              <ng-template #showDraft>
+              <div [ngClass]="{ 'reply-container': d.inReplyTo }">
+                <!-- If this is the one being edited… -->
                 <app-comment-box
-                  variant="draft"
-                  [comment]="d"
-                  (edited)="onEditDraft($event)"
-                  (deleted)="onDeleteDraft($event)"
+                  *ngIf="editingDraft?.id === d.id; else showDraft"
+                  variant="update"
+                  [comment]="editingDraft!"
+                  (saved)="onUpdateDraft($event)"
+                  (canceled)="onCancelUpdate()"
                 ></app-comment-box>
-              </ng-template>
+
+                <!-- Otherwise, show the normal draft view -->
+                <ng-template #showDraft>
+                  <app-comment-box
+                    variant="draft"
+                    [comment]="d"
+                    (edited)="onEditDraft($event)"
+                    (deleted)="onDeleteDraft($event)"
+                  ></app-comment-box>
+                </ng-template>
+              </div>
             </ng-container>
           </td>
         </tr>
