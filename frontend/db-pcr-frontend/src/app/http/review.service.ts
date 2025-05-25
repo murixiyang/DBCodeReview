@@ -174,7 +174,9 @@ export class ReviewService {
   }
 
   /** Get Existed draft comment on a Gerrit Change for current user */
-  getUserDraftComments(gerritChangeId: string): Observable<GerritCommentInfo[]> {
+  getUserDraftComments(
+    gerritChangeId: string
+  ): Observable<GerritCommentInfo[]> {
     const params = new HttpParams().set('gerritChangeId', gerritChangeId);
 
     return this.http.get<GerritCommentInfo[]>(
@@ -219,9 +221,12 @@ export class ReviewService {
   /** Delete a draft comment on a Gerrit Change */
   deleteDraftComment(
     gerritChangeId: string,
+    assignmentId: string,
     commentInput: GerritCommentInput
   ): Observable<void> {
-    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('assignmentId', assignmentId);
     // HttpClient.delete() doesn’t accept a body, so we use the generic request() form:
     return this.http.request<void>(
       'DELETE',
@@ -236,9 +241,14 @@ export class ReviewService {
   /** Publish draft comments as a review */
   publishDraftComments(
     gerritChangeId: string,
+    assignmentId: string,
+    needResolve: boolean,
     draftIds: string[]
   ): Observable<void> {
-    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('assignmentId', assignmentId)
+      .set('needResolve', needResolve.toString());
 
     return this.http.post<void>(
       `${this.baseUrl}/publish-gerrit-draft-comments`,

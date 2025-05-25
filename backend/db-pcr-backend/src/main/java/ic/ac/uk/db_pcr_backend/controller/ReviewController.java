@@ -47,6 +47,7 @@ import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.CommentService;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
+import ic.ac.uk.db_pcr_backend.service.ReviewStatusService;
 
 @RestController
 @RequestMapping("/api/review")
@@ -60,6 +61,9 @@ public class ReviewController {
 
     @Autowired
     private CommentService commentSvc;
+
+    @Autowired
+    private ReviewStatusService reviewStatusSvc;
 
     @Autowired
     private UserRepo userRepo;
@@ -392,6 +396,10 @@ public class ReviewController {
         String username = oauth2User.getAttribute("username").toString();
         commentSvc.recordDraftComment(gerritChangeId, assignmentId, savedDraft, username);
 
+        // Change the reivew status
+        Long assignmentIdLong = Long.valueOf(assignmentId);
+        reviewStatusSvc.notReviewedToInReview(assignmentIdLong, gerritChangeId);
+
         return ResponseEntity.ok(savedDraft);
     }
 
@@ -409,17 +417,29 @@ public class ReviewController {
     @DeleteMapping("/delete-gerrit-draft-comment")
     public ResponseEntity<Void> deleteGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestParam("assignmentId") String assignmentId,
             @RequestBody CommentInputDto commentInput) throws RestApiException {
 
         System.out.println("STAGE: ReviewController.deleteGerritDraftComment");
 
         gerritSvc.deleteGerritDraft(gerritChangeId, commentInput);
+
+        // If no more draft comments exist for this change, may change to NOT_REVIEWED
+        List<CommentInfoDto> remainingDrafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId);
+        if (remainingDrafts.isEmpty()) {
+            // Change the review status to NOT_REVIEWED
+            Long assignmentIdLong = Long.valueOf(assignmentId);
+            reviewStatusSvc.inReviewToNotReviewed(assignmentIdLong, gerritChangeId);
+        }
+
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/publish-gerrit-draft-comments")
     public ResponseEntity<Void> publishDraftComments(
             @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestParam("assignmentId") String assignmentId,
+            @RequestParam("needResolve") String needResolveStr,
             @RequestBody List<String> draftIds) throws Exception {
 
         System.out.println("STAGE: ReviewController.publishDraftComments");
@@ -428,6 +448,15 @@ public class ReviewController {
 
         // Mark the comments as published in the database
         commentSvc.markCommentsPublished(gerritChangeId, draftIds);
+
+        // Make review status as NEED_RESOLVE or APPROVED
+        Long assignmentIdLong = Long.valueOf(assignmentId);
+        boolean needResolve = Boolean.valueOf(needResolveStr);
+        if (needResolve) {
+            reviewStatusSvc.inReviewToWaitingResolve(assignmentIdLong, gerritChangeId);
+        } else {
+            reviewStatusSvc.inReviewOrResolveToApproved(assignmentIdLong, gerritChangeId);
+        }
 
         return ResponseEntity.noContent().build();
     }

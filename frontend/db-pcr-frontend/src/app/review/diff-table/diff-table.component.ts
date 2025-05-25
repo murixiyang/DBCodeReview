@@ -285,10 +285,12 @@ export class DiffTableComponent implements OnChanges {
   }
 
   onDeleteDraft(d: GerritCommentInput) {
-    this.reviewSvc.deleteDraftComment(this.gerritChangeId, d).subscribe(() => {
-      console.log('Delete draft: ', d);
-      this.fetchDraftComments();
-    });
+    this.reviewSvc
+      .deleteDraftComment(this.gerritChangeId, this.selectedAssignmentId, d)
+      .subscribe(() => {
+        console.log('Delete draft: ', d);
+        this.fetchDraftComments();
+      });
   }
 
   onReply(c: GerritCommentInfo, side: 'PARENT' | 'REVISION') {
@@ -321,22 +323,22 @@ export class DiffTableComponent implements OnChanges {
     this.showPublishDialog = true;
   }
 
+  //   onSubmitReview() {
+  //     const draftIds: string[] = this.draftComments
+  //       .map((draft) => draft.id)
+  //       .filter((id): id is string => typeof id === 'string');
+
+  //     this.reviewSvc
+  //       .publishDraftComments(this.gerritChangeId, this.selectedAssignmentId, draftIds)
+  //       .subscribe(() => {
+  //         console.log('Publish review');
+  //         this.fetchExistedComments();
+  //         this.fetchDraftComments();
+  //       });
+  //   }
+
   // Post the draft comments to the server
-  onSubmitReview() {
-    const draftIds: string[] = this.draftComments
-      .map((draft) => draft.id)
-      .filter((id): id is string => typeof id === 'string');
-
-    this.reviewSvc
-      .publishDraftComments(this.gerritChangeId, draftIds)
-      .subscribe(() => {
-        console.log('Publish review');
-        this.fetchExistedComments();
-        this.fetchDraftComments();
-      });
-  }
-
-  onPublishConfirmed(evt: { action: PublishAction; message: string }) {
+  onPublishConfirmed(evt: { action: PublishAction }) {
     this.showPublishDialog = false;
 
     console.log('Publish confirmed: ', evt);
@@ -344,51 +346,29 @@ export class DiffTableComponent implements OnChanges {
     console.log('Draft comments: ', this.draftComments);
     console.log('This selectedAssignmentId: ', this.selectedAssignmentId);
 
-    if (this.draftComments.length === 0 && evt.message === '') {
+    if (this.draftComments.length === 0) {
       console.log('No draft comments to publish');
       return;
     }
 
-    if (evt.message !== '') {
-      // Create a new draft comment for the overall message
-      const overallComment: GerritCommentInput = {
-        path: '/PATCHSET_LEVEL',
-        message: evt.message,
-      };
+    // gather the IDs you want to publish
+    const draftIds = this.draftComments.map((d) => d.id!);
 
-      // Post overall comment to get the ID
-      this.reviewSvc
-        .postDraftComment(
-          this.gerritChangeId,
-          this.selectedAssignmentId,
-          overallComment
-        )
-        .subscribe((savedDraft: GerritCommentInput) => {
-          this.draftComments.push(savedDraft);
+    // Compute if need resolve
+    const needResolve = evt.action === 'resolve';
 
-          // gather the IDs you want to publish
-          const draftIds = this.draftComments.map((d) => d.id!);
-
-          // call your service, passing along the overall message if you like
-          this.reviewSvc
-            .publishDraftComments(this.gerritChangeId, draftIds)
-            .subscribe(() => {
-              console.log('Publish review with overall comment');
-              this.fetchDraftComments();
-              this.fetchExistedComments();
-            });
-        });
-    } else {
-      // No overall comment, just publish the draft comments
-      const draftIds = this.draftComments.map((d) => d.id!);
-
-      this.reviewSvc
-        .publishDraftComments(this.gerritChangeId, draftIds)
-        .subscribe(() => {
-          console.log('Publish review without overall comment');
-          this.fetchDraftComments();
-          this.fetchExistedComments();
-        });
-    }
+    // call your service, passing along the overall message if you like
+    this.reviewSvc
+      .publishDraftComments(
+        this.gerritChangeId,
+        this.selectedAssignmentId,
+        needResolve,
+        draftIds
+      )
+      .subscribe(() => {
+        console.log('Publish draft comments');
+        this.fetchDraftComments();
+        this.fetchExistedComments();
+      });
   }
 }

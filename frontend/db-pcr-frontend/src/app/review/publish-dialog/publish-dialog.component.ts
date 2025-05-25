@@ -14,19 +14,13 @@ export type PublishAction = 'resolve' | 'approve';
 export class PublishDialogComponent {
   @Input() count = 0;
 
-  /** overall message */
-  message = '';
-
   /** emits the chosen action + message */
-  @Output() confirm = new EventEmitter<{
-    action: PublishAction;
-    message: string;
-  }>();
+  @Output() confirm = new EventEmitter<{ action: PublishAction }>();
   /** cancel button or clicking outside */
   @Output() cancel = new EventEmitter<void>();
 
   onConfirm(action: PublishAction) {
-    this.confirm.emit({ action, message: this.message });
+    this.confirm.emit({ action });
   }
 
   onCancel() {
