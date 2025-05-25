@@ -4,6 +4,12 @@ table {
 th.mat-header-cell {
   font-weight: bold;
 }
+
 mat-chip {
   font-size: 0.9em;
+}
+
+.mat-button-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

@@ -49,7 +49,7 @@ public class ReviewAssignmentEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "project_status", nullable = false, length = 20)
-    private ProjectStatus projectStatus = ProjectStatus.PENDING;
+    private ProjectStatus projectStatus = ProjectStatus.NOT_STARTED;
 
     @Column(name = "project_status_at", nullable = false)
     private Instant projectStatusAt = Instant.now();

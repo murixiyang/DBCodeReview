@@ -128,15 +128,17 @@ public class CommitService {
         if (reviews.stream().allMatch(s -> s == ReviewStatus.NOT_REVIEWED)) {
             return CommitStatus.WAITING_REVIEW;
         }
-        // any reviewer asked for changes or left comments unaddressed
-        if (reviews.stream().anyMatch(s -> s == ReviewStatus.NEED_RESOLVE ||
-                s == ReviewStatus.WAITING_RESOLVE)) {
-            return CommitStatus.CHANGES_REQUESTED;
-        }
+
         // everyone gave +1
         if (reviews.stream().allMatch(s -> s == ReviewStatus.APPROVED)) {
             return CommitStatus.APPROVED;
         }
+
+        // any reviewer asked for changes or left comments unaddressed
+        if (reviews.stream().anyMatch(s -> s == ReviewStatus.WAITING_RESOLVE)) {
+            return CommitStatus.CHANGES_REQUESTED;
+        }
+
         // mixture of APPROVED + NOT_REVIEWED
         return CommitStatus.IN_REVIEW;
     }

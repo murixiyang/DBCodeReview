@@ -44,9 +44,14 @@
         </button>
       </ng-container>
 
-      <!-- Otherwise, show Revert Submission -->
+      <!-- Otherwise, show Check Review Page -->
       <ng-template #revertTpl>
-        <button mat-button color="warn" (click)="checkReviewPage(e)">
+        <button
+          mat-button
+          color="warn"
+          (click)="checkReviewPage(e)"
+          [disabled]="e.status === 'SUPPRESSED_SUBMITTED'"
+        >
           Check Review
         </button>
       </ng-template>
