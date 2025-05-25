@@ -57,6 +57,14 @@ public class NotificationDto {
         this.message = message;
     }
 
+    public boolean isSeen() {
+        return seen;
+    }
+
+    public void setSeen(boolean seen) {
+        this.seen = seen;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
