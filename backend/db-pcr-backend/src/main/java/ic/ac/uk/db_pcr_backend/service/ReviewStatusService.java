@@ -19,7 +19,7 @@ public class ReviewStatusService {
     // * Change review status from NOT_REVIEWED to IN_REVIEW when posting draft
     // comments */
     public void notReviewedToInReview(Long assignmentId, String changeId) {
-        System.out.println("Service: ReviewStatusService.changeReviewStatusToInReview");
+        System.out.println("Service: ReviewStatusService.notReviewedToInReview");
 
         // Find assignment by ID
         var assignment = reviewAssignmentRepo.findById(assignmentId)
@@ -30,12 +30,16 @@ public class ReviewStatusService {
                 .orElseThrow(() -> new IllegalArgumentException("Change request not found for assignment ID: "
                         + assignmentId + " and change ID: " + changeId));
 
+        System.out.println("DBLOG: Change request status before change: " + changeRequest.getStatus());
+
         // Check the change request status, if NOT_REVIEWED, then change to IN_REVIEW
         if (changeRequest.getStatus() == ReviewStatus.NOT_REVIEWED) {
             changeRequest.setStatus(ReviewStatus.IN_REVIEW);
         }
 
         // Otherwise preserve the current status (e.g. IN_REVIEW, NEED_RESOLVE)
+
+        changeRequestRepo.save(changeRequest);
     }
 
     // * Change review status from IN_REVIEW to NOT_REVIEWED when removing draft
@@ -52,12 +56,15 @@ public class ReviewStatusService {
                 .orElseThrow(() -> new IllegalArgumentException("Change request not found for assignment ID: "
                         + assignmentId + " and change ID: " + changeId));
 
-        // Check the change request status, if NOT_REVIEWED, then change to IN_REVIEW
+        System.out.println("DBLOG: Change request status before change: " + changeRequest.getStatus());
+
+        // Check the change request status, if IN_REVIEW, then change to NOT_REVIEWED
         if (changeRequest.getStatus() == ReviewStatus.IN_REVIEW) {
             changeRequest.setStatus(ReviewStatus.NOT_REVIEWED);
         }
 
-        // Otherwise preserve the current status (e.g. IN_REVIEW, NEED_RESOLVE)
+        changeRequestRepo.save(changeRequest);
+
     }
 
     // * Change review status from IN_REVIEW to WAITING_RESOLVE when publishing
@@ -75,12 +82,15 @@ public class ReviewStatusService {
                 .orElseThrow(() -> new IllegalArgumentException("Change request not found for assignment ID: "
                         + assignmentId + " and change ID: " + changeId));
 
-        // Check the change request status, if NOT_REVIEWED, then change to IN_REVIEW
+        System.out.println("DBLOG: Change request status before change: " + changeRequest.getStatus());
+
+        // Check the change request status, if IN_REVIEW, then change to WAITING_RESOLVE
         if (changeRequest.getStatus() == ReviewStatus.IN_REVIEW) {
             changeRequest.setStatus(ReviewStatus.WAITING_RESOLVE);
         }
 
-        // Otherwise preserve the current status (e.g. IN_REVIEW, NEED_RESOLVE)
+        changeRequestRepo.save(changeRequest);
+
     }
 
     // * Change review status from IN_REVIEW or WAITING_RESOLVE to APPROVED when
@@ -97,13 +107,17 @@ public class ReviewStatusService {
                 .orElseThrow(() -> new IllegalArgumentException("Change request not found for assignment ID: "
                         + assignmentId + " and change ID: " + changeId));
 
-        // Check the change request status, if NOT_REVIEWED, then change to IN_REVIEW
+        System.out.println("DBLOG: Change request status before change: " + changeRequest.getStatus());
+
+        // Check the change request status, if IN_REVIEW or WAITING_RESOLVE, then change
+        // to APPROVED
         if (changeRequest.getStatus() == ReviewStatus.IN_REVIEW
                 || changeRequest.getStatus() == ReviewStatus.WAITING_RESOLVE) {
             changeRequest.setStatus(ReviewStatus.APPROVED);
         }
 
-        // Otherwise preserve the current status (e.g. IN_REVIEW, NEED_RESOLVE)
+        changeRequestRepo.save(changeRequest);
+
     }
 
 }
