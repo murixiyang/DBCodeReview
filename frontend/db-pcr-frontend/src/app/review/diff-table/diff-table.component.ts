@@ -13,19 +13,10 @@ import { CommentBoxComponent } from '../comment-box/comment-box.component';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { ReviewService } from '../../http/review.service';
-import {
-  PublishAction,
-  PublishDialogComponent,
-} from '../publish-dialog/publish-dialog.component';
+import { PublishDialogComponent } from '../publish-dialog/publish-dialog.component';
 import { NameCommentInfo } from '../../interface/gerrit/name-comment-info';
-
-interface DiffLine {
-  oldNumber: number | null;
-  newNumber: number | null;
-  oldText: string;
-  newText: string;
-  type: 'equal' | 'insert' | 'delete';
-}
+import { DiffLine } from '../../interface/gerrit/diff-line';
+import { PublishAction } from '../../interface/publish-action';
 
 @Component({
   selector: 'app-diff-table',
@@ -249,7 +240,11 @@ export class DiffTableComponent implements OnChanges {
 
     console.log('Save draft: ', draft);
     this.reviewSvc
-      .postDraftComment(this.gerritChangeId, this.selectedAssignmentId, draft)
+      .postReviewerDraftComment(
+        this.gerritChangeId,
+        this.selectedAssignmentId,
+        draft
+      )
       .subscribe((savedDraft: GerritCommentInput) => {
         this.selectedIndex = null;
         this.newDraft = undefined;
@@ -307,7 +302,11 @@ export class DiffTableComponent implements OnChanges {
 
   onSaveReply(draft: GerritCommentInput) {
     this.reviewSvc
-      .postDraftComment(this.gerritChangeId, this.selectedAssignmentId, draft)
+      .postReviewerDraftComment(
+        this.gerritChangeId,
+        this.selectedAssignmentId,
+        draft
+      )
       .subscribe(() => {
         this.onCancelReply();
         this.fetchDraftComments();
@@ -340,7 +339,7 @@ export class DiffTableComponent implements OnChanges {
 
     // call your service, passing along the overall message if you like
     this.reviewSvc
-      .publishDraftComments(
+      .publishReviewerDraftComments(
         this.gerritChangeId,
         this.selectedAssignmentId,
         needResolve,

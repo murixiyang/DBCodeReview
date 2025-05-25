@@ -456,14 +456,18 @@ public class ReviewController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/publish-gerrit-draft-comments")
-    public ResponseEntity<Void> publishDraftComments(
+    /*
+     * Publish reviewer draft comments, mark them as published in the database,
+     * and update the review status to NEED_RESOLVE or APPROVED.
+     */
+    @PostMapping("/publish-reviewer-gerrit-draft-comments")
+    public ResponseEntity<Void> publishReviewerDraftComments(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
             @RequestParam("needResolve") String needResolveStr,
             @RequestBody List<String> draftIds) throws Exception {
 
-        System.out.println("STAGE: ReviewController.publishDraftComments");
+        System.out.println("STAGE: ReviewController.publishReviewerDraftComments");
 
         gerritSvc.publishDrafts(gerritChangeId, draftIds);
 
@@ -478,6 +482,26 @@ public class ReviewController {
         } else {
             reviewStatusSvc.inReviewOrResolveToApproved(assignmentIdLong, gerritChangeId);
         }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    /*
+     * Publish author draft comments, mark them as published in the database,
+     * not affecting the review status.
+     */
+    @PostMapping("/publish-author-gerrit-draft-comments")
+    public ResponseEntity<Void> publishAuthorDraftComments(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestParam("assignmentId") String assignmentId,
+            @RequestBody List<String> draftIds) throws Exception {
+
+        System.out.println("STAGE: ReviewController.publishAuthorDraftComments");
+
+        gerritSvc.publishDrafts(gerritChangeId, draftIds);
+
+        // Mark the comments as published in the database
+        commentSvc.markCommentsPublished(gerritChangeId, draftIds);
 
         return ResponseEntity.noContent().build();
     }

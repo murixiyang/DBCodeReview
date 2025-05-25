@@ -187,8 +187,8 @@ export class ReviewService {
     );
   }
 
-  /** Post a draft comment on a Gerrit Change */
-  postDraftComment(
+  /** Post a reviewer draft comment on a Gerrit Change */
+  postReviewerDraftComment(
     gerritChangeId: string,
     assignmentId: string,
     commentInput: GerritCommentInput
@@ -197,7 +197,25 @@ export class ReviewService {
       .set('gerritChangeId', gerritChangeId)
       .set('assignmentId', assignmentId);
     return this.http.post<GerritCommentInfo>(
-      `${this.baseUrl}/post-gerrit-draft-comment`,
+      `${this.baseUrl}/post-reviewer-gerrit-draft-comment`,
+      commentInput,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Post a author draft comment on a Gerrit Change */
+  postAuthorDraftComment(
+    gerritChangeId: string,
+    assignmentId: string,
+    commentInput: GerritCommentInput
+  ): Observable<GerritCommentInfo> {
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('assignmentId', assignmentId);
+    return this.http.post<GerritCommentInfo>(
+      `${this.baseUrl}/post-author-gerrit-draft-comment`,
       commentInput,
       {
         params,
@@ -238,8 +256,8 @@ export class ReviewService {
     );
   }
 
-  /** Publish draft comments as a review */
-  publishDraftComments(
+  /** Publish reviewer draft comments as a review */
+  publishReviewerDraftComments(
     gerritChangeId: string,
     assignmentId: string,
     needResolve: boolean,
@@ -251,7 +269,26 @@ export class ReviewService {
       .set('needResolve', needResolve.toString());
 
     return this.http.post<void>(
-      `${this.baseUrl}/publish-gerrit-draft-comments`,
+      `${this.baseUrl}/publish-reviewer-gerrit-draft-comments`,
+      draftIds,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Publish author draft comments as a review */
+  publishAuthorDraftComments(
+    gerritChangeId: string,
+    assignmentId: string,
+    draftIds: string[]
+  ): Observable<void> {
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('assignmentId', assignmentId);
+
+    return this.http.post<void>(
+      `${this.baseUrl}/publish-author-gerrit-draft-comments`,
       draftIds,
       {
         params,

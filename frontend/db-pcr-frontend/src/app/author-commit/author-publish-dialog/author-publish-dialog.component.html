@@ -1,1 +1,16 @@
-<p>author-publish-dialog works!</p>
+<div class="overlay" (click)="onCancel()">
+  <div class="dialog" (click)="$event.stopPropagation()">
+    <h2>Publish Comments</h2>
+    <p>
+      You are about to publish <strong>{{ count }}</strong> comment
+      {{ count > 1 ? "" : "s" }}.<br />
+      Once published they cannot be edited or deleted, and will appear
+      anonymously.
+    </p>
+
+    <div class="buttons">
+      <button (click)="onCancel()">Cancel</button>
+      <button (click)="onConfirm()">Confirm</button>
+    </div>
+  </div>
+</div>

@@ -7,13 +7,14 @@ import { CommitListComponent } from './author-commit/commit-list/commit-list.com
 import { CommitDetailComponent } from './author-commit/commit-details/commit-details.component';
 import { ReviewListComponent } from './review/review-list/review-list.component';
 import { ReviewDetailComponent } from './review/review-detail/review-detail.component';
+import { AuthorReviewDetailComponent } from './author-commit/author-review-detail/author-review-detail.component';
 
 export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
   { path: 'commit-list/:projectId', component: CommitListComponent },
   {
     path: 'author/detail/:gerritChangeId',
-    component: ReviewDetailComponent,
+    component: AuthorReviewDetailComponent,
   },
   { path: 'commit-detail/:projectId/:sha', component: CommitDetailComponent },
   { path: 'review/:projectId', component: ReviewListComponent },

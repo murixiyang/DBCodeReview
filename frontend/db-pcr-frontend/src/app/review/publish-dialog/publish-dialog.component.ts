@@ -1,9 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommentBoxComponent } from '../comment-box/comment-box.component';
-import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
-
-export type PublishAction = 'resolve' | 'approve';
+import { PublishAction } from '../../interface/publish-action';
 
 @Component({
   selector: 'app-publish-dialog',

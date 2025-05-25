@@ -11,7 +11,7 @@ import { DatePipe, NgSwitch, NgSwitchCase } from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 
-export type CommentVariant =
+export type ReviewerCommentVariant =
   | 'published'
   | 'draft'
   | 'new'
@@ -25,9 +25,9 @@ export type CommentVariant =
   styleUrl: './comment-box.component.css',
 })
 export class CommentBoxComponent {
-  @Input() variant!: CommentVariant;
+  @Input() variant!: ReviewerCommentVariant;
 
-  @Input() authorName: string = '';
+  @Input() commenterName: string = '';
 
   /** Either a draft input or an existing comment */
   @Input() comment!: GerritCommentInput | GerritCommentInfo;
