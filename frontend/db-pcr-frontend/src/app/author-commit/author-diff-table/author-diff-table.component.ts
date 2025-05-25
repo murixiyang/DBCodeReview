@@ -2,8 +2,10 @@ import { NgClass, NgFor, NgIf } from '@angular/common';
 import {
   Component,
   ElementRef,
+  EventEmitter,
   Input,
   OnChanges,
+  Output,
   QueryList,
   SimpleChanges,
   ViewChildren,

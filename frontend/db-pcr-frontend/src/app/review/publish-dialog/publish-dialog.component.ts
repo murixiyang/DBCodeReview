@@ -11,7 +11,7 @@ import { PublishAction } from '../../interface/publish-action';
 export class PublishDialogComponent {
   @Input() count = 0;
 
-  /** emits the chosen action + message */
+  /** emits the chosen action */
   @Output() confirm = new EventEmitter<{ action: PublishAction }>();
   /** cancel button or clicking outside */
   @Output() cancel = new EventEmitter<void>();

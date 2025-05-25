@@ -7,11 +7,18 @@ import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info.js
 import { DatePipe, NgFor } from '@angular/common';
 import { DiffTableComponent } from '../diff-table/diff-table.component.js';
 import { PseudonymGitlabCommitDto } from '../../interface/database/pseudonym-gitlab-commit-dto.js';
+import { PublishDialogComponent } from '../publish-dialog/publish-dialog.component.js';
 
 @Component({
   standalone: true,
   selector: 'app-review-detail',
-  imports: [FormsModule, NgFor, DiffTableComponent, DatePipe],
+  imports: [
+    FormsModule,
+    NgFor,
+    DiffTableComponent,
+    DatePipe,
+    PublishDialogComponent,
+  ],
   templateUrl: './review-detail.component.html',
   styleUrl: './review-detail.component.css',
 })

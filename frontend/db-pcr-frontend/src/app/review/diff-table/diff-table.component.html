@@ -1,15 +1,4 @@
-<div>
-  <button (click)="onOpenPublishDialog()">Submit Review</button>
-
-  <app-publish-dialog
-    *ngIf="showPublishDialog"
-    [count]="draftComments.length"
-    (confirm)="onPublishConfirmed($event)"
-    (cancel)="showPublishDialog = false"
-  ></app-publish-dialog>
-</div>
-
-<div>
+<!-- <div>
   Overall comment:
   <div *ngFor="let c of overallComments">
     <app-comment-box
@@ -19,7 +8,7 @@
       [comment]="c.commentInfo"
     ></app-comment-box>
   </div>
-</div>
+</div> -->
 
 <div class="diff-grid">
   <!-- Header items -->
