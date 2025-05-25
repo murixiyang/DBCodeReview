@@ -11,6 +11,10 @@ import { ReviewDetailComponent } from './review/review-detail/review-detail.comp
 export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
   { path: 'commit-list/:projectId', component: CommitListComponent },
+  {
+    path: 'author/detail/:gerritChangeId',
+    component: ReviewDetailComponent,
+  },
   { path: 'commit-detail/:projectId/:sha', component: CommitDetailComponent },
   { path: 'review/:projectId', component: ReviewListComponent },
   {

@@ -323,28 +323,9 @@ export class DiffTableComponent implements OnChanges {
     this.showPublishDialog = true;
   }
 
-  //   onSubmitReview() {
-  //     const draftIds: string[] = this.draftComments
-  //       .map((draft) => draft.id)
-  //       .filter((id): id is string => typeof id === 'string');
-
-  //     this.reviewSvc
-  //       .publishDraftComments(this.gerritChangeId, this.selectedAssignmentId, draftIds)
-  //       .subscribe(() => {
-  //         console.log('Publish review');
-  //         this.fetchExistedComments();
-  //         this.fetchDraftComments();
-  //       });
-  //   }
-
   // Post the draft comments to the server
   onPublishConfirmed(evt: { action: PublishAction }) {
     this.showPublishDialog = false;
-
-    console.log('Publish confirmed: ', evt);
-
-    console.log('Draft comments: ', this.draftComments);
-    console.log('This selectedAssignmentId: ', this.selectedAssignmentId);
 
     if (this.draftComments.length === 0) {
       console.log('No draft comments to publish');

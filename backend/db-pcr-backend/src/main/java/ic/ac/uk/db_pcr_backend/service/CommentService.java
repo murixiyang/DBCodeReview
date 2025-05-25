@@ -35,10 +35,9 @@ public class CommentService {
     private GerritCommentRepo gerritCommentRepo;
 
     @Transactional
-    public void recordDraftComment(String gerritChangeId, String assignmentId, CommentInfoDto draftInput,
-            String username)
+    public void recordReviewerDraftComment(String gerritChangeId, String assignmentId, CommentInfoDto draftInput)
             throws GitLabApiException {
-        System.out.println("Service: CommentService.syncCommentsFor");
+        System.out.println("Service: CommentService.recordReviewerDraftComment");
 
         // Find the assignment
         Long assignmentIdLong = Long.parseLong(assignmentId);
@@ -47,36 +46,52 @@ public class CommentService {
                         "Assignment not found for id " + assignmentId));
 
         // Determine whether the current user is the author or reviewer
-        UserEntity author = assignment.getAuthor();
-        UserEntity reviewer = assignment.getReviewer();
-
-        UserEntity commentUser;
-        RoleType role;
-        Boolean isAuthor = false;
+        UserEntity commentUser = assignment.getReviewer();
+        RoleType role = RoleType.REVIEWER;
         CommentType commentType = CommentType.DRAFT;
-        if (username.equals(author.getUsername())) {
-            commentUser = author;
-            role = RoleType.AUTHOR;
-            isAuthor = true;
-        } else if (username.equals(reviewer.getUsername())) {
-            commentUser = reviewer;
-            role = RoleType.REVIEWER;
-        } else {
-            throw new IllegalArgumentException("User " + username +
-                    " is neither author nor reviewer on assignment " + assignmentId);
-        }
 
         // 4) Find their pseudonym for this project & role
         ProjectEntity project = assignment.getGroupProject();
         ProjectUserPseudonymEntity pup = projectUserPseudonymRepo
                 .findByGroupProjectAndUserAndRole(project, commentUser, role)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "No pseudonym for user " + username + " in project " +
+                        "No pseudonym for user " + commentUser.getUsername() + " in project " +
                                 project.getId() + " as " + role));
 
         // 5) Build and save one GerritCommentEntity per comment ID
         GerritCommentEntity commentEntity = new GerritCommentEntity(gerritChangeId, draftInput.getId(),
-                commentUser, pup.getPseudonym(), commentType, isAuthor);
+                commentUser, pup.getPseudonym(), commentType, false);
+
+        // 6) Persist them in one batch
+        gerritCommentRepo.save(commentEntity);
+    }
+
+    @Transactional
+    public void recordAuthorDraftComment(String gerritChangeId, String assignmentId, CommentInfoDto draftInput)
+            throws GitLabApiException {
+        System.out.println("Service: CommentService.recordAuthorDraftComment");
+
+        // Find the assignment
+        Long assignmentIdLong = Long.parseLong(assignmentId);
+        ReviewAssignmentEntity assignment = reviewAssignmentRepo.findById(assignmentIdLong)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Assignment not found for id " + assignmentId));
+
+        UserEntity commentUser = assignment.getAuthor();
+        RoleType role = RoleType.AUTHOR;
+        CommentType commentType = CommentType.DRAFT;
+
+        // 4) Find their pseudonym for this project & role
+        ProjectEntity project = assignment.getGroupProject();
+        ProjectUserPseudonymEntity pup = projectUserPseudonymRepo
+                .findByGroupProjectAndUserAndRole(project, commentUser, role)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No pseudonym for user " + commentUser.getUsername() + " in project " +
+                                project.getId() + " as " + role));
+
+        // 5) Build and save one GerritCommentEntity per comment ID
+        GerritCommentEntity commentEntity = new GerritCommentEntity(gerritChangeId, draftInput.getId(),
+                commentUser, pup.getPseudonym(), commentType, true);
 
         // 6) Persist them in one batch
         gerritCommentRepo.save(commentEntity);

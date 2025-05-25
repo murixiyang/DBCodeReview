@@ -22,10 +22,6 @@ export class ReviewDetailComponent {
 
   fileContents: Map<string, string[]> = new Map();
 
-  existedComments: GerritCommentInfo[] = [];
-
-  draftComments: GerritCommentInput[] = [];
-
   assignmentId!: string;
 
   constructor(

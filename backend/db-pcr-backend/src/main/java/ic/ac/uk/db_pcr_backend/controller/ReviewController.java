@@ -380,12 +380,12 @@ public class ReviewController {
         return ResponseEntity.ok(filtered);
     }
 
-    /** Post a draft comment to gerrit and record in database */
-    @PostMapping("/post-gerrit-draft-comment")
-    public ResponseEntity<CommentInfoDto> postGerritDraftComment(
+    /** Post a reviewer's draft comment to gerrit and record in database */
+    @PostMapping("/post-reviewer-gerrit-draft-comment")
+    public ResponseEntity<CommentInfoDto> postReviewerGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestBody CommentInputDto commentInput)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.postGerritDraftComment");
@@ -393,8 +393,29 @@ public class ReviewController {
         CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput);
 
         // Save commentEntity to database
-        String username = oauth2User.getAttribute("username").toString();
-        commentSvc.recordDraftComment(gerritChangeId, assignmentId, savedDraft, username);
+        commentSvc.recordReviewerDraftComment(gerritChangeId, assignmentId, savedDraft);
+
+        // Change the reivew status
+        Long assignmentIdLong = Long.valueOf(assignmentId);
+        reviewStatusSvc.notReviewedToInReview(assignmentIdLong, gerritChangeId);
+
+        return ResponseEntity.ok(savedDraft);
+    }
+
+    /** Post a author's draft comment to gerrit and record in database */
+    @PostMapping("/post-author-gerrit-draft-comment")
+    public ResponseEntity<CommentInfoDto> postAuthorGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestParam("assignmentId") String assignmentId,
+            @RequestBody CommentInputDto commentInput)
+            throws RestApiException, GitLabApiException {
+
+        System.out.println("STAGE: ReviewController.postGerritDraftComment");
+
+        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput);
+
+        // Save commentEntity to database
+        commentSvc.recordAuthorDraftComment(gerritChangeId, assignmentId, savedDraft);
 
         // Change the reivew status
         Long assignmentIdLong = Long.valueOf(assignmentId);

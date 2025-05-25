@@ -74,7 +74,7 @@ export class CommitListComponent implements OnInit {
         this.commitSvc
           .getGerritChangeIdByCommitId(commit.commit.id.toString())
           .subscribe((gerritChangeId) => {
-            this.router.navigate(['/review/detail', gerritChangeId], {
+            this.router.navigate(['/author/detail', gerritChangeId], {
               state: {
                 // As author, can use any assignmentId related to them
                 assignmentId: pseudonymDtos[0].id,
