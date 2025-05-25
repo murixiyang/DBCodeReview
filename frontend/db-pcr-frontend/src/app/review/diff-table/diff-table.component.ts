@@ -16,10 +16,11 @@ import { ReviewService } from '../../http/review.service';
 import { NameCommentInfo } from '../../interface/gerrit/name-comment-info';
 import { DiffLine } from '../../interface/gerrit/diff-line';
 import { PublishAction } from '../../interface/publish-action';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-diff-table',
-  imports: [NgFor, NgIf, CommentBoxComponent, NgClass],
+  imports: [NgFor, NgIf, CommentBoxComponent, NgClass, FormsModule],
   templateUrl: './diff-table.component.html',
   styleUrl: './diff-table.component.css',
 })
@@ -46,6 +47,7 @@ export class DiffTableComponent implements OnChanges {
   // Header
   insertedCount = 0;
   deletedCount = 0;
+  viewed = false;
 
   // Placeholder commentbox
   @ViewChildren('measureRow', { read: ElementRef })
