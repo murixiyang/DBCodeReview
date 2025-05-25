@@ -113,6 +113,21 @@ public class CommentService {
         gerritCommentRepo.saveAll(commentsToPublish);
     }
 
+    @Transactional
+    public void deleteDraftComment(String gerritChangeId, String draftId)
+            throws GitLabApiException {
+        System.out.println("Service: CommentService.deleteDraftComment");
+
+        // Find the comment by change ID and draft ID
+        GerritCommentEntity commentToDelete = gerritCommentRepo
+                .findByGerritChangeIdAndGerritCommentId(gerritChangeId, draftId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No comment found for changeId " + gerritChangeId + " and draftId " + draftId));
+
+        // Delete the comment
+        gerritCommentRepo.delete(commentToDelete);
+    }
+
     /** Given unnamed comment, return with pseudonym attached */
     @Transactional(readOnly = true)
     public List<NameCommentInfoDto> getCommentsWithPseudonym(String gerritChangeId, List<CommentInfoDto> comments)

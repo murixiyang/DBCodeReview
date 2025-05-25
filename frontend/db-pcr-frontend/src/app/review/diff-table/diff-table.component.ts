@@ -13,14 +13,13 @@ import { CommentBoxComponent } from '../comment-box/comment-box.component';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { ReviewService } from '../../http/review.service';
-import { PublishDialogComponent } from '../publish-dialog/publish-dialog.component';
 import { NameCommentInfo } from '../../interface/gerrit/name-comment-info';
 import { DiffLine } from '../../interface/gerrit/diff-line';
 import { PublishAction } from '../../interface/publish-action';
 
 @Component({
   selector: 'app-diff-table',
-  imports: [NgFor, NgIf, CommentBoxComponent, NgClass, PublishDialogComponent],
+  imports: [NgFor, NgIf, CommentBoxComponent, NgClass],
   templateUrl: './diff-table.component.html',
   styleUrl: './diff-table.component.css',
 })

@@ -14,7 +14,7 @@
 
       <app-publish-dialog
         *ngIf="showPublishDialog"
-        [count]="draftComments.length"
+        [count]="getAllDraftCount()"
         (confirm)="onPublishConfirmed($event)"
         (cancel)="showPublishDialog = false"
       ></app-publish-dialog>

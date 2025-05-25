@@ -439,11 +439,14 @@ public class ReviewController {
     public ResponseEntity<Void> deleteGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody CommentInputDto commentInput) throws RestApiException {
+            @RequestBody CommentInputDto commentInput) throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.deleteGerritDraftComment");
 
         gerritSvc.deleteGerritDraft(gerritChangeId, commentInput);
+
+        // Delete the comment from the database
+        commentSvc.deleteDraftComment(gerritChangeId, commentInput.getId());
 
         // If no more draft comments exist for this change, may change to NOT_REVIEWED
         List<CommentInfoDto> remainingDrafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId);

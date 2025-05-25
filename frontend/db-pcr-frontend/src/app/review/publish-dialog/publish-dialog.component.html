@@ -2,8 +2,9 @@
   <div class="dialog" (click)="$event.stopPropagation()">
     <h2>Publish Comments</h2>
     <p>
-      You are about to publish <strong>{{ count }}</strong> comment
-      {{ count > 1 ? "" : "s" }}.<br />
+      You are about to publish <strong>{{ count }}</strong> comment{{ count <= 1 ? "" : "s" }}.
+      <br />
+      <br />
       Once published they cannot be edited or deleted, and will appear
       anonymously.
     </p>
