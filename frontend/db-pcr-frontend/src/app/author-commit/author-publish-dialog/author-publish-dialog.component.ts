@@ -1,9 +1,10 @@
+import { NgIf } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-author-publish-dialog',
-  imports: [FormsModule],
+  imports: [FormsModule, NgIf],
   templateUrl: './author-publish-dialog.component.html',
   styleUrl: './author-publish-dialog.component.css',
 })

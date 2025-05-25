@@ -9,6 +9,17 @@
     </h3>
 
     <h3>Commit message: {{ pseudoCommitDto.commit.message }}</h3>
+
+    <div>
+      <button (click)="onOpenPublishDialog()">Submit Review</button>
+
+      <app-author-publish-dialog
+        *ngIf="showPublishDialog"
+        [count]="getAllDraftCount()"
+        (confirm)="onPublishConfirmed()"
+        (cancel)="showPublishDialog = false"
+      ></app-author-publish-dialog>
+    </div>
   </div>
 
   <div *ngFor="let f of fileKeys" class="diff-container">

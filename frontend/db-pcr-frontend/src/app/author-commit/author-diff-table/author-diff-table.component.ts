@@ -21,13 +21,7 @@ import { CommentBoxComponent } from '../../review/comment-box/comment-box.compon
 
 @Component({
   selector: 'app-author-diff-table',
-  imports: [
-    NgFor,
-    NgIf,
-    AuthorPublishDialogComponent,
-    NgClass,
-    CommentBoxComponent,
-  ],
+  imports: [NgFor, NgIf, NgClass, CommentBoxComponent],
   templateUrl: './author-diff-table.component.html',
   styleUrl: './author-diff-table.component.css',
 })
@@ -64,8 +58,6 @@ export class AuthorDiffTableComponent {
   measuredRows!: QueryList<ElementRef<HTMLTableRowElement>>;
   /** placeholderHeights[i] = total height (px) of all comment rows for line i */
   placeholderHeights: number[] = [];
-
-  showPublishDialog = false;
 
   constructor(private reviewSvc: ReviewService) {}
 
@@ -295,35 +287,5 @@ export class AuthorDiffTableComponent {
   onCancelReply() {
     this.replyingTo = undefined;
     this.replyDraft = undefined;
-  }
-
-  onOpenPublishDialog() {
-    this.showPublishDialog = true;
-  }
-
-  // Post the draft comments to the server
-  onPublishConfirmed() {
-    this.showPublishDialog = false;
-
-    if (this.draftComments.length === 0) {
-      console.log('No draft comments to publish');
-      return;
-    }
-
-    // gather the IDs you want to publish
-    const draftIds = this.draftComments.map((d) => d.id!);
-
-    // call your service, passing along the overall message if you like
-    this.reviewSvc
-      .publishAuthorDraftComments(
-        this.gerritChangeId,
-        this.selectedAssignmentId,
-        draftIds
-      )
-      .subscribe(() => {
-        console.log('Publish draft comments');
-        this.fetchDraftComments();
-        this.fetchExistedComments();
-      });
   }
 }

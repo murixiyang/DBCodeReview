@@ -1,26 +1,3 @@
-<div>
-  <button (click)="onOpenPublishDialog()">Submit Review</button>
-
-  <app-author-publish-dialog
-    *ngIf="showPublishDialog"
-    [count]="draftComments.length"
-    (confirm)="onPublishConfirmed()"
-    (cancel)="showPublishDialog = false"
-  ></app-author-publish-dialog>
-</div>
-
-<div>
-  Overall comment:
-  <div *ngFor="let c of overallComments">
-    <app-comment-box
-      *ngIf="c"
-      variant="published"
-      [commenterName]="getDisplayName(c)"
-      [comment]="c.commentInfo"
-    ></app-comment-box>
-  </div>
-</div>
-
 <div class="diff-grid">
   <!-- Header items -->
   <div class="diff-header-file">
