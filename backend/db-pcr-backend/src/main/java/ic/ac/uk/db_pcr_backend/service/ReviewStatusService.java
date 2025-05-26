@@ -2,6 +2,7 @@ package ic.ac.uk.db_pcr_backend.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import ic.ac.uk.db_pcr_backend.model.ReviewStatus;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
@@ -18,6 +19,7 @@ public class ReviewStatusService {
 
     // * Change review status from NOT_REVIEWED to IN_REVIEW when posting draft
     // comments */
+    @Transactional
     public void notReviewedToInReview(Long assignmentId, String changeId) {
         System.out.println("Service: ReviewStatusService.notReviewedToInReview");
 
@@ -44,6 +46,7 @@ public class ReviewStatusService {
 
     // * Change review status from IN_REVIEW to NOT_REVIEWED when removing draft
     // comments */
+    @Transactional
     public void inReviewToNotReviewed(Long assignmentId, String changeId) {
         System.out.println("Service: ReviewStatusService.inReviewToNotReviewed");
 
@@ -70,6 +73,7 @@ public class ReviewStatusService {
     // * Change review status from IN_REVIEW to WAITING_RESOLVE when publishing
     // drafts
     // */
+    @Transactional
     public void inReviewToWaitingResolve(Long assignmentId, String changeId) {
         System.out.println("Service: ReviewStatusService.inReviewToWaitingResolve");
 
@@ -95,6 +99,7 @@ public class ReviewStatusService {
 
     // * Change review status from IN_REVIEW or WAITING_RESOLVE to APPROVED when
     // publishing drafts */
+    @Transactional
     public void inReviewOrResolveToApproved(Long assignmentId, String changeId) {
         System.out.println("Service: ReviewStatusService.inReviewToApproved");
 

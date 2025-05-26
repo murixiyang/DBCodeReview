@@ -10,6 +10,8 @@ import ic.ac.uk.db_pcr_backend.entity.GerritCommentEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 
 public interface GerritCommentRepo extends JpaRepository<GerritCommentEntity, Long> {
+    List<GerritCommentEntity> findByGerritCommentIdIn(Collection<String> gerritCommentId);
+
     List<GerritCommentEntity> findByGerritCommentId(String gerritCommentId);
 
     List<GerritCommentEntity> findByPseudonym(GitlabCommitEntity commit);

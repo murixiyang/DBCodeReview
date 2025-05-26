@@ -322,34 +322,4 @@ export class DiffTableComponent implements OnChanges {
   onOpenPublishDialog() {
     this.showPublishDialog = true;
   }
-
-  // Post the draft comments to the server
-  onPublishConfirmed(evt: { action: PublishAction }) {
-    this.showPublishDialog = false;
-
-    if (this.draftComments.length === 0) {
-      console.log('No draft comments to publish');
-      return;
-    }
-
-    // gather the IDs you want to publish
-    const draftIds = this.draftComments.map((d) => d.id!);
-
-    // Compute if need resolve
-    const needResolve = evt.action === 'resolve';
-
-    // call your service, passing along the overall message if you like
-    this.reviewSvc
-      .publishReviewerDraftComments(
-        this.gerritChangeId,
-        this.selectedAssignmentId,
-        needResolve,
-        draftIds
-      )
-      .subscribe(() => {
-        console.log('Publish draft comments');
-        this.fetchDraftComments();
-        this.fetchExistedComments();
-      });
-  }
 }

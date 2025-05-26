@@ -81,13 +81,12 @@ export class ReviewDetailComponent {
   onPublishConfirmed(evt: { action: PublishAction }) {
     this.showPublishDialog = false;
 
-    // 1) gather *all* draft-IDs from every child table
-    const allDraftIds = this.diffTables
+    // 1) gather *all* drafts from every child table
+    const allDrafts: GerritCommentInput[] = this.diffTables
       .toArray()
-      .flatMap((table) => table.draftComments.map((d) => d.id!))
-      .filter((id) => !!id);
+      .flatMap((table) => table.draftComments);
 
-    if (allDraftIds.length === 0) {
+    if (allDrafts.length === 0) {
       console.log('Nothing to publish');
       return;
     }
@@ -101,7 +100,7 @@ export class ReviewDetailComponent {
         this.gerritChangeId,
         this.assignmentId,
         needResolve,
-        allDraftIds
+        allDrafts
       )
       .subscribe(() => {
         // 4) tell each child to re-fetch its drafts & published comments

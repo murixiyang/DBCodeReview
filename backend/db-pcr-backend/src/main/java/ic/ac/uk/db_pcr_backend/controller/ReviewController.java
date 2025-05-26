@@ -2,6 +2,8 @@ package ic.ac.uk.db_pcr_backend.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;
@@ -469,14 +471,20 @@ public class ReviewController {
      * Publish reviewer draft comments, mark them as published in the database,
      * and update the review status to NEED_RESOLVE or APPROVED.
      */
+    @Transactional
     @PostMapping("/publish-reviewer-gerrit-draft-comments")
     public ResponseEntity<Void> publishReviewerDraftComments(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestParam("needResolve") String needResolveStr,
-            @RequestBody List<String> draftIds) throws Exception {
+            @RequestParam("needResolve") boolean needResolve,
+            @RequestBody List<CommentInputDto> drafts) throws Exception {
 
         System.out.println("STAGE: ReviewController.publishReviewerDraftComments");
+
+        // Convert CommentInputDto to List<String> draftIds
+        List<String> draftIds = drafts.stream()
+                .map(CommentInputDto::getId)
+                .collect(Collectors.toList());
 
         gerritSvc.publishDrafts(gerritChangeId, draftIds);
 
@@ -485,11 +493,24 @@ public class ReviewController {
 
         // Make review status as NEED_RESOLVE or APPROVED
         Long assignmentIdLong = Long.valueOf(assignmentId);
-        boolean needResolve = Boolean.valueOf(needResolveStr);
         if (needResolve) {
             reviewStatusSvc.inReviewToWaitingResolve(assignmentIdLong, gerritChangeId);
+
+            List<String> repliedToCommentIds = drafts.stream()
+                    .map(CommentInputDto::getInReplyTo)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            // If reply to author, send reply notification
+            if (notificationSvc.isReplyToAuthor(gerritChangeId, repliedToCommentIds, assignmentIdLong)) {
+                notificationSvc.sendNewReplyNotificationToAuthor(gerritChangeId, assignmentIdLong);
+            } else {
+                // If not reply to author, send change request notification
+                notificationSvc.sendChangeRequestNotification(gerritChangeId, assignmentIdLong);
+            }
         } else {
             reviewStatusSvc.inReviewOrResolveToApproved(assignmentIdLong, gerritChangeId);
+            notificationSvc.sendApprovedNotification(gerritChangeId, assignmentIdLong);
         }
 
         return ResponseEntity.noContent().build();
@@ -499,18 +520,33 @@ public class ReviewController {
      * Publish author draft comments, mark them as published in the database,
      * not affecting the review status.
      */
+    @Transactional
     @PostMapping("/publish-author-gerrit-draft-comments")
     public ResponseEntity<Void> publishAuthorDraftComments(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody List<String> draftIds) throws Exception {
+            @RequestBody List<CommentInputDto> drafts) throws Exception {
 
         System.out.println("STAGE: ReviewController.publishAuthorDraftComments");
+
+        // Convert CommentInputDto to List<String> draftIds
+        List<String> draftIds = drafts.stream()
+                .map(CommentInputDto::getId)
+                .collect(Collectors.toList());
 
         gerritSvc.publishDrafts(gerritChangeId, draftIds);
 
         // Mark the comments as published in the database
         commentSvc.markCommentsPublished(gerritChangeId, draftIds);
+
+        // Nofity reviewers got replied...
+        // Find replied reviewers
+        Long assignmentIdLong = Long.valueOf(assignmentId);
+        List<String> repliedToCommentIds = drafts.stream()
+                .map(CommentInputDto::getInReplyTo)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        notificationSvc.sendNewReplyNotificationToReviewer(gerritChangeId, repliedToCommentIds, assignmentIdLong);
 
         return ResponseEntity.noContent().build();
     }

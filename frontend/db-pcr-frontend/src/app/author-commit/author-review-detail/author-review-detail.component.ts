@@ -5,6 +5,7 @@ import { ReviewService } from '../../http/review.service';
 import { AuthorDiffTableComponent } from '../author-diff-table/author-diff-table.component';
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { AuthorPublishDialogComponent } from '../author-publish-dialog/author-publish-dialog.component';
+import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 
 @Component({
   selector: 'app-author-review-detail',
@@ -76,12 +77,11 @@ export class AuthorReviewDetailComponent {
     this.showPublishDialog = false;
 
     // gather *all* draft-IDs from every child table
-    const allDraftIds = this.diffTables
+    const allDrafts: GerritCommentInput[] = this.diffTables
       .toArray()
-      .flatMap((table) => table.draftComments.map((d) => d.id!))
-      .filter((id) => !!id);
+      .flatMap((table) => table.draftComments);
 
-    if (allDraftIds.length === 0) {
+    if (allDrafts.length === 0) {
       console.log('Nothing to publish');
       return;
     }
@@ -91,7 +91,7 @@ export class AuthorReviewDetailComponent {
       .publishAuthorDraftComments(
         this.gerritChangeId,
         this.assignmentId,
-        allDraftIds
+        allDrafts
       )
       .subscribe(() => {
         // tell each child to re-fetch its drafts & published comments

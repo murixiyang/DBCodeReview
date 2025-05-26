@@ -261,7 +261,7 @@ export class ReviewService {
     gerritChangeId: string,
     assignmentId: string,
     needResolve: boolean,
-    draftIds: string[]
+    draftInputs: GerritCommentInput[]
   ): Observable<void> {
     const params = new HttpParams()
       .set('gerritChangeId', gerritChangeId)
@@ -270,7 +270,7 @@ export class ReviewService {
 
     return this.http.post<void>(
       `${this.baseUrl}/publish-reviewer-gerrit-draft-comments`,
-      draftIds,
+      draftInputs,
       {
         params,
       }
@@ -281,7 +281,7 @@ export class ReviewService {
   publishAuthorDraftComments(
     gerritChangeId: string,
     assignmentId: string,
-    draftIds: string[]
+    draftInputs: GerritCommentInput[]
   ): Observable<void> {
     const params = new HttpParams()
       .set('gerritChangeId', gerritChangeId)
@@ -289,7 +289,7 @@ export class ReviewService {
 
     return this.http.post<void>(
       `${this.baseUrl}/publish-author-gerrit-draft-comments`,
-      draftIds,
+      draftInputs,
       {
         params,
       }
