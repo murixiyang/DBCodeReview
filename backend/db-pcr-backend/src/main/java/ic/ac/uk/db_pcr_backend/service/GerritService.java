@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.eclipse.jgit.api.Git;
@@ -73,6 +75,9 @@ public class GerritService {
 
     @Autowired
     private ChangeRequestService changeRequestSvc;
+
+    @Autowired
+    private RedactionService redactionSvc;
 
     @Autowired
     private GitlabCommitRepo commitRepo;
@@ -279,46 +284,58 @@ public class GerritService {
         return patch;
     }
 
-    public List<CommentInfoDto> getGerritChangeComments(String gerritChangeId) throws RestApiException {
+    public List<CommentInfoDto> getGerritChangeComments(String gerritChangeId,
+            String username) throws RestApiException {
         System.out.println("Service: GerritService.getGerritChangeComments");
 
         // 1) fetch the map: filePath → [ CommentInfo, … ]
         Map<String, List<CommentInfo>> commentMap = gerritApi.changes().id(gerritChangeId).comments();
+
+        // Get redacted fields
+        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
 
         // 2) flatten but carry along the key (filePath)
         List<CommentInfoDto> comments = commentMap.entrySet().stream()
                 .flatMap(entry -> {
                     String filePath = entry.getKey();
                     return entry.getValue().stream()
-                            .map(ci -> CommentInfoDto.fromGerritType(filePath, ci));
+                            .map(ci -> CommentInfoDto.fromGerritType(filePath, ci, redactedFields));
                 })
                 .collect(Collectors.toList());
 
         return comments;
     }
 
-    public List<CommentInfoDto> getGerritChangeDraftComments(String gerritChangeId) throws RestApiException {
+    public List<CommentInfoDto> getGerritChangeDraftComments(String gerritChangeId,
+            String username) throws RestApiException {
         System.out.println("Service: GerritService.getGerritChangeDraftComments");
 
         // 1) fetch the map: filePath → [ CommentInfo, … ]
         Map<String, List<CommentInfo>> draftMap = gerritApi.changes().id(gerritChangeId).drafts();
+
+        // Get redacted fields
+        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
 
         // 2) flatten but carry along the key (filePath)
         List<CommentInfoDto> drafts = draftMap.entrySet().stream()
                 .flatMap(entry -> {
                     String filePath = entry.getKey();
                     return entry.getValue().stream()
-                            .map(ci -> CommentInfoDto.fromGerritType(filePath, ci));
+                            .map(ci -> CommentInfoDto.fromGerritType(filePath, ci, redactedFields));
                 })
                 .collect(Collectors.toList());
 
         return drafts;
     }
 
-    public CommentInfoDto postGerritDraft(String gerritChangeId, CommentInputDto commentInput) throws RestApiException {
+    public CommentInfoDto postGerritDraft(String gerritChangeId, CommentInputDto commentInput,
+            String username) throws RestApiException {
         System.out.println("Service: GerritService.postGerritComment");
 
         DraftInput draft = createDraftInput(commentInput);
+
+        // Get redacted fields
+        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
 
         CommentInfo created = gerritApi
                 .changes()
@@ -327,7 +344,7 @@ public class GerritService {
                 .createDraft(draft)
                 .get();
 
-        return CommentInfoDto.fromGerritType(commentInput.getPath(), created);
+        return CommentInfoDto.fromGerritType(commentInput.getPath(), created, redactedFields);
     }
 
     private DraftInput createDraftInput(CommentInputDto commentInput) {
@@ -346,16 +363,20 @@ public class GerritService {
         return draft;
     }
 
-    public CommentInfoDto updateGerritDraft(String gerritChangeId, CommentInputDto commentInput)
+    public CommentInfoDto updateGerritDraft(String gerritChangeId, CommentInputDto commentInput,
+            String username)
             throws RestApiException {
         System.out.println("Service: GerritService.updateGerritDraft");
+
+        // Get redacted fields
+        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
 
         CommentInfo updated = gerritApi.changes()
                 .id(gerritChangeId)
                 .revision("current")
                 .draft(commentInput.getId()).update(createDraftInput(commentInput));
 
-        return CommentInfoDto.fromGerritType(commentInput.getPath(), updated);
+        return CommentInfoDto.fromGerritType(commentInput.getPath(), updated, redactedFields);
     }
 
     public void deleteGerritDraft(String gerritChangeId, CommentInputDto commentInput)

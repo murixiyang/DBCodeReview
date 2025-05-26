@@ -355,20 +355,25 @@ public class ReviewController {
 
     @GetMapping("/get-gerrit-change-comments")
     public ResponseEntity<List<CommentInfoDto>> getGerritChangeComments(
-            @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException {
+            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeComments");
+        String username = oauth2User.getAttribute("username").toString();
 
-        return ResponseEntity.ok(gerritSvc.getGerritChangeComments(gerritChangeId));
+        return ResponseEntity.ok(gerritSvc.getGerritChangeComments(gerritChangeId, username));
     }
 
     @GetMapping("/get-gerrit-change-comments-with-pseudonym")
     public ResponseEntity<List<NameCommentInfoDto>> getGerritChangeCommentsWithPseudonym(
-            @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException, GitLabApiException {
+            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeCommentsWithPseudonyms");
+        ;
+        String username = oauth2User.getAttribute("username").toString();
 
-        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId);
+        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username);
         List<NameCommentInfoDto> pseudonymComments = commentSvc.getCommentsWithPseudonym(gerritChangeId, comments);
 
         return ResponseEntity.ok(pseudonymComments);
@@ -376,11 +381,15 @@ public class ReviewController {
 
     @GetMapping("/get-gerrit-change-comments-with-username")
     public ResponseEntity<List<NameCommentInfoDto>> getGerritChangeCommentsWithUsername(
-            @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException, GitLabApiException {
+            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeCommentsWithUsername");
 
-        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId);
+        ;
+        String username = oauth2User.getAttribute("username").toString();
+
+        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username);
         List<NameCommentInfoDto> usernameComments = commentSvc.getCommentsWithUsername(gerritChangeId, comments);
 
         return ResponseEntity.ok(usernameComments);
@@ -388,11 +397,15 @@ public class ReviewController {
 
     @GetMapping("/get-gerrit-change-draft-comments")
     public ResponseEntity<List<CommentInfoDto>> getGerritChangeDraftComments(
-            @RequestParam("gerritChangeId") String gerritChangeId) throws RestApiException {
+            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeDraftComments");
 
-        return ResponseEntity.ok(gerritSvc.getGerritChangeDraftComments(gerritChangeId));
+        ;
+        String username = oauth2User.getAttribute("username").toString();
+
+        return ResponseEntity.ok(gerritSvc.getGerritChangeDraftComments(gerritChangeId, username));
     }
 
     /** Fetch draft comment for specific user only (should not see other's draft) */
@@ -403,9 +416,10 @@ public class ReviewController {
 
         System.out.println("STAGE: ReviewController.getGerritChangeDraftCommentsForUser");
 
-        List<CommentInfoDto> drafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId);
-
         String username = oauth2User.getAttribute("username").toString();
+
+        List<CommentInfoDto> drafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username);
+
         List<CommentInfoDto> filtered = drafts.stream()
                 .filter(dto -> {
                     return gerritCommentRepo
@@ -423,12 +437,15 @@ public class ReviewController {
     public ResponseEntity<CommentInfoDto> postReviewerGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody CommentInputDto commentInput)
+            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.postGerritDraftComment");
 
-        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput);
+        ;
+        String username = oauth2User.getAttribute("username").toString();
+
+        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username);
 
         // Save commentEntity to database
         commentSvc.recordReviewerDraftComment(gerritChangeId, assignmentId, savedDraft);
@@ -445,12 +462,14 @@ public class ReviewController {
     public ResponseEntity<CommentInfoDto> postAuthorGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody CommentInputDto commentInput)
+            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.postGerritDraftComment");
+        ;
+        String username = oauth2User.getAttribute("username").toString();
 
-        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput);
+        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username);
 
         // Save commentEntity to database
         commentSvc.recordAuthorDraftComment(gerritChangeId, assignmentId, savedDraft);
@@ -465,19 +484,23 @@ public class ReviewController {
     @PutMapping("/update-gerrit-draft-comment")
     public ResponseEntity<CommentInfoDto> updateGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
-            @RequestBody CommentInputDto commentInput) throws RestApiException {
+            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException {
 
         System.out.println("STAGE: ReviewController.updateGerritDraftComment");
 
+        String username = oauth2User.getAttribute("username").toString();
+
         return ResponseEntity.ok(gerritSvc.updateGerritDraft(
-                gerritChangeId, commentInput));
+                gerritChangeId, commentInput, username));
     }
 
     @DeleteMapping("/delete-gerrit-draft-comment")
     public ResponseEntity<Void> deleteGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody CommentInputDto commentInput) throws RestApiException, GitLabApiException {
+            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.deleteGerritDraftComment");
 
@@ -486,8 +509,11 @@ public class ReviewController {
         // Delete the comment from the database
         commentSvc.deleteDraftComment(gerritChangeId, commentInput.getId());
 
+        ;
+        String username = oauth2User.getAttribute("username").toString();
+
         // If no more draft comments exist for this change, may change to NOT_REVIEWED
-        List<CommentInfoDto> remainingDrafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId);
+        List<CommentInfoDto> remainingDrafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username);
         if (remainingDrafts.isEmpty()) {
             // Change the review status to NOT_REVIEWED
             Long assignmentIdLong = Long.valueOf(assignmentId);
