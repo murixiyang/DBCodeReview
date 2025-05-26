@@ -1,10 +1,10 @@
-FROM maven:3.8.8-jdk-17 AS build
+FROM maven:3.8.7-eclipse-temurin-17 AS builder
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM eclipse-temurin:17-jdk-jammy
+FROM eclipse-temurin:17-jdk
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 ENV SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mydb
