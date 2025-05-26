@@ -1,79 +1,78 @@
 version: "3.8"
-
 services:
-  # ───────────────────────────────────────────────────────────────
-  # Local GitLab CE
   gitlab:
     image: gitlab/gitlab-ce:17.11.1-ce.0
     container_name: gitlab-ce
-    hostname: gitlab.local
+    hostname: gitlab.vm
     ports:
       - "8080:80"
       - "8443:443"
       - "2224:22"
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://gitlab.local'
+        external_url 'http://20.77.48.174'
         gitlab_rails['gitlab_shell_ssh_port'] = 2224
     volumes:
       - gitlab-config:/etc/gitlab
       - gitlab-logs:/var/log/gitlab
       - gitlab-data:/var/opt/gitlab
-    profiles:
-      - local
 
-  # ───────────────────────────────────────────────────────────────
-  # Local Gerrit
   gerrit:
     image: gerritcodereview/gerrit:3.11.1
     container_name: gerrit
     ports:
       - "8090:8080"
       - "29418:29418"
+    environment:
+      - GERRIT_CONFIG_MAIL=false
+      - GERRIT_CONFIG_SENDEMAIL_ENABLE=false
     volumes:
-      - gerrit-data:/var/gerrit/review_site
-    profiles:
-      - local
+      - gerrit-data:/var/gerrit/etc
+      - gerrit-git-volume:/var/gerrit/git
+      - gerrit-index-volume:/var/gerrit/index
+      - gerrit-cache-volume:/var/gerrit/cache
 
-  # ───────────────────────────────────────────────────────────────
+  db:
+    image: postgres:15
+    container_name: code-review-db
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - code-review-db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
   backend:
     build:
       context: ./backend/db-pcr-backend
       dockerfile: Dockerfile
-    container_name: review-backend
+    depends_on:
+      - db
+      - gitlab
+      - gerrit
     ports:
-      - "8081:8081"
+      - "8081:8080"
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      # override or add any Spring properties here if needed
+      SPRING_PROFILES_ACTIVE: prod
 
-      # If you have local containers up (via --profile local), these default
-      # to talking to them.  Otherwise, set EXTERNAL_* in your env or a .env file.
-      GITLAB_URL: ${EXTERNAL_GITLAB_URL:-http://gitlab}
-      GERRIT_URL: ${EXTERNAL_GERRIT_URL:-http://gerrit:8080}
-      GERRIT_AUTHENTICATE_URL: ${EXTERNAL_GERRIT_AUTH_URL:-http://gerrit:8080/a}
-
-      GITLAB_TOKEN: ${GITLAB_TOKEN}
-      WEBHOOK_URL: http://host.docker.internal:8081/api/hooks/gitlab
-
-    volumes:
-      - backend-data:/app/data
-
-  # ───────────────────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend/db-pcr-frontend
       dockerfile: Dockerfile
-    container_name: review-ui
-    ports:
-      - "4200:80"
-    environment:
-      API_BASE_URL: ${API_BASE_URL:-http://localhost:8081}
     depends_on:
       - backend
+    ports:
+      - "4200:80"
 
 volumes:
   gitlab-config:
   gitlab-logs:
   gitlab-data:
   gerrit-data:
-  backend-data:
+  gerrit-git-volume:
+  gerrit-index-volume:
+  gerrit-cache-volume:
+  code-review-db-data:
