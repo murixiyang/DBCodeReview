@@ -14,7 +14,6 @@ import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
-import ic.ac.uk.db_pcr_backend.repository.ProjectUserPseudonymRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 
@@ -23,9 +22,6 @@ public class RedactionService {
 
     @Autowired
     private ReviewAssignmentRepo reviewAssignmentRepo;
-
-    @Autowired
-    private ProjectUserPseudonymRepo pupRepo;
 
     @Autowired
     private UserRepo userRepo;
@@ -68,10 +64,8 @@ public class RedactionService {
                 .filter(username -> !username.equals(currentUsername))
                 .collect(Collectors.toList());
 
-        System.out.println("DBLOG: RedactionService.buildByGitlabGroupProjectId() - Usernames to redact: " + usernames);
-        usernames.stream()
-                .forEach(username -> System.out
-                        .println("DBLOG: RedactionService.buildByGitlabGroupProjectId() - Redacting: " + username));
+        System.out.println("DBLOG: RedactionService.buildByGitlabGroupProjectId() CurrentUser: " + currentUsername
+                + "Usernames to redact: " + usernames);
 
         return usernames;
 
@@ -112,10 +106,8 @@ public class RedactionService {
                 .collect(Collectors.toList());
 
         System.out
-                .println("DBLOG: RedactionService.buildByGerritChangeIdAsAuthor() - Usernames to redact: " + usernames);
-        usernames.stream()
-                .forEach(username -> System.out
-                        .println("DBLOG: RedactionService.buildByGerritChangeIdAsAuthor() - Redacting: " + username));
+                .println("DBLOG: RedactionService.buildByGerritChangeIdAsAuthor() CurrentUser: " + currentUsername
+                        + "Usernames to redact: " + usernames);
 
         return usernames;
 
