@@ -1,18 +1,24 @@
 <!-- review-detail.component.html -->
 <div class="page-container">
   <div class="diff-header">
-    <h3>
-      Submitted by You at
-      {{
-        pseudoCommitDto.commit.committedAt | date : "YYYY-MM-dd HH:mm" : "UTC"
-      }}
-    </h3>
-
-    <h3>Commit message: {{ pseudoCommitDto.commit.message }}</h3>
-
-    <div>
-      <button (click)="onOpenPublishDialog()">Submit Review</button>
-
+    <div class="header-info">
+      <div class="author-time">
+        <span class="author"> Submitted by You </span>
+        <span class="time">
+          {{
+            pseudoCommitDto.commit.committedAt
+              | date : "yyyy-MM-dd HH:mm" : "UTC"
+          }}
+        </span>
+      </div>
+      <div class="commit-msg">
+        Commit Message: {{ pseudoCommitDto.commit.message }}
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="onOpenPublishDialog()">
+        Submit Review
+      </button>
       <app-author-publish-dialog
         *ngIf="showPublishDialog"
         [count]="getAllDraftCount()"
@@ -23,13 +29,13 @@
   </div>
 
   <div *ngFor="let f of fileKeys" class="diff-container">
-    <app-author-diff-table
+    <app-diff-table
       #diffTable
       [selectedAssignmentId]="assignmentId"
       [gerritChangeId]="gerritChangeId"
       [oldText]="fileContents.get(f)?.[0]!"
       [newText]="fileContents.get(f)?.[1]!"
       [file]="f"
-    ></app-author-diff-table>
+    ></app-diff-table>
   </div>
 </div>

@@ -6,15 +6,16 @@ import { AuthorDiffTableComponent } from '../author-diff-table/author-diff-table
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { AuthorPublishDialogComponent } from '../author-publish-dialog/author-publish-dialog.component';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
+import { DiffTableComponent } from '../../review/diff-table/diff-table.component';
 
 @Component({
   selector: 'app-author-review-detail',
   imports: [
-    AuthorDiffTableComponent,
     DatePipe,
     NgFor,
     AuthorPublishDialogComponent,
     NgIf,
+    DiffTableComponent,
   ],
   templateUrl: './author-review-detail.component.html',
   styleUrl: './author-review-detail.component.css',

@@ -1,7 +1,65 @@
-.page-container {
-  padding: 1rem;
+/* ───────────────────────────────────────────────────────────────────────── */
+/* Container & layout */
+.diff-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f5f7fa;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 1.5rem;
 }
 
-.diff-container {
-  margin-bottom: 50px;
+/* Info section */
+.header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.author-time {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.author-time .author {
+  margin-right: 0.75rem;
+}
+
+.author-time .time {
+  opacity: 0.8;
+}
+
+/* Commit message is a bit larger/emphatic */
+.commit-msg {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  color: #333;
+  font-style: italic;
+}
+
+/* Actions on the right */
+.header-actions {
+  display: flex;
+  align-items: center;
+}
+
+/* Primary button style */
+.btn-primary {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+/* Optional: give the publish dialog a little offset */
+.header-actions app-publish-dialog {
+  margin-left: 1rem;
 }
