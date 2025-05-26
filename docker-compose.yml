@@ -54,9 +54,6 @@ services:
       - gerrit
     ports:
       - "8081:8081"
-    environment:
-      # override or add any Spring properties here if needed
-      SPRING_PROFILES_ACTIVE: prod
 
   frontend:
     build:
