@@ -163,3 +163,23 @@
 .reply-container {
   margin-left: 20px;
 }
+
+/* Hide button by default */
+.new-pane .diff-table .add-comment-btn {
+  display: none;
+  margin-left: 4px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  line-height: 16px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* show it when its row is hovered */
+.new-pane .diff-table tr:hover .add-comment-btn {
+  display: inline-block;
+}

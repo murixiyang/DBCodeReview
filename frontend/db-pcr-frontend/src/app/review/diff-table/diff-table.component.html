@@ -62,14 +62,27 @@
         <ng-container *ngFor="let line of lines; let i = index">
           <!-- code row -->
           <tr
-            (click)="selectLine(i)"
             [ngClass]="{
               'diff-insert': line.type === 'insert',
               'diff-delete': line.type === 'delete',
               'diff-selected': selectedIndex === i
             }"
           >
-            <td class="num-col">{{ line.newNumber || "-" }}</td>
+            <td class="num-col">
+              <div class="num-col-wrapper">
+                {{ line.newNumber || "-" }}
+
+                <!-- the hover-only plus-button -->
+                <button
+                  class="add-comment-btn"
+                  aria-label="Add comment"
+                  (click)="selectLine(i); $event.stopPropagation()"
+                >
+                  +
+                </button>
+              </div>
+            </td>
+
             <td class="code-col">
               <pre>{{ line.newText }}</pre>
             </td>
