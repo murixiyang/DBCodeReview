@@ -50,11 +50,21 @@ export class NotificationBellComponent {
 
   goto(n: NotificationDto) {
     this.notifSvc.markRead(n.id).subscribe(() => {
-      // refresh lists
       this.unreadCount$ = this.notifSvc.getUnreadCount();
       this.notifications$ = this.notifSvc.listAll();
       this.open = false;
-      this.router.navigateByUrl(n.link);
+
+      // normalize so we always have a leading "/"
+      const link = n.link.startsWith('/') ? n.link : `/${n.link}`;
+
+      if (this.router.url === link) {
+        console.log('Reloading page for notification link:', link);
+        window.location.reload();
+      } else {
+        console.log('Navigating to notification link:', link);
+        console.log('Current router URL:', this.router.url);
+        this.router.navigateByUrl(link);
+      }
     });
   }
 }
