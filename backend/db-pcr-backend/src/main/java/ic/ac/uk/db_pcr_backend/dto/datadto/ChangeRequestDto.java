@@ -1,6 +1,7 @@
 package ic.ac.uk.db_pcr_backend.dto.datadto;
 
 import java.time.Instant;
+import java.util.List;
 
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.model.ReviewStatus;
@@ -20,7 +21,7 @@ public class ChangeRequestDto {
     }
 
     public ChangeRequestDto(Long id, Long assignmentId, Long commitId, String gerritChangeId, String message,
-            Instant submittedAt, ReviewStatus status, Instant lastStatusAt) {
+            Instant submittedAt, ReviewStatus status, Instant lastStatusAt, List<String> redactedFields) {
         this.id = id;
         this.assignmentId = assignmentId;
         this.commitId = commitId;
@@ -31,7 +32,7 @@ public class ChangeRequestDto {
         this.lastStatusAt = lastStatusAt;
     }
 
-    public static ChangeRequestDto fromEntity(ChangeRequestEntity changeRequest) {
+    public static ChangeRequestDto fromEntity(ChangeRequestEntity changeRequest, List<String> redactedFields) {
         return new ChangeRequestDto(
                 changeRequest.getId(),
                 changeRequest.getAssignment().getId(),
@@ -40,7 +41,7 @@ public class ChangeRequestDto {
                 changeRequest.getCommit().getMessage(),
                 changeRequest.getSubmittedAt(),
                 changeRequest.getStatus(),
-                changeRequest.getLastStatusAt());
+                changeRequest.getLastStatusAt(), redactedFields);
     }
 
     // --- Getters & Setters ---

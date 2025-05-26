@@ -7,8 +7,10 @@ import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.Diff;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +26,7 @@ import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.service.CommitService;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.GitLabService;
+import ic.ac.uk.db_pcr_backend.service.RedactionService;
 
 @RestController
 @RequestMapping("/api")
@@ -39,6 +42,9 @@ public class CommitController {
     private GerritService gerritSvc;
 
     @Autowired
+    private RedactionService redactionSvc;
+
+    @Autowired
     private ProjectRepo projectRepo;
 
     @Autowired
@@ -46,7 +52,8 @@ public class CommitController {
 
     @GetMapping("/get-project-commits")
     public ResponseEntity<List<GitlabCommitDto>> getProjectCommits(@RequestParam("projectId") String projectId,
-            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws GitLabApiException {
 
         System.out.println("STAGE: GitLabController.getProjectCommits");
@@ -65,9 +72,13 @@ public class CommitController {
         // Find commits for the project
         List<GitlabCommitEntity> commits = commitRepo.findByProject(project);
 
+        // Find redacted usernames for this project
+        String username = oauth2User.getAttribute("username").toString();
+        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
+
         // Convert to DTOs
         List<GitlabCommitDto> commitDtos = commits.stream()
-                .map(GitlabCommitDto::fromEntity)
+                .map(commit -> GitlabCommitDto.fromEntity(commit, redactedFields))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(commitDtos);
@@ -77,7 +88,8 @@ public class CommitController {
     @GetMapping("/get-commits-with-status")
     public ResponseEntity<List<CommitWithStatusDto>> getProjectCommitsWithStatus(
             @RequestParam("projectId") String projectId,
-            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws GitLabApiException {
 
         System.out.println("STAGE: CommitController.getProjectCommitsWithStatus");
@@ -96,10 +108,14 @@ public class CommitController {
         // Find commits for the project
         List<GitlabCommitEntity> commits = commitRepo.findByProject(project);
 
+        // Find redacted usernames for this project
+        String username = oauth2User.getAttribute("username").toString();
+        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
+
         List<CommitWithStatusDto> result = commits.stream()
                 .map(commit -> {
                     CommitStatus summary = commitSvc.summarizeCommit(commit);
-                    return new CommitWithStatusDto(GitlabCommitDto.fromEntity(commit), summary);
+                    return new CommitWithStatusDto(GitlabCommitDto.fromEntity(commit, redactedFields), summary);
                 })
                 .toList();
 

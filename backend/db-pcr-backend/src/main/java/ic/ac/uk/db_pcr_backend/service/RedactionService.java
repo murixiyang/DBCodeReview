@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
+import org.hibernate.annotations.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,20 @@ public class RedactionService {
 
     @Autowired
     private ChangeRequestRepo changeRequestRepo;
+
+    // Blind all usernames!!
+    @Cacheable("redaction-all-usernames")
+    public List<String> buildAllUsernames(String currentUsername) {
+        System.out.println("Service: RedactionService.buildAllUsernames");
+
+        // Find all users except the current user
+        List<String> usernames = userRepo.findAll().stream()
+                .map(UserEntity::getUsername)
+                .filter(username -> !username.equals(currentUsername))
+                .collect(Collectors.toList());
+
+        return usernames;
+    }
 
     /**
      * Build the list of usernames to redact from

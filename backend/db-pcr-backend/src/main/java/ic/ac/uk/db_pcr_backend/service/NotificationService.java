@@ -5,18 +5,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.gitlab4j.api.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.NotificationDto;
-import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.NotificationEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.NotificationType;
-import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GerritCommentRepo;
 import ic.ac.uk.db_pcr_backend.repository.NotificationRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;

@@ -1,5 +1,7 @@
 package ic.ac.uk.db_pcr_backend.dto.datadto;
 
+import java.util.List;
+
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 
 public class PseudonymGitlabCommitDto {
@@ -7,8 +9,8 @@ public class PseudonymGitlabCommitDto {
     private GitlabCommitDto commit;
     private String authorPseudonym;
 
-    public PseudonymGitlabCommitDto(GitlabCommitEntity commit, String authorPseudonym) {
-        this.commit = GitlabCommitDto.fromEntity(commit);
+    public PseudonymGitlabCommitDto(GitlabCommitEntity commit, String authorPseudonym, List<String> redactedFields) {
+        this.commit = GitlabCommitDto.fromEntity(commit, redactedFields);
         this.authorPseudonym = authorPseudonym;
     }
 

@@ -1,6 +1,7 @@
 package ic.ac.uk.db_pcr_backend.dto.gerritdto;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import com.google.gerrit.extensions.common.CommentInfo;
@@ -17,17 +18,17 @@ public class CommentInfoDto {
     private Instant updated;
 
     public CommentInfoDto(String id, String path, String side, int line,
-            String inReplyTo, String message, Instant updated) {
+            String inReplyTo, String message, Instant updated, List<String> redactedFields) {
         this.id = id;
         this.path = path;
         this.side = side;
         this.line = line;
         this.inReplyTo = inReplyTo;
-        this.message = Redactor.redact(message, null);
+        this.message = Redactor.redact(message, redactedFields);
         this.updated = updated;
     }
 
-    public static CommentInfoDto fromGerritType(String filePath, CommentInfo info) {
+    public static CommentInfoDto fromGerritType(String filePath, CommentInfo info, List<String> redactedFields) {
         String path = Optional.ofNullable(info.path).orElse(filePath);
         String side = Optional.ofNullable(info.side)
                 .map(Enum::toString)
@@ -44,7 +45,8 @@ public class CommentInfoDto {
                 line,
                 inReplyTo,
                 message,
-                updated);
+                updated,
+                redactedFields);
     }
 
     // --- Getters & Setters ---

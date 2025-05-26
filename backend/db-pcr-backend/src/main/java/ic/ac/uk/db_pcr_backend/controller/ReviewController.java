@@ -143,11 +143,15 @@ public class ReviewController {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Assignment not found: " + assignmentId));
 
+        // Find blockNames for redaction
+        String username = oauth2User.getAttribute("username").toString();
+        List<String> blockNames = redactSvc.buildAllUsernames(username);
+
         // Find the change requests
         List<ChangeRequestDto> changeRequests = changeRequestRepo
                 .findByAssignment(assignment)
                 .stream()
-                .map(ChangeRequestDto::fromEntity)
+                .map(cr -> ChangeRequestDto.fromEntity(cr, blockNames))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(changeRequests);
@@ -256,9 +260,12 @@ public class ReviewController {
         ProjectUserPseudonymEntity authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(assignment,
                 RoleType.AUTHOR);
 
+        String username = oauth2User.getAttribute("username").toString();
+        List<String> redactedFields = redactSvc.buildAllUsernames(username);
+
         // Dto
         PseudonymGitlabCommitDto commitDto = new PseudonymGitlabCommitDto(
-                commit, authorMask.getPseudonym().getName());
+                commit, authorMask.getPseudonym().getName(), redactedFields);
 
         return ResponseEntity.ok(commitDto);
     }
@@ -285,7 +292,7 @@ public class ReviewController {
 
         // Get the redaction list
         String username = oauth2User.getAttribute("username").toString();
-        List<String> blockNames = redactSvc.buildByGerritChangeId(gerritChangeId, username);
+        List<String> blockNames = redactSvc.buildAllUsernames(username);
 
         changedFileMap.replaceAll((file, pair) -> new String[] {
                 Redactor.redact(pair[0], blockNames),

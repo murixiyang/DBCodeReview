@@ -1,6 +1,7 @@
 package ic.ac.uk.db_pcr_backend.dto.datadto;
 
 import java.time.Instant;
+import java.util.List;
 
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.redactor.Redactor;
@@ -20,17 +21,17 @@ public class GitlabCommitDto {
 
     public GitlabCommitDto(Long id, String gitlabCommitId, Long projectId, Long authorId, String message,
             Instant committedAt,
-            Instant fetchedAt) {
+            Instant fetchedAt, List<String> redactedFields) {
         this.id = id;
         this.gitlabCommitId = gitlabCommitId;
         this.projectId = projectId;
         this.authorId = authorId;
-        this.message = Redactor.redact(message, null);
+        this.message = Redactor.redact(message, redactedFields);
         this.committedAt = committedAt;
         this.fetchedAt = fetchedAt;
     }
 
-    public static GitlabCommitDto fromEntity(GitlabCommitEntity commit) {
+    public static GitlabCommitDto fromEntity(GitlabCommitEntity commit, List<String> redactedFields) {
         return new GitlabCommitDto(
                 commit.getId(),
                 commit.getGitlabCommitId(),
@@ -38,7 +39,7 @@ public class GitlabCommitDto {
                 commit.getAuthor().getId(),
                 commit.getMessage(),
                 commit.getCommittedAt(),
-                commit.getFetchedAt());
+                commit.getFetchedAt(), redactedFields);
     }
 
     // --- Getters & setters ---

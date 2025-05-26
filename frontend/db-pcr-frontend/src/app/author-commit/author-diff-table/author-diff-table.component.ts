@@ -2,10 +2,7 @@ import { NgClass, NgFor, NgIf } from '@angular/common';
 import {
   Component,
   ElementRef,
-  EventEmitter,
   Input,
-  OnChanges,
-  Output,
   QueryList,
   SimpleChanges,
   ViewChildren,
@@ -16,7 +13,6 @@ import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input'
 import { ReviewService } from '../../http/review.service';
 import { NameCommentInfo } from '../../interface/gerrit/name-comment-info';
 import { DiffLine } from '../../interface/gerrit/diff-line';
-import { AuthorPublishDialogComponent } from '../author-publish-dialog/author-publish-dialog.component';
 import { CommentBoxComponent } from '../../review/comment-box/comment-box.component';
 
 @Component({
