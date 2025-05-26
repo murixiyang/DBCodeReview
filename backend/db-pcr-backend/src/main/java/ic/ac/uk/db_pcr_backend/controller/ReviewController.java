@@ -40,6 +40,7 @@ import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
+import ic.ac.uk.db_pcr_backend.redactor.Redactor;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GerritCommentRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
@@ -50,6 +51,7 @@ import ic.ac.uk.db_pcr_backend.service.CommentService;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.NotificationService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
+import ic.ac.uk.db_pcr_backend.service.RedactionService;
 import ic.ac.uk.db_pcr_backend.service.ReviewStatusService;
 
 @RestController
@@ -70,6 +72,9 @@ public class ReviewController {
 
     @Autowired
     private NotificationService notificationSvc;
+
+    @Autowired
+    private RedactionService redactSvc;
 
     @Autowired
     private UserRepo userRepo;
@@ -280,11 +285,17 @@ public class ReviewController {
 
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
     @GetMapping("/get-change-diff")
-    public String getChangeDiff(@RequestParam("gerritChangeId") String gerritChangeId) throws Exception {
+    public String getChangeDiff(@RequestParam("gerritChangeId") String gerritChangeId,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
         System.out.println("STAGE: ReviewController.getChangeDiff");
 
-        return gerritSvc.fetchRawPatch(gerritChangeId, "current");
+        String rawPatch = gerritSvc.fetchRawPatch(gerritChangeId, "current");
+
+        String username = oauth2User.getAttribute("username").toString();
+        List<String> blockNames = redactSvc.buildByGerritChangeId(gerritChangeId, username);
+
+        return Redactor.redact(rawPatch, blockNames);
     }
 
     /** Push some gitlab commits to gerrit */
