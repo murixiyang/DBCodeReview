@@ -14,12 +14,10 @@ public class Redactor {
         }
         String result = text;
         for (String name : blockNames) {
-            // (?i) case‐insensitive
-            // (?<!\p{L}) ensure not preceded by a letter
-            // (?!\p{L}) ensure not followed by a letter
-            String regex = "(?i)(?<!\\p{L})"
-                    + Pattern.quote(name)
-                    + "(?!\\p{L})";
+
+            // (?<!\p{L}) = must *not* be preceded by a letter
+            // no trailing look-ahead, so we allow digits or letters after
+            String regex = "(?i)(?<!\\p{L})" + Pattern.quote(name);
             result = result.replaceAll(regex, "***");
         }
         return result;
