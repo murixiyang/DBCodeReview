@@ -25,6 +25,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './diff-table.component.css',
 })
 export class DiffTableComponent implements OnChanges {
+  @Input() isAuthor!: boolean;
   @Input() selectedAssignmentId!: string;
   @Input() gerritChangeId!: string;
   @Input() oldText!: string;
@@ -240,18 +241,22 @@ export class DiffTableComponent implements OnChanges {
     draft.side = side;
 
     console.log('Save draft: ', draft);
-    this.reviewSvc
-      .postReviewerDraftComment(
-        this.gerritChangeId,
-        this.selectedAssignmentId,
-        draft
-      )
-      .subscribe((savedDraft: GerritCommentInput) => {
-        this.selectedIndex = null;
-        this.newDraft = undefined;
 
-        this.fetchDraftComments();
-      });
+    // If reviewer
+    if (!this.isAuthor) {
+      this.reviewSvc
+        .postReviewerDraftComment(
+          this.gerritChangeId,
+          this.selectedAssignmentId,
+          draft
+        )
+        .subscribe((savedDraft: GerritCommentInput) => {
+          this.selectedIndex = null;
+          this.newDraft = undefined;
+
+          this.fetchDraftComments();
+        });
+    }
   }
 
   onCancelDraft() {
@@ -302,16 +307,29 @@ export class DiffTableComponent implements OnChanges {
   }
 
   onSaveReply(draft: GerritCommentInput) {
-    this.reviewSvc
-      .postReviewerDraftComment(
-        this.gerritChangeId,
-        this.selectedAssignmentId,
-        draft
-      )
-      .subscribe(() => {
-        this.onCancelReply();
-        this.fetchDraftComments();
-      });
+    if (this.isAuthor) {
+      this.reviewSvc
+        .postAuthorDraftComment(
+          this.gerritChangeId,
+          this.selectedAssignmentId,
+          draft
+        )
+        .subscribe(() => {
+          this.onCancelReply();
+          this.fetchDraftComments();
+        });
+    } else {
+      this.reviewSvc
+        .postReviewerDraftComment(
+          this.gerritChangeId,
+          this.selectedAssignmentId,
+          draft
+        )
+        .subscribe(() => {
+          this.onCancelReply();
+          this.fetchDraftComments();
+        });
+    }
   }
 
   onCancelReply() {

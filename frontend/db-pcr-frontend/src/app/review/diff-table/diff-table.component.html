@@ -72,14 +72,16 @@
               <div class="num-col-wrapper">
                 {{ line.newNumber || "-" }}
 
-                <!-- the hover-only plus-button -->
-                <button
-                  class="add-comment-btn"
-                  aria-label="Add comment"
-                  (click)="selectLine(i); $event.stopPropagation()"
-                >
-                  +
-                </button>
+                <div *ngIf="!isAuthor">
+                  <!-- the hover-only plus-button -->
+                  <button
+                    class="add-comment-btn"
+                    aria-label="Add comment"
+                    (click)="selectLine(i); $event.stopPropagation()"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </td>
 
