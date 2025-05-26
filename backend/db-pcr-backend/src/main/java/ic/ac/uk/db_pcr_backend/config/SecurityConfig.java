@@ -22,65 +22,65 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig {
 
-  @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        // 1) Enable CORS support in the security filter chain
-        .cors(Customizer.withDefaults())
-        .csrf(csrf -> csrf.disable())
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+                // 1) Enable CORS support in the security filter chain
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
 
-        // 2) Your URL rules
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/hooks/gitlab").permitAll()
-            .requestMatchers("/api/**").authenticated()
-            .anyRequest().permitAll())
+                // 2) Your URL rules
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/hooks/gitlab").permitAll()
+                        .requestMatchers("/api/**").authenticated()
+                        .anyRequest().permitAll())
 
-        // 3) For any unauthenticated /api/** request, return 401 instead of redirect
-        .exceptionHandling(ex -> ex
-            .defaultAuthenticationEntryPointFor(
-                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
-                new AntPathRequestMatcher("/api/**")))
+                // 3) For any unauthenticated /api/** request, return 401 instead of redirect
+                .exceptionHandling(ex -> ex
+                        .defaultAuthenticationEntryPointFor(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                                new AntPathRequestMatcher("/api/**")))
 
-        // 4) OAuth2 login for everything else
-        .oauth2Login(oauth -> oauth
-            .defaultSuccessUrl("http://localhost:4200/", true))
+                // 4) OAuth2 login for everything else
+                .oauth2Login(oauth -> oauth
+                        .defaultSuccessUrl("http://20.77.48.174:4200/", true))
 
-        // 5) Logout stays the same
-        .logout(logout -> logout
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("http://localhost:4200/")
-            .invalidateHttpSession(true)
-            .deleteCookies("JSESSIONID")
-            .permitAll());
+                // 5) Logout stays the same
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("http://20.77.48.174:4200/")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                        .permitAll());
 
-    return http.build();
-  }
+        return http.build();
+    }
 
-  // Wire in your CORS rules for all endpoints, including /oauth2/*
-  @Bean
-  public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://localhost:4200"));
-    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    config.setAllowedHeaders(List.of("*"));
-    config.setAllowCredentials(true);
+    // Wire in your CORS rules for all endpoints, including /oauth2/*
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://20.77.48.174:4200/"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-    return source;
-  }
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
-  // Map GitLab access levels to Spring Security roles
-  @Bean
-  public GrantedAuthoritiesMapper gitlabAuthoritiesMapper() {
-    return authorities -> authorities.stream()
-        .map(granted -> {
-          if (granted.getAuthority().contains("access_level=Maintainer")) {
-            return new SimpleGrantedAuthority("ROLE_MAINTAINER");
-          }
-          return new SimpleGrantedAuthority("ROLE_STUDENT");
-        })
-        .collect(Collectors.toList());
-  }
+    // Map GitLab access levels to Spring Security roles
+    @Bean
+    public GrantedAuthoritiesMapper gitlabAuthoritiesMapper() {
+        return authorities -> authorities.stream()
+                .map(granted -> {
+                    if (granted.getAuthority().contains("access_level=Maintainer")) {
+                        return new SimpleGrantedAuthority("ROLE_MAINTAINER");
+                    }
+                    return new SimpleGrantedAuthority("ROLE_STUDENT");
+                })
+                .collect(Collectors.toList());
+    }
 
 }
