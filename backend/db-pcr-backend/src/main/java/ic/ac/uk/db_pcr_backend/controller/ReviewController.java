@@ -276,9 +276,21 @@ public class ReviewController {
     /** Get changed files content */
     @GetMapping("/get-changed-files-content")
     public ResponseEntity<Map<String, String[]>> getChangedFilesContent(
-            @RequestParam("gerritChangeId") String gerritChangeId) throws Exception {
+            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws Exception {
 
         System.out.println("STAGE: ReviewController.getChangedFilesContent");
+
+        Map<String, String[]> changedFileContent = gerritSvc.getChangedFileContent(gerritChangeId);
+
+        // Get the redaction list
+        String username = oauth2User.getAttribute("username").toString();
+        List<String> blockNames = redactSvc.buildByGerritChangeId(gerritChangeId, username);
+
+        changedFileContent.forEach((fileName, content) -> {
+            content[0] = Redactor.redact(content[0], blockNames);
+            content[1] = Redactor.redact(content[1], blockNames);
+        });
 
         return ResponseEntity.ok(gerritSvc.getChangedFileContent(gerritChangeId));
     }

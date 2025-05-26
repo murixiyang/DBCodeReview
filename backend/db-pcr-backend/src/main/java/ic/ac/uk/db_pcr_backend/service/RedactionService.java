@@ -43,6 +43,8 @@ public class RedactionService {
     @Cacheable("redaction-gitlab-group-project-id")
     public List<String> buildByGitlabGroupProjectId(Long gitlabGroupProjectId, String currentUsername)
             throws IllegalArgumentException {
+        System.out.println("Service: RedactionService.buildByGitlabGroupProjectId");
+
         // Find User
         UserEntity currentUser = userRepo.findByUsername(currentUsername)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUsername));
@@ -78,6 +80,8 @@ public class RedactionService {
     @Cacheable("redaction-gerrit-change-id")
     public List<String> buildByGerritChangeId(String gerritChangeId, String currentUsername)
             throws IllegalArgumentException {
+        System.out.println("Service: RedactionService.buildByGerritChangeId");
+
         // Find User
         UserEntity currentUser = userRepo.findByUsername(currentUsername)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUsername));
