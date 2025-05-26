@@ -32,8 +32,6 @@ public class ReviewStatusService {
                 .orElseThrow(() -> new IllegalArgumentException("Change request not found for assignment ID: "
                         + assignmentId + " and change ID: " + changeId));
 
-        System.out.println("DBLOG: Change request status before change: " + changeRequest.getStatus());
-
         // Check the change request status, if NOT_REVIEWED, then change to IN_REVIEW
         if (changeRequest.getStatus() == ReviewStatus.NOT_REVIEWED) {
             changeRequest.setStatus(ReviewStatus.IN_REVIEW);
@@ -58,8 +56,6 @@ public class ReviewStatusService {
         var changeRequest = changeRequestRepo.findByAssignmentAndGerritChangeId(assignment, changeId)
                 .orElseThrow(() -> new IllegalArgumentException("Change request not found for assignment ID: "
                         + assignmentId + " and change ID: " + changeId));
-
-        System.out.println("DBLOG: Change request status before change: " + changeRequest.getStatus());
 
         // Check the change request status, if IN_REVIEW, then change to NOT_REVIEWED
         if (changeRequest.getStatus() == ReviewStatus.IN_REVIEW) {
@@ -86,8 +82,6 @@ public class ReviewStatusService {
                 .orElseThrow(() -> new IllegalArgumentException("Change request not found for assignment ID: "
                         + assignmentId + " and change ID: " + changeId));
 
-        System.out.println("DBLOG: Change request status before change: " + changeRequest.getStatus());
-
         // Check the change request status, if IN_REVIEW, then change to WAITING_RESOLVE
         if (changeRequest.getStatus() == ReviewStatus.IN_REVIEW) {
             changeRequest.setStatus(ReviewStatus.WAITING_RESOLVE);
@@ -111,8 +105,6 @@ public class ReviewStatusService {
         var changeRequest = changeRequestRepo.findByAssignmentAndGerritChangeId(assignment, changeId)
                 .orElseThrow(() -> new IllegalArgumentException("Change request not found for assignment ID: "
                         + assignmentId + " and change ID: " + changeId));
-
-        System.out.println("DBLOG: Change request status before change: " + changeRequest.getStatus());
 
         // Check the change request status, if IN_REVIEW or WAITING_RESOLVE, then change
         // to APPROVED

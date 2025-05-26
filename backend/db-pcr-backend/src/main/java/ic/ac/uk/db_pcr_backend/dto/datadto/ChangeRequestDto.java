@@ -26,7 +26,7 @@ public class ChangeRequestDto {
         this.assignmentId = assignmentId;
         this.commitId = commitId;
         this.gerritChangeId = gerritChangeId;
-        this.message = Redactor.redact(message, null);
+        this.message = Redactor.redact(message, redactedFields);
         this.submittedAt = submittedAt;
         this.status = status;
         this.lastStatusAt = lastStatusAt;

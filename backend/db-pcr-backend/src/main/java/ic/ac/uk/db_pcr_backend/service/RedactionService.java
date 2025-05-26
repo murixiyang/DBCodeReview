@@ -79,9 +79,6 @@ public class RedactionService {
                 .filter(username -> !username.equals(currentUsername))
                 .collect(Collectors.toList());
 
-        System.out.println("DBLOG: RedactionService.buildByGitlabGroupProjectId() CurrentUser: " + currentUsername
-                + "Usernames to redact: " + usernames);
-
         return usernames;
 
     }
@@ -119,10 +116,6 @@ public class RedactionService {
                 .distinct()
                 .filter(username -> !username.equals(currentUsername))
                 .collect(Collectors.toList());
-
-        System.out
-                .println("DBLOG: RedactionService.buildByGerritChangeIdAsAuthor() CurrentUser: " + currentUsername
-                        + "Usernames to redact: " + usernames);
 
         return usernames;
 

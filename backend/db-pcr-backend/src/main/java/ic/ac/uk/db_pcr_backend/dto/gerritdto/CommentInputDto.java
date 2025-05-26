@@ -40,8 +40,6 @@ public class CommentInputDto {
                 : java.sql.Timestamp.from(commentInputDto.getUpdated());
         commentInput.message = commentInputDto.getMessage();
 
-        System.out.println("DBLOG: CommentInputDto.fromDtoToEntity Get id: " + commentInputDto.getId());
-
         return commentInput;
     }
 
