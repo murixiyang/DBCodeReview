@@ -164,10 +164,20 @@
   margin-left: 20px;
 }
 
-/* Hide button by default */
+/* make the wrapper a positioning context */
+.num-col-wrapper {
+  position: relative;
+  display: inline-block; /* shrink-to-fit, so 100% width of the number text */
+}
+
+/* hide by default */
 .new-pane .diff-table .add-comment-btn {
   display: none;
-  margin-left: 4px;
+  position: absolute; /* remove from normal flow */
+  top: 50%; /* middle of the wrapper */
+  left: 100%; /* just outside the wrapper’s right edge */
+  transform: translateY(-50%); /* vertically center exactly */
+  margin-left: 4px; /* a little breathing room */
   border: none;
   background-color: #007bff;
   color: white;
@@ -177,9 +187,10 @@
   line-height: 16px;
   font-size: 14px;
   cursor: pointer;
+  z-index: 1; /* float above any backgrounds */
 }
 
-/* show it when its row is hovered */
+/* show it on row hover */
 .new-pane .diff-table tr:hover .add-comment-btn {
   display: inline-block;
 }
