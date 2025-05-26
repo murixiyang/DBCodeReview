@@ -13,13 +13,13 @@ export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
   { path: 'commit-list/:projectId', component: CommitListComponent },
   {
-    path: 'author/detail/:gerritChangeId',
+    path: 'author/detail/:gerritChangeId/:assignmentId',
     component: AuthorReviewDetailComponent,
   },
   { path: 'commit-detail/:projectId/:sha', component: CommitDetailComponent },
   { path: 'review/:projectId', component: ReviewListComponent },
   {
-    path: 'review/detail/:gerritChangeId',
+    path: 'review/detail/:gerritChangeId/:assignmentId',
     component: ReviewDetailComponent,
   },
   { path: 'maintain/project-list', component: MaintainListComponent },

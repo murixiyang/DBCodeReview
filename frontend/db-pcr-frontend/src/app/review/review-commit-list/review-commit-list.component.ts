@@ -51,10 +51,10 @@ export class ReviewCommitListComponent {
 
   /** Navigate to your diff/review screen */
   startReview(item: ChangeRequestDto) {
-    this.router.navigate(['/review/detail', item.gerritChangeId], {
-      state: {
-        assignmentId: this.selectedAssignment.id,
-      },
-    });
+    this.router.navigate([
+      '/review/detail',
+      item.gerritChangeId,
+      this.selectedAssignment.id,
+    ]);
   }
 }

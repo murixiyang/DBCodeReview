@@ -89,7 +89,7 @@ public class NotificationService {
         assignments.forEach(assignment -> {
             UserEntity reviewer = assignment.getReviewer();
             NotificationType type = NotificationType.NEW_SUBMISSION;
-            String link = "review/detail/" + gerritChangeId;
+            String link = "review/detail/" + gerritChangeId + "/" + assignment.getId();
             String message = "New submission for project: " + assignment.getGroupProject().getName();
 
             notifications.add(new NotificationEntity(reviewer, type, link, message));
@@ -109,7 +109,7 @@ public class NotificationService {
 
         UserEntity author = assignment.getAuthor();
         NotificationType type = NotificationType.NEW_COMMENT;
-        String link = "author/detail/" + gerritChangeId;
+        String link = "author/detail/" + gerritChangeId + "/" + assignmentId;
         String message = "New comment on your submission for project: "
                 + assignment.getGroupProject().getName();
 
@@ -128,7 +128,7 @@ public class NotificationService {
 
         UserEntity author = assignment.getAuthor();
         NotificationType type = NotificationType.CHANGES_REQUESTED;
-        String link = "author/detail/" + gerritChangeId;
+        String link = "author/detail/" + gerritChangeId + "/" + assignmentId;
         String message = "New change request on your submission for project: "
                 + assignment.getGroupProject().getName();
 
@@ -147,7 +147,7 @@ public class NotificationService {
 
         UserEntity author = assignment.getAuthor();
         NotificationType type = NotificationType.APPROVED;
-        String link = "author/detail/" + gerritChangeId;
+        String link = "author/detail/" + gerritChangeId + "/" + assignmentId;
         String message = "New approval on your submission for project: "
                 + assignment.getGroupProject().getName();
 
@@ -177,7 +177,7 @@ public class NotificationService {
 
         usersReplied.forEach(recipient -> {
             NotificationType type = NotificationType.NEW_REPLY;
-            String link = "review/detail/" + gerritChangeId;
+            String link = "review/detail/" + gerritChangeId + "/" + assignment.getId();
             String message = "New reply for project: " + assignment.getGroupProject().getName();
 
             notifications.add(new NotificationEntity(recipient, type, link, message));
@@ -216,7 +216,7 @@ public class NotificationService {
         UserEntity author = assignment.getAuthor();
 
         NotificationType type = NotificationType.NEW_REPLY;
-        String link = "author/detail/" + gerritChangeId;
+        String link = "author/detail/" + gerritChangeId + "/" + assignmentId;
         String message = "New reply for project: " + assignment.getGroupProject().getName();
 
         NotificationEntity notification = new NotificationEntity(author, type, link, message);

@@ -42,16 +42,11 @@ export class ReviewDetailComponent {
     private route: ActivatedRoute,
     private reviewSvc: ReviewService,
     private router: Router
-  ) {
-    const nav = this.router.getCurrentNavigation();
-
-    if (nav?.extras.state && nav.extras.state['assignmentId']) {
-      this.assignmentId = nav.extras.state['assignmentId'];
-    }
-  }
+  ) {}
 
   ngOnInit() {
     this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
+    this.assignmentId = this.route.snapshot.paramMap.get('assignmentId')!;
 
     this.reviewSvc
       .getChangedFileContents(this.gerritChangeId)
