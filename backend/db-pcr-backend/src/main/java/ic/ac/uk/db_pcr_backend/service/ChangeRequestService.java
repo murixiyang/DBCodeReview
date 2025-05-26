@@ -33,6 +33,9 @@ public class ChangeRequestService {
     @Autowired
     private ChangeRequestRepo changeRequestRepo;
 
+    @Autowired
+    private NotificationService notificationSvc;
+
     @Transactional
     public void insertNewChangeRequest(Long gitlabProjectId, String targetSha, String username, String changeId) {
         System.out.println("STAGE: ChangeRequestService.insertNewChangeRequest");
@@ -61,6 +64,9 @@ public class ChangeRequestService {
                 .toList();
 
         changeRequestRepo.saveAll(requests);
+
+        // Send notifications to all reviewers
+        notificationSvc.sendNewSubmissionNotification(changeId, assignments);
     }
 
 }

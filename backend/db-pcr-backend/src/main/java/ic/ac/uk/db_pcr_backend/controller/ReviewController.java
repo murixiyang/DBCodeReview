@@ -46,6 +46,7 @@ import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.CommentService;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
+import ic.ac.uk.db_pcr_backend.service.NotificationService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
 import ic.ac.uk.db_pcr_backend.service.ReviewStatusService;
 
@@ -64,6 +65,9 @@ public class ReviewController {
 
     @Autowired
     private ReviewStatusService reviewStatusSvc;
+
+    @Autowired
+    private NotificationService notificationSvc;
 
     @Autowired
     private UserRepo userRepo;
@@ -305,11 +309,13 @@ public class ReviewController {
         GitlabCommitEntity commit = commitRepo.findByGitlabCommitId(gitlabCommitId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown commit id " + gitlabCommitId));
 
-        // 2) Delegate to the service
+        // Submit review request to Gerrit
         String gerritChangeId = gerritSvc.submitForReview(
                 gitlabProjectId, commit, accessToken, username);
 
-        // 3) Return the new Change number to the frontend
+        // Have Sent notification to reviewers when creating change request
+
+        // Return the new Change number to the frontend
         return ResponseEntity.ok(Map.of("changeId", gerritChangeId));
     }
 

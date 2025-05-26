@@ -6,19 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.NotificationDto;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.NotificationService;
 
-@Controller
+@RestController
 @RequestMapping("/api/notifications")
 public class NotificationController {
 
@@ -39,7 +38,7 @@ public class NotificationController {
         return ResponseEntity.ok(cnt);
     }
 
-    @GetMapping("/")
+    @GetMapping()
     public List<NotificationDto> list(@AuthenticationPrincipal OAuth2User oauth2User) {
         // Find user
         String username = oauth2User.getAttribute("username").toString();
