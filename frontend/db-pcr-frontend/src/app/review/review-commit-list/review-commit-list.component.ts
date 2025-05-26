@@ -46,6 +46,13 @@ export class ReviewCommitListComponent {
       .getChangeRequestForAssignment(this.selectedAssignment.id.toString())
       .subscribe((list) => {
         this.commitList = list;
+
+        console.log(
+          'Commit list for assignment',
+          this.selectedAssignment.id,
+          ':',
+          this.commitList
+        );
       });
   }
 

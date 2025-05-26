@@ -147,12 +147,20 @@ public class ReviewController {
         String username = oauth2User.getAttribute("username").toString();
         List<String> blockNames = redactSvc.buildAllUsernames(username);
 
+        System.out.println("DBLOG: ReviewController.getReviewProjectCommits: "
+                + "assignmentId: " + assignmentId + ", blockNames: " + blockNames);
+
         // Find the change requests
         List<ChangeRequestDto> changeRequests = changeRequestRepo
                 .findByAssignment(assignment)
                 .stream()
                 .map(cr -> ChangeRequestDto.fromEntity(cr, blockNames))
                 .collect(Collectors.toList());
+
+        changeRequests.forEach(cr -> {
+            System.out.println("DBLOG: ReviewController.getReviewProjectCommits: "
+                    + "ChangeRequest: " + cr.getGerritChangeId() + ", " + cr.getMessage());
+        });
 
         return ResponseEntity.ok(changeRequests);
     }
