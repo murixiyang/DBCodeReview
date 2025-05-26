@@ -267,6 +267,11 @@ public class ReviewController {
         PseudonymGitlabCommitDto commitDto = new PseudonymGitlabCommitDto(
                 commit, authorMask.getPseudonym().getName(), redactedFields);
 
+        System.out.println("DBLOG: ReviewController.getAuthorPseudonymCommitForChangeId: "
+                + commitDto.getCommit().getGitlabCommitId() + " - " + commitDto.getAuthorPseudonym());
+
+        System.out.println("DBLOG: redactedFields: " + redactedFields);
+
         return ResponseEntity.ok(commitDto);
     }
 

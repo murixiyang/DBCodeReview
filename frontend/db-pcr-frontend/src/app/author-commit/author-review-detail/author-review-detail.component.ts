@@ -2,7 +2,6 @@ import { Component, QueryList, ViewChildren } from '@angular/core';
 import { PseudonymGitlabCommitDto } from '../../interface/database/pseudonym-gitlab-commit-dto';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReviewService } from '../../http/review.service';
-import { AuthorDiffTableComponent } from '../author-diff-table/author-diff-table.component';
 import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { AuthorPublishDialogComponent } from '../author-publish-dialog/author-publish-dialog.component';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
@@ -29,8 +28,8 @@ export class AuthorReviewDetailComponent {
 
   assignmentId!: string;
 
-  @ViewChildren(AuthorDiffTableComponent)
-  diffTables!: QueryList<AuthorDiffTableComponent>;
+  @ViewChildren(DiffTableComponent)
+  diffTables!: QueryList<DiffTableComponent>;
 
   showPublishDialog = false;
 
