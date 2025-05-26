@@ -5,6 +5,8 @@ import java.time.Instant;
 import com.google.gerrit.extensions.api.changes.ReviewInput.CommentInput;
 import com.google.gerrit.extensions.client.Side;
 
+import ic.ac.uk.db_pcr_backend.redactor.Redactor;
+
 public class CommentInputDto {
 
     private String id; // UUID of the comment, if exists, update comment
@@ -24,7 +26,7 @@ public class CommentInputDto {
         this.line = line;
         this.inReplyTo = inReplyTo;
         this.updated = updated;
-        this.message = message;
+        this.message = Redactor.redact(message, null);
     }
 
     public static CommentInput fromDtoToEntity(CommentInputDto commentInputDto) {

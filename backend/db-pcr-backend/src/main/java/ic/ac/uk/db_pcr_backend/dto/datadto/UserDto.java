@@ -3,6 +3,7 @@ package ic.ac.uk.db_pcr_backend.dto.datadto;
 import java.time.Instant;
 
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.redactor.Redactor;
 
 public class UserDto {
 
@@ -18,7 +19,7 @@ public class UserDto {
     public UserDto(Long id, Long gitlabUserId, String username, Instant createdAt) {
         this.id = id;
         this.gitlabUserId = gitlabUserId;
-        this.username = username;
+        this.username = Redactor.redact(username, null);
         this.createdAt = createdAt;
     }
 

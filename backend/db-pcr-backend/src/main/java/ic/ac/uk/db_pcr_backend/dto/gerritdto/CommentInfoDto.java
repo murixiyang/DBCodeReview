@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import com.google.gerrit.extensions.common.CommentInfo;
 
+import ic.ac.uk.db_pcr_backend.redactor.Redactor;
+
 public class CommentInfoDto {
     private String id;
     private String path;
@@ -21,7 +23,7 @@ public class CommentInfoDto {
         this.side = side;
         this.line = line;
         this.inReplyTo = inReplyTo;
-        this.message = message;
+        this.message = Redactor.redact(message, null);
         this.updated = updated;
     }
 

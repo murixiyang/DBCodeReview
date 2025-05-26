@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.model.ReviewStatus;
+import ic.ac.uk.db_pcr_backend.redactor.Redactor;
 
 public class ChangeRequestDto {
     private Long id;
@@ -24,7 +25,7 @@ public class ChangeRequestDto {
         this.assignmentId = assignmentId;
         this.commitId = commitId;
         this.gerritChangeId = gerritChangeId;
-        this.message = message;
+        this.message = Redactor.redact(message, null);
         this.submittedAt = submittedAt;
         this.status = status;
         this.lastStatusAt = lastStatusAt;

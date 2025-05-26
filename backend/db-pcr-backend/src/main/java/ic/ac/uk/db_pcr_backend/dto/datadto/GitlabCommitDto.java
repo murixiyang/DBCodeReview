@@ -3,6 +3,7 @@ package ic.ac.uk.db_pcr_backend.dto.datadto;
 import java.time.Instant;
 
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
+import ic.ac.uk.db_pcr_backend.redactor.Redactor;
 
 public class GitlabCommitDto {
     private Long id;
@@ -24,7 +25,7 @@ public class GitlabCommitDto {
         this.gitlabCommitId = gitlabCommitId;
         this.projectId = projectId;
         this.authorId = authorId;
-        this.message = message;
+        this.message = Redactor.redact(message, null);
         this.committedAt = committedAt;
         this.fetchedAt = fetchedAt;
     }
