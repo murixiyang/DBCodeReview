@@ -1,0 +1,18 @@
+<button class="bell" (click)="toggleDropdown()">
+  <fa-icon icon="bell"></fa-icon>
+  <span *ngIf="unreadCount$ | async as cnt" class="badge" [hidden]="cnt === 0">
+    {{ cnt }}
+  </span>
+</button>
+
+<div *ngIf="open" class="dropdown">
+  <div
+    *ngFor="let n of notifications$ | async"
+    (click)="goto(n)"
+    [class.unread]="!n.seen"
+  >
+    {{ n.message }}<br />
+    <small>{{ n.createdAt | date : "short" }}</small>
+  </div>
+  <div *ngIf="(notifications$ | async)?.length === 0">No notifications</div>
+</div>

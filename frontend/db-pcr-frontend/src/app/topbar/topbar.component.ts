@@ -3,10 +3,11 @@ import { AuthService } from '../service/auth.service';
 import { Router, RouterLink } from '@angular/router';
 import { AsyncPipe, NgIf } from '@angular/common';
 import { Observable } from 'rxjs';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-topbar',
-  imports: [NgIf, AsyncPipe, RouterLink],
+  imports: [NgIf, AsyncPipe, RouterLink, NotificationBellComponent],
   templateUrl: './topbar.component.html',
   styleUrl: './topbar.component.css',
 })

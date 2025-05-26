@@ -7,6 +7,7 @@ import ic.ac.uk.db_pcr_backend.model.NotificationType;
 
 public class NotificationDto {
 
+    private Long id;
     private NotificationType type;
     private String link;
     private String message;
@@ -14,7 +15,9 @@ public class NotificationDto {
     private Instant createdAt;
 
     // Constructor
-    public NotificationDto(NotificationType type, String link, String message, boolean seen, Instant createdAt) {
+    public NotificationDto(Long id, NotificationType type, String link, String message, boolean seen,
+            Instant createdAt) {
+        this.id = id;
         this.type = type;
         this.link = link;
         this.message = message;
@@ -24,6 +27,7 @@ public class NotificationDto {
 
     public static NotificationDto fromEntity(NotificationEntity entity) {
         return new NotificationDto(
+                entity.getId(),
                 entity.getType(),
                 entity.getLink(),
                 entity.getMessage(),
@@ -32,6 +36,14 @@ public class NotificationDto {
     }
 
     // Getters and Setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public NotificationType getType() {
         return type;

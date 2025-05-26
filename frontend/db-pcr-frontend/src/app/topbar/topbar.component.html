@@ -6,6 +6,11 @@
 
   <div class="auth-section" *ngIf="user$ | async as user; else showLogin">
     <span>Welcome, {{ user }}!</span>
+
+    <div class="notification-bell">
+      <app-notification-bell></app-notification-bell>
+    </div>
+
     <div class="settings-container">
       <button class="settings-btn" (click)="toggleSettings()">
         Settings

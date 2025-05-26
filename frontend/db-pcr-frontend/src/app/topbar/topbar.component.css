@@ -32,6 +32,10 @@
   padding: 0.3rem 0.6rem;
 }
 
+.notification-bell {
+  margin-left: 10px;
+}
+
 .settings-container {
   position: relative;
   display: inline-block;
