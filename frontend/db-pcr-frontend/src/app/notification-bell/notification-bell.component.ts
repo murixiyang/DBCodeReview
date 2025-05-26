@@ -1,6 +1,6 @@
 import { AsyncPipe, DatePipe, NgFor, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
-import { Observable } from 'rxjs';
+import { interval, Observable, startWith, switchMap } from 'rxjs';
 import { NotificationDto } from '../interface/database/notification-dto';
 import { NotificationService } from '../http/notification.service';
 import { Router } from '@angular/router';
@@ -31,8 +31,17 @@ export class NotificationBellComponent {
   }
 
   ngOnInit() {
-    this.unreadCount$ = this.notifSvc.getUnreadCount();
-    this.notifications$ = this.notifSvc.listAll();
+    // re-poll every 30s, starting immediately
+    this.unreadCount$ = interval(30_000).pipe(
+      startWith(0),
+      switchMap(() => this.notifSvc.getUnreadCount())
+    );
+
+    // you can poll the full list too, if you want
+    this.notifications$ = interval(60_000).pipe(
+      startWith(0),
+      switchMap(() => this.notifSvc.listAll())
+    );
   }
 
   toggleDropdown() {
