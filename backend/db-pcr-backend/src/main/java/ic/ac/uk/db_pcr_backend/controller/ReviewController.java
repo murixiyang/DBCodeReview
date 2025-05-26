@@ -281,18 +281,18 @@ public class ReviewController {
 
         System.out.println("STAGE: ReviewController.getChangedFilesContent");
 
-        Map<String, String[]> changedFileContent = gerritSvc.getChangedFileContent(gerritChangeId);
+        Map<String, String[]> changedFileMap = gerritSvc.getChangedFileContent(gerritChangeId);
 
         // Get the redaction list
         String username = oauth2User.getAttribute("username").toString();
         List<String> blockNames = redactSvc.buildByGerritChangeId(gerritChangeId, username);
 
-        changedFileContent.forEach((fileName, content) -> {
-            content[0] = Redactor.redact(content[0], blockNames);
-            content[1] = Redactor.redact(content[1], blockNames);
+        changedFileMap.replaceAll((file, pair) -> new String[] {
+                Redactor.redact(pair[0], blockNames),
+                Redactor.redact(pair[1], blockNames)
         });
 
-        return ResponseEntity.ok(gerritSvc.getChangedFileContent(gerritChangeId));
+        return ResponseEntity.ok(changedFileMap);
     }
 
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
