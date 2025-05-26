@@ -1,21 +1,37 @@
 .page-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+.controls {
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  margin-bottom: 20px;
+}
+
+.mat-form-field {
+  flex: 1 1 200px;
+}
+
+button[mat-flat-button] {
+  height: 40px;
+  margin-top: 8px;
+}
+
+table {
   width: 100%;
 }
 
-.change-link {
-  color: blue;
-  text-decoration: underline;
-  cursor: pointer;
-  transition: color 0.2s ease-in-out;
-}
-
-.change-link:hover {
-  color: darkblue;
-}
-
-.error {
-  color: red;
+.no-data {
+  font-style: italic;
+  color: #666;
+  text-align: center;
+  margin-top: 2rem;
 }
