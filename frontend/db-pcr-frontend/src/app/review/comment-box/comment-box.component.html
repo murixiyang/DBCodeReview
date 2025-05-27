@@ -12,7 +12,8 @@
         comment.updated | date : "MM-dd HH:mm" : "UTC"
       }}</span>
 
-      <div *ngIf="isAuthor" class="reactions">
+      <!-- If others comment, author can give feedback -->
+      <div *ngIf="isAuthor && !ownComment">
         <button
           mat-icon-button
           class="reaction-btn"
@@ -38,7 +39,7 @@
     <div class="comment-display" [innerText]="comment.message"></div>
 
     <div class="buttons">
-      <button mat-button (click)="onReply()">Reply</button>
+      <button (click)="onReply()">Reply</button>
     </div>
   </div>
 

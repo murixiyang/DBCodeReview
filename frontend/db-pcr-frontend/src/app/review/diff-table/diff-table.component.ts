@@ -238,6 +238,10 @@ export class DiffTableComponent implements OnChanges {
     }
   }
 
+  isAuthorOwnComment(comment: NameCommentInfo): boolean {
+    return comment.isAuthor && this.isAuthor;
+  }
+
   onSaveDraft(draft: GerritCommentInput, side?: 'PARENT' | 'REVISION') {
     draft.side = side;
 

@@ -53,6 +53,9 @@ export class CommentBoxComponent {
   // Whtether the comment publisher is author (author can thumb up/down)
   @Input() isAuthor = false;
 
+  // Whtether this comment is from the current user
+  @Input() ownComment = false;
+
   /** track what the *current* user has done */
   userReaction: 'up' | 'down' | null = null;
 

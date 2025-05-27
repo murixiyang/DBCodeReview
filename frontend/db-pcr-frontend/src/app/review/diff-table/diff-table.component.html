@@ -110,6 +110,7 @@
                     [commenterName]="getDisplayName(c)"
                     [comment]="c.commentInfo"
                     [isAuthor]="isAuthor"
+                    [ownComment]="isAuthorOwnComment(c)"
                     (reply)="onReply(c.commentInfo, 'REVISION')"
                     (react)="onReact($event)"
                   ></app-comment-box>
