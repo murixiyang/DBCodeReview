@@ -109,7 +109,9 @@
                     variant="published"
                     [commenterName]="getDisplayName(c)"
                     [comment]="c.commentInfo"
+                    [isAuthor]="isAuthor"
                     (reply)="onReply(c.commentInfo, 'REVISION')"
+                    (react)="onReact($event)"
                   ></app-comment-box>
                 </div>
 

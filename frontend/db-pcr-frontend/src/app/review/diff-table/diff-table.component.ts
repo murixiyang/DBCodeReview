@@ -25,6 +25,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './diff-table.component.css',
 })
 export class DiffTableComponent implements OnChanges {
+  // If it is author view of the diff table
   @Input() isAuthor!: boolean;
   @Input() selectedAssignmentId!: string;
   @Input() gerritChangeId!: string;
@@ -339,5 +340,9 @@ export class DiffTableComponent implements OnChanges {
 
   onOpenPublishDialog() {
     this.showPublishDialog = true;
+  }
+
+  onReact(event: { id: string; type: 'up' | 'down' }) {
+    console.log('Comment id: ', event.id, ' reaction: ', event.type);
   }
 }

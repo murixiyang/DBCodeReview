@@ -91,3 +91,57 @@
   height: 4em;
   visibility: hidden;
 }
+
+.comment-box.published .reactions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.comment-box.published .reaction-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.comment-box.published .reactions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+/* default: small, greyed-out icon */
+
+/* base state: fully greyed out */
+.reaction-btn {
+  filter: grayscale(100%);
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+/* hover only when not active */
+.reaction-btn:not(.up):not(.down):hover {
+  filter: grayscale(50%);
+  transform: scale(1.1);
+}
+
+/* active = lift filter off the button */
+.reaction-btn.up,
+.reaction-btn.down {
+  filter: none !important;
+}
+
+/* color the icon itself */
+.reaction-btn.up mat-icon {
+  color: #14af38 !important;
+}
+
+.reaction-btn.down mat-icon {
+  color: #df182c !important;
+}
+
+/* sizing */
+.reaction-btn mat-icon {
+  font-size: 20px;
+  vertical-align: middle;
+}

@@ -8,12 +8,37 @@
   >
     <div class="header">
       <span class="author">{{ commenterName }}</span>
-      <span>{{ comment.updated | date : "MM-dd HH:mm" : "UTC" }}</span>
+      <span class="time">{{
+        comment.updated | date : "MM-dd HH:mm" : "UTC"
+      }}</span>
+
+      <div *ngIf="isAuthor" class="reactions">
+        <button
+          mat-icon-button
+          class="reaction-btn"
+          [class.up]="userReaction === 'up'"
+          (click)="onReactUp(); $event.stopPropagation()"
+          aria-label="Thumbs up"
+        >
+          <mat-icon>thumb_up</mat-icon>
+        </button>
+
+        <button
+          mat-icon-button
+          class="reaction-btn"
+          [class.down]="userReaction === 'down'"
+          (click)="onReactDown(); $event.stopPropagation()"
+          aria-label="Thumbs down"
+        >
+          <mat-icon>thumb_down</mat-icon>
+        </button>
+      </div>
     </div>
+
     <div class="comment-display" [innerText]="comment.message"></div>
 
     <div class="buttons">
-      <button (click)="onReply()">Reply</button>
+      <button mat-button (click)="onReply()">Reply</button>
     </div>
   </div>
 

@@ -7,9 +7,18 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DatePipe, NgSwitch, NgSwitchCase } from '@angular/common';
+import {
+  DatePipe,
+  NgClass,
+  NgIf,
+  NgSwitch,
+  NgSwitchCase,
+} from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
+
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 export type ReviewerCommentVariant =
   | 'published'
@@ -20,7 +29,16 @@ export type ReviewerCommentVariant =
 
 @Component({
   selector: 'app-comment-box',
-  imports: [FormsModule, NgSwitch, NgSwitchCase, DatePipe],
+  imports: [
+    FormsModule,
+    NgSwitch,
+    NgSwitchCase,
+    DatePipe,
+    NgIf,
+    NgClass,
+    MatIconModule,
+    MatButtonModule,
+  ],
   templateUrl: './comment-box.component.html',
   styleUrl: './comment-box.component.css',
 })
@@ -31,6 +49,12 @@ export class CommentBoxComponent {
 
   /** Either a draft input or an existing comment */
   @Input() comment!: GerritCommentInput | GerritCommentInfo;
+
+  // Whtether the comment publisher is author (author can thumb up/down)
+  @Input() isAuthor = false;
+
+  /** track what the *current* user has done */
+  userReaction: 'up' | 'down' | null = null;
 
   /** save (for new & draft) */
   @Output() saved = new EventEmitter<GerritCommentInput>();
@@ -46,6 +70,9 @@ export class CommentBoxComponent {
 
   /** reply (for published) */
   @Output() reply = new EventEmitter<GerritCommentInfo>();
+
+  /** author react (for published) */
+  @Output() react = new EventEmitter<{ id: string; type: 'up' | 'down' }>();
 
   @ViewChild('autosize') autosizeTextarea!: ElementRef<HTMLTextAreaElement>;
 
@@ -81,6 +108,19 @@ export class CommentBoxComponent {
     if (this.comment && 'message' in this.comment) {
       this.reply.emit(this.comment as GerritCommentInfo);
     }
+  }
+
+  onReactUp() {
+    this.userReaction = this.userReaction === 'up' ? null : 'up';
+    this.react.emit({ id: this.comment.id!, type: this.userReaction ?? 'up' });
+  }
+
+  onReactDown() {
+    this.userReaction = this.userReaction === 'down' ? null : 'down';
+    this.react.emit({
+      id: this.comment.id!,
+      type: this.userReaction ?? 'down',
+    });
   }
 
   constructor() {}
