@@ -9,6 +9,7 @@ import { GerritCommentInfo } from '../interface/gerrit/gerrit-comment-info';
 import { GerritCommentInput } from '../interface/gerrit/gerrit-comment-input';
 import { PseudonymGitlabCommitDto } from '../interface/database/pseudonym-gitlab-commit-dto';
 import { NameCommentInfo } from '../interface/gerrit/name-comment-info';
+import { ReactState } from '../interface/react-state';
 
 @Injectable({
   providedIn: 'root',
@@ -290,6 +291,27 @@ export class ReviewService {
     return this.http.post<void>(
       `${this.baseUrl}/publish-author-gerrit-draft-comments`,
       draftInputs,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Post thumb up or thumb down or cancel thumb for a comment */
+
+  postThumbStateForComment(
+    gerritChangeId: string,
+    gerritCommentId: string,
+    thumbState: ReactState
+  ): Observable<void> {
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('gerritCommentId', gerritCommentId)
+      .set('thumbState', thumbState.toString().toUpperCase());
+
+    return this.http.post<void>(
+      `${this.baseUrl}/post-thumb-state-for-comment`,
+      null,
       {
         params,
       }

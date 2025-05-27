@@ -1,3 +1,5 @@
+import { ReactState } from '../react-state';
+
 export interface GerritCommentInfo {
   id: string;
   path: string;
@@ -5,5 +7,6 @@ export interface GerritCommentInfo {
   line?: number;
   inReplyTo?: string;
   message: string;
+  thumbState?: ReactState;
   updated: string;
 }

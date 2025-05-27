@@ -17,7 +17,7 @@
         <button
           mat-icon-button
           class="reaction-btn"
-          [class.up]="userReaction === 'up'"
+          [class.up]="userReaction === 'UP'"
           (click)="onReactUp(); $event.stopPropagation()"
           aria-label="Thumbs up"
         >
@@ -27,7 +27,7 @@
         <button
           mat-icon-button
           class="reaction-btn"
-          [class.down]="userReaction === 'down'"
+          [class.down]="userReaction === 'DOWN'"
           (click)="onReactDown(); $event.stopPropagation()"
           aria-label="Thumbs down"
         >

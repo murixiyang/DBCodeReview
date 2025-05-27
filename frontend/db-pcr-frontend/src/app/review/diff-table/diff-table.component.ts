@@ -17,6 +17,7 @@ import { NameCommentInfo } from '../../interface/gerrit/name-comment-info';
 import { DiffLine } from '../../interface/gerrit/diff-line';
 import { PublishAction } from '../../interface/publish-action';
 import { FormsModule } from '@angular/forms';
+import { ReactState } from '../../interface/react-state';
 
 @Component({
   selector: 'app-diff-table',
@@ -346,7 +347,13 @@ export class DiffTableComponent implements OnChanges {
     this.showPublishDialog = true;
   }
 
-  onReact(event: { id: string; type: 'up' | 'down' }) {
+  onReact(event: { id: string; type: ReactState }) {
     console.log('Comment id: ', event.id, ' reaction: ', event.type);
+
+    this.reviewSvc
+      .postThumbStateForComment(this.gerritChangeId, event.id, event.type)
+      .subscribe(() => {
+        console.log('Reaction posted successfully');
+      });
   }
 }

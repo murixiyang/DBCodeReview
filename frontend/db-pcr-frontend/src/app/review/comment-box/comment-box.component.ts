@@ -4,21 +4,17 @@ import {
   EventEmitter,
   Input,
   Output,
+  SimpleChanges,
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import {
-  DatePipe,
-  NgClass,
-  NgIf,
-  NgSwitch,
-  NgSwitchCase,
-} from '@angular/common';
+import { DatePipe, NgIf, NgSwitch, NgSwitchCase } from '@angular/common';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { ReactState } from '../../interface/react-state';
 
 export type ReviewerCommentVariant =
   | 'published'
@@ -35,7 +31,6 @@ export type ReviewerCommentVariant =
     NgSwitchCase,
     DatePipe,
     NgIf,
-    NgClass,
     MatIconModule,
     MatButtonModule,
   ],
@@ -57,7 +52,7 @@ export class CommentBoxComponent {
   @Input() ownComment = false;
 
   /** track what the *current* user has done */
-  userReaction: 'up' | 'down' | null = null;
+  userReaction: ReactState = ReactState.NONE;
 
   /** save (for new & draft) */
   @Output() saved = new EventEmitter<GerritCommentInput>();
@@ -75,9 +70,31 @@ export class CommentBoxComponent {
   @Output() reply = new EventEmitter<GerritCommentInfo>();
 
   /** author react (for published) */
-  @Output() react = new EventEmitter<{ id: string; type: 'up' | 'down' }>();
+  @Output() react = new EventEmitter<{ id: string; type: ReactState }>();
 
   @ViewChild('autosize') autosizeTextarea!: ElementRef<HTMLTextAreaElement>;
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['comment']) {
+      this.setUserReactionFromComment();
+    }
+  }
+
+  private setUserReactionFromComment() {
+    if (this.isGerritCommentInfo(this.comment)) {
+      this.userReaction = this.comment.thumbState
+        ? this.comment.thumbState
+        : ReactState.NONE;
+    } else {
+      this.userReaction = ReactState.NONE;
+    }
+  }
+
+  private isGerritCommentInfo(
+    comment: GerritCommentInput | GerritCommentInfo
+  ): comment is GerritCommentInfo {
+    return 'thumbState' in comment;
+  }
 
   /** call on each input to let it grow as needed */
   autoResize(textarea: HTMLTextAreaElement) {
@@ -114,15 +131,17 @@ export class CommentBoxComponent {
   }
 
   onReactUp() {
-    this.userReaction = this.userReaction === 'up' ? null : 'up';
-    this.react.emit({ id: this.comment.id!, type: this.userReaction ?? 'up' });
+    this.userReaction =
+      this.userReaction === ReactState.UP ? ReactState.NONE : ReactState.UP;
+    this.react.emit({ id: this.comment.id!, type: this.userReaction });
   }
 
   onReactDown() {
-    this.userReaction = this.userReaction === 'down' ? null : 'down';
+    this.userReaction =
+      this.userReaction === ReactState.DOWN ? ReactState.NONE : ReactState.DOWN;
     this.react.emit({
       id: this.comment.id!,
-      type: this.userReaction ?? 'down',
+      type: this.userReaction,
     });
   }
 

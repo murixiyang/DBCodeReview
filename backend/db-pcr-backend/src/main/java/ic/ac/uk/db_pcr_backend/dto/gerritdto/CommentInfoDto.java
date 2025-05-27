@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.google.gerrit.extensions.common.CommentInfo;
 
+import ic.ac.uk.db_pcr_backend.model.ReactState;
 import ic.ac.uk.db_pcr_backend.redactor.Redactor;
 
 public class CommentInfoDto {
@@ -15,6 +16,7 @@ public class CommentInfoDto {
     private int line;
     private String inReplyTo;
     private String message;
+    private ReactState thumbState = ReactState.NONE;
     private Instant updated;
 
     public CommentInfoDto(String id, String path, String side, int line,
@@ -25,6 +27,19 @@ public class CommentInfoDto {
         this.line = line;
         this.inReplyTo = inReplyTo;
         this.message = Redactor.redact(message, redactedFields);
+
+        this.updated = updated;
+    }
+
+    public CommentInfoDto(String id, String path, String side, int line,
+            String inReplyTo, String message, Instant updated, List<String> redactedFields, ReactState thumbState) {
+        this.id = id;
+        this.path = path;
+        this.side = side;
+        this.line = line;
+        this.inReplyTo = inReplyTo;
+        this.message = Redactor.redact(message, redactedFields);
+        this.thumbState = thumbState;
         this.updated = updated;
     }
 
@@ -96,6 +111,14 @@ public class CommentInfoDto {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public ReactState getThumbState() {
+        return thumbState;
+    }
+
+    public void setThumbState(ReactState thumbState) {
+        this.thumbState = thumbState;
     }
 
     public Instant getUpdated() {

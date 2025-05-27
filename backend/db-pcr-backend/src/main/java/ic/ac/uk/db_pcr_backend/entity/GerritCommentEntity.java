@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import ic.ac.uk.db_pcr_backend.model.CommentType;
+import ic.ac.uk.db_pcr_backend.model.ReactState;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -52,6 +53,10 @@ public class GerritCommentEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private CommentType commentType = CommentType.DRAFT;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "thumb_state", length = 10, nullable = false)
+    private ReactState thumbState = ReactState.NONE;
 
     /** Timestamps */
     @CreationTimestamp
@@ -144,6 +149,14 @@ public class GerritCommentEntity {
 
     public void setCommentType(CommentType commentType) {
         this.commentType = commentType;
+    }
+
+    public ReactState getThumbState() {
+        return thumbState;
+    }
+
+    public void setThumbState(ReactState thumbState) {
+        this.thumbState = thumbState;
     }
 
     public Instant getCreatedAt() {

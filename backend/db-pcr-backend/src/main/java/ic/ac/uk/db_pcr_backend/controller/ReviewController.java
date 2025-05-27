@@ -39,6 +39,7 @@ import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.model.ReactState;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.redactor.Redactor;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
@@ -375,7 +376,9 @@ public class ReviewController {
         String username = oauth2User.getAttribute("username").toString();
 
         List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username);
-        List<NameCommentInfoDto> pseudonymComments = commentSvc.getCommentsWithPseudonym(gerritChangeId, comments);
+        List<CommentInfoDto> commentsWithThumb = commentSvc.addThumbStateToDto(gerritChangeId, comments);
+        List<NameCommentInfoDto> pseudonymComments = commentSvc.getCommentsWithPseudonym(gerritChangeId,
+                commentsWithThumb);
 
         return ResponseEntity.ok(pseudonymComments);
     }
@@ -391,7 +394,9 @@ public class ReviewController {
         String username = oauth2User.getAttribute("username").toString();
 
         List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username);
-        List<NameCommentInfoDto> usernameComments = commentSvc.getCommentsWithUsername(gerritChangeId, comments);
+        List<CommentInfoDto> commentsWithThumb = commentSvc.addThumbStateToDto(gerritChangeId, comments);
+        List<NameCommentInfoDto> usernameComments = commentSvc.getCommentsWithUsername(gerritChangeId,
+                commentsWithThumb);
 
         return ResponseEntity.ok(usernameComments);
     }
@@ -604,6 +609,23 @@ public class ReviewController {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
         notificationSvc.sendNewReplyNotificationToReviewer(gerritChangeId, repliedToCommentIds, assignmentIdLong);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @Transactional
+    @PostMapping("/post-thumb-state-for-comment")
+    public ResponseEntity<Void> postThumbStateForComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestParam("gerritCommentId") String gerritCommentId,
+            @RequestParam("thumbState") ReactState thumbState) throws Exception {
+
+        System.out.println("STAGE: ReviewController.postThumbStateForComment");
+
+        System.out.println("DBLOG: Marking comment reaction for changeId: "
+                + gerritChangeId + ", commentId: " + gerritCommentId + ", thumbState: " + thumbState);
+
+        commentSvc.markCommentReaction(gerritChangeId, gerritCommentId, thumbState);
 
         return ResponseEntity.noContent().build();
     }

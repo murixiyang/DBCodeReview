@@ -17,6 +17,7 @@ import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.CommentType;
+import ic.ac.uk.db_pcr_backend.model.ReactState;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.repository.GerritCommentRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectUserPseudonymRepo;
@@ -114,6 +115,22 @@ public class CommentService {
     }
 
     @Transactional
+    public void markCommentReaction(String gerritChangeId, String gerritCommentId, ReactState reactState)
+            throws GitLabApiException {
+        System.out.println("Service: CommentService.markCommentReactions");
+
+        // 1) Load comment
+        GerritCommentEntity c = gerritCommentRepo
+                .findByGerritChangeIdAndGerritCommentId(gerritChangeId, gerritCommentId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No comment found for changeId " + gerritChangeId + " and commentId " + gerritCommentId));
+
+        // 3) Set and save
+        c.setThumbState(reactState);
+        gerritCommentRepo.save(c);
+    }
+
+    @Transactional
     public void deleteDraftComment(String gerritChangeId, String draftId)
             throws GitLabApiException {
         System.out.println("Service: CommentService.deleteDraftComment");
@@ -184,6 +201,31 @@ public class CommentService {
         });
 
         return usernameComments;
+    }
+
+    /* Add thumb state data to given commentInfoDto */
+    @Transactional(readOnly = true)
+    public List<CommentInfoDto> addThumbStateToDto(String gerritChangeId, List<CommentInfoDto> comments)
+            throws GitLabApiException {
+        System.out.println("Service: CommentService.addThumbStateToDto");
+
+        List<CommentInfoDto> commentsWithThumbState = new ArrayList<>();
+
+        comments.forEach((comment) -> {
+
+            // Find comment in the database
+            GerritCommentEntity commentEntity = gerritCommentRepo
+                    .findByGerritChangeIdAndGerritCommentId(gerritChangeId, comment.getId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "No comments found for changeId " + gerritChangeId +
+                                    " and commentId " + comment.getId()));
+
+            // Add thumb state to the comment
+            comment.setThumbState(commentEntity.getThumbState());
+            commentsWithThumbState.add(comment);
+        });
+
+        return commentsWithThumbState;
     }
 
 }
