@@ -1,3 +1,18 @@
+.hljs {
+  background: none !important; /* no theme background */
+  font-family: inherit !important; /* use your app’s font */
+  font-size: inherit !important; /* use your app’s size */
+  padding: 0 !important; /* drop any padding */
+  display: block !important; /* preserve block behavior */
+  overflow: visible !important; /* allow scrolling */
+}
+
+/* 2) Make sure no spans introduce new backgrounds or fonts */
+.hljs span {
+  background: transparent !important;
+  font-family: inherit !important;
+}
+
 .diff-grid {
   display: grid;
   /* four tracks: gutter (32px), code (1fr), gutter (32px), code (1fr) */
@@ -132,6 +147,7 @@
   padding: 0;
   vertical-align: top;
 }
+
 .code-col pre {
   margin: 0;
   padding: 0 0 0 16px;

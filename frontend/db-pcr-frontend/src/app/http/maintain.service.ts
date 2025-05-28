@@ -15,11 +15,11 @@ export class MaintainService {
 
   /** To generate the list of maintainers */
   assignReviewers(
-    groupGitlabProjectId: number,
+    groupProjectId: number,
     reviewerNum: number
   ): Observable<ReviewAssignmentUsernameDto[]> {
     const params = new HttpParams()
-      .set('groupGitlabProjectId', groupGitlabProjectId.toString())
+      .set('groupProjectId', groupProjectId.toString())
       .set('reviewerNum', reviewerNum.toString());
 
     return this.http.post<ReviewAssignmentUsernameDto[]>(
@@ -33,11 +33,11 @@ export class MaintainService {
 
   /** Get the list of assignments for a project with real username */
   getAssignedList(
-    groupGitlabProjectId: number
+    groupProjectId: number
   ): Observable<ReviewAssignmentUsernameDto[]> {
     const params = new HttpParams().set(
-      'groupGitlabProjectId',
-      groupGitlabProjectId.toString()
+      'groupProjectId',
+      groupProjectId.toString()
     );
 
     return this.http.get<ReviewAssignmentUsernameDto[]>(

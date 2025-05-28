@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.models.Group;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.repository.GitlabGroupRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.UserRepo;
+import ic.ac.uk.db_pcr_backend.service.GitLabService;
 import ic.ac.uk.db_pcr_backend.service.ProjectService;
 
 @Controller
@@ -29,6 +31,9 @@ import ic.ac.uk.db_pcr_backend.service.ProjectService;
 public class ProjectController {
     @Autowired
     private ProjectService projectSvc;
+
+    @Autowired
+    private GitLabService gitlabSvc;
 
     @Autowired
     private ProjectRepo projectRepo;
@@ -39,7 +44,7 @@ public class ProjectController {
     @Autowired
     private GitlabGroupRepo groupRepo;
 
-    @Value("${gitlab.group.id}")
+    @Value("${gitlab.eval.group.id}")
     private String groupId;
 
     /* Get list of personal projects */
@@ -59,13 +64,6 @@ public class ProjectController {
         UserEntity user = userRepo.findByGitlabUserId(gitlabUserId)
                 .orElseGet(() -> userRepo.save(new UserEntity(gitlabUserId, username, null)));
 
-        // First sync group projects (so we can set the parent project)
-        Long gitlabGroupId = Long.valueOf(groupId);
-        GitlabGroupEntity group = groupRepo.findByGitlabGroupId(gitlabGroupId)
-                .orElseGet(() -> groupRepo
-                        .save(new GitlabGroupEntity(gitlabGroupId, "Group " + gitlabGroupId)));
-        projectSvc.syncGroupProjects(group, accessToken);
-
         // Then sync personal projects
         projectSvc.syncPersonalProjects(user, accessToken);
 
@@ -81,28 +79,49 @@ public class ProjectController {
     /** Get project name list in a group */
     @GetMapping("/group-projects")
     public ResponseEntity<List<ProjectDto>> getProjectNameInGroup(
-            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client)
+            throws Exception, GitLabApiException {
 
         System.out.println("STAGE: ProjectController.getProjectNameInGroup");
 
         String accessToken = client.getAccessToken().getTokenValue();
 
-        Long gitlabGroupId = Long.valueOf(groupId);
-        // A) Ensure the GitlabGroup record exists
-        GitlabGroupEntity group = groupRepo.findByGitlabGroupId(gitlabGroupId)
-                .orElseGet(() -> groupRepo
-                        .save(new GitlabGroupEntity(gitlabGroupId, "Group " + gitlabGroupId)));
+        // Fetch all groups for this user
+        List<Group> groups = gitlabSvc.getGroups(accessToken);
 
-        // 1) Sync the group’s projects into the DB
-        projectSvc.syncGroupProjects(group, accessToken);
-
-        // 2) Get the list of projects in the group
-        List<ProjectEntity> projects = projectRepo.findByGroupId(group.getId());
-
-        List<ProjectDto> dtos = projects.stream()
-                .filter(project -> project.getParentProject() == null)
-                .map(ProjectDto::fromEntity)
+        List<Long> groupIds = groups.stream()
+                .map(Group::getId)
                 .collect(Collectors.toList());
+
+        // Return list
+        List<ProjectDto> dtos = groupIds.stream()
+                .map(gitlabGroupId -> {
+                    // Ensure the GitlabGroup record exists
+                    GitlabGroupEntity group = groupRepo.findByGitlabGroupId(gitlabGroupId)
+                            .orElseGet(() -> groupRepo
+                                    .save(new GitlabGroupEntity(gitlabGroupId, "Group " + gitlabGroupId)));
+
+                    try {
+                        projectSvc.syncGroupProjects(group, accessToken);
+                    } catch (GitLabApiException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    // Get the list of projects in the group
+                    List<ProjectEntity> projects = projectRepo.findByGroupId(group.getId());
+
+                    return projects.stream()
+                            .filter(project -> project.getParentProject() == null)
+                            .map(ProjectDto::fromEntity)
+                            .collect(Collectors.toList());
+                })
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+
+        projectRepo.flush();
+
+        // After fetching parent projects, set them for personal projects
+        projectSvc.setParentForPersonalProject(accessToken);
 
         return ResponseEntity.ok(dtos);
 

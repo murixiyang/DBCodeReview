@@ -47,17 +47,42 @@ public class ProjectService {
 
             p.setOwner(user);
 
-            // Set project parent
-            if (project.getForkedFromProject() != null) {
-                Project projectParent = project.getForkedFromProject();
-                ProjectEntity parent = projectRepo.findByGitlabProjectId(projectParent.getId())
-                        .orElseThrow(() -> new RuntimeException("Parent project not found"));
-                p.setParentProject(parent);
-                p.setGroup(parent.getGroup());
-            }
-
             projectRepo.save(p);
         }
+    }
+
+    /* Set parent for personal project (after sync group project) */
+    @Transactional
+    public void setParentForPersonalProject(String accessToken) throws GitLabApiException {
+        System.out.println("Service: ProjectService.setParentForPersonalProject");
+
+        List<Project> projects = gitLabSvc.getPersonalProject(accessToken);
+
+        for (var project : projects) {
+
+            ProjectEntity p = projectRepo.findByGitlabProjectId(project.getId())
+                    .orElseGet(() -> new ProjectEntity(project.getId(), project.getName(),
+                            project.getNamespace().getFullPath()));
+
+            if (p.getParentProject() != null && p.getGroup() != null) {
+                continue;
+            } else {
+                // Set project parent
+                if (project.getForkedFromProject() != null) {
+                    Project projectParent = project.getForkedFromProject();
+                    System.out.println("DBLOG: Found parent project: " + projectParent.getId());
+                    System.out.println("DBLOG: Parent project name: " + projectParent.getName());
+                    ProjectEntity parent = projectRepo.findByGitlabProjectId(projectParent.getId())
+                            .orElseThrow(() -> new RuntimeException("Parent project not found"));
+                    p.setParentProject(parent);
+                    p.setGroup(parent.getGroup());
+                }
+            }
+
+            // Save the updated project
+            projectRepo.save(p);
+        }
+
     }
 
     /* Synchronize the group project list to database */

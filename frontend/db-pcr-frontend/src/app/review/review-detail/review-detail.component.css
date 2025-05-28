@@ -63,3 +63,7 @@
 .header-actions app-publish-dialog {
   margin-left: 1rem;
 }
+
+.diff-container {
+  margin-bottom: 20px;
+}
