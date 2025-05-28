@@ -15,13 +15,20 @@ import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input'
 import { ReviewService } from '../../http/review.service';
 import { NameCommentInfo } from '../../interface/gerrit/name-comment-info';
 import { DiffLine } from '../../interface/gerrit/diff-line';
-import { PublishAction } from '../../interface/publish-action';
 import { FormsModule } from '@angular/forms';
 import { ReactState } from '../../interface/react-state';
 
+import { HighlightModule } from 'ngx-highlightjs';
 @Component({
   selector: 'app-diff-table',
-  imports: [NgFor, NgIf, CommentBoxComponent, NgClass, FormsModule],
+  imports: [
+    NgFor,
+    NgIf,
+    CommentBoxComponent,
+    NgClass,
+    FormsModule,
+    HighlightModule,
+  ],
   templateUrl: './diff-table.component.html',
   styleUrl: './diff-table.component.css',
 })
