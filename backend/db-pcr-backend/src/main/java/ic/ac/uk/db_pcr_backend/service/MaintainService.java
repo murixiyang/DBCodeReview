@@ -88,13 +88,13 @@ public class MaintainService {
 
     /* Get assigned list for project */
     @Transactional(readOnly = true)
-    public List<ReviewAssignmentEntity> getReviewAssignmentsForProject(Long gitlabProjectId) {
+    public List<ReviewAssignmentEntity> getReviewAssignmentsForProject(Long groupProjectId) {
 
         System.out.println("Service: MaintainService.getReviewAssignmentsForProject");
 
         ProjectEntity project = projectRepo
-                .findByGitlabProjectId(gitlabProjectId)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown project id: " + gitlabProjectId));
+                .findById(groupProjectId)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown project id: " + groupProjectId));
         return reviewAssignmentRepo.findByGroupProject(project);
     }
 

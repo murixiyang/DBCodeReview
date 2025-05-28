@@ -95,7 +95,7 @@ public class ReviewController {
     @Autowired
     private GerritCommentRepo gerritCommentRepo;
 
-    @Value("${gitlab.group.id}")
+    @Value("${gitlab.eval.group.id}")
     private String groupId;
 
     /**

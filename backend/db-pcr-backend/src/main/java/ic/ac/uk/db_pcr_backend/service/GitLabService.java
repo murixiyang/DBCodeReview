@@ -9,6 +9,7 @@ import org.gitlab4j.api.GitLabApiException;
 import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Diff;
+import org.gitlab4j.api.models.Group;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.User;
@@ -27,6 +28,15 @@ public class GitLabService {
     public GitLabService(@Value("${gitlab.url}") String apiUrl,
             RestTemplateBuilder restTemplateBuilder) {
         this.apiUrl = apiUrl;
+    }
+
+    /** Get the list of groups for a given user. */
+    public List<Group> getGroups(String oauthToken) throws GitLabApiException {
+        System.out.println("Service: GitLabService.getGroups");
+
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            return gitLabApi.getGroupApi().getGroups();
+        }
     }
 
     /** Get the list of projects for a given user. */

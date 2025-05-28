@@ -26,17 +26,17 @@ public class MaintainController {
     @Autowired
     private MaintainService maintainSvc;
 
-    @Value("${gitlab.group.id}")
+    @Value("${gitlab.eval.group.id}")
     private String gitlabGroupId;
 
     @GetMapping("/get-assigned-list")
     public ResponseEntity<List<ReviewAssignmentUsernameDto>> getAssignedList(
-            @RequestParam("groupGitlabProjectId") String groupGitlabProjectId) throws Exception {
+            @RequestParam("groupProjectId") String groupProjectId) throws Exception {
 
         System.out.println("STAGE: MaintainController.getAssignedList");
 
         List<ReviewAssignmentEntity> assignments = maintainSvc
-                .getReviewAssignmentsForProject(Long.valueOf(groupGitlabProjectId));
+                .getReviewAssignmentsForProject(Long.valueOf(groupProjectId));
 
         List<ReviewAssignmentUsernameDto> dtos = assignments.stream().map(ra -> {
 
@@ -48,7 +48,7 @@ public class MaintainController {
 
     @PostMapping("/assign")
     public ResponseEntity<List<ReviewAssignmentUsernameDto>> assignReviewers(
-            @RequestParam("groupGitlabProjectId") String groupGitlabProjectId,
+            @RequestParam("groupProjectId") String groupProjectId,
             @RequestParam("reviewerNum") int reviewerNum,
             @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
 
@@ -56,7 +56,7 @@ public class MaintainController {
 
         String accessToken = client.getAccessToken().getTokenValue();
 
-        List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(gitlabGroupId, groupGitlabProjectId,
+        List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(gitlabGroupId, groupProjectId,
                 reviewerNum,
                 accessToken);
 
