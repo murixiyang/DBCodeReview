@@ -1,4 +1,4 @@
-import { CommonModule, NgFor } from '@angular/common';
+import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { Component } from '@angular/core';
 import {
   FormArray,
@@ -10,10 +10,11 @@ import {
 } from '@angular/forms';
 import { EvaluationService } from '../../http/evaluation.service';
 import { Router } from '@angular/router';
+import { FilePayload } from '../../interface/eval/file-paylod';
 
 @Component({
   selector: 'app-eval-author',
-  imports: [FormsModule, NgFor, ReactiveFormsModule, CommonModule],
+  imports: [FormsModule, NgFor, ReactiveFormsModule, CommonModule, NgIf],
   templateUrl: './eval-author.component.html',
   styleUrl: './eval-author.component.css',
 })
@@ -28,7 +29,7 @@ export class EvalAuthorComponent {
     private router: Router
   ) {
     this.fileForm = this.fb.group({
-      language: [null, Validators.required],
+      language: ['Java', Validators.required],
       otherLang: [''],
       files: this.fb.array([]),
     });
@@ -45,20 +46,20 @@ export class EvalAuthorComponent {
 
   downloadTemplate(): void {
     const lang = this.fileForm.get('language')?.value;
-    if (!lang || (lang !== 'Java' && lang !== 'Python')) {
-      return;
-    }
-    const filename = lang.toLowerCase() + '.zip';
-    const url = `/assets/templates/${filename}`;
-
-    this.evalSvc.getTemplateDownloaded(lang).subscribe((blob) => {
-      const a = document.createElement('a');
-      const objectUrl = URL.createObjectURL(blob);
-      a.href = objectUrl;
-      a.download = filename;
-      a.click();
-      URL.revokeObjectURL(objectUrl);
-    });
+    if (lang !== 'Java' && lang !== 'Python') return;
+    this.evalSvc.getTemplateDownloaded(lang).subscribe(
+      (blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = lang.toLowerCase() + '.zip';
+        a.click();
+        URL.revokeObjectURL(a.href);
+      },
+      (err) => {
+        console.error(err);
+        alert('Template download failed');
+      }
+    );
   }
 
   onPublish(): void {
@@ -77,15 +78,19 @@ export class EvalAuthorComponent {
     this.locked = true;
 
     // Prepare payload
-    const payload = {
-      language:
-        this.fileForm.value.language === 'Other'
-          ? this.fileForm.value.otherLang
-          : this.fileForm.value.language,
-      files: this.fileForm.value.files, // array of { name, content }
-    };
+    const language =
+      this.fileForm.value.language === 'Other'
+        ? this.fileForm.value.otherLang
+        : this.fileForm.value.language;
 
-    this.evalSvc.publishToGerrit(payload).subscribe({
+    // In onPublish(), before calling the service:
+    const rawFiles = this.fileForm.value.files; // [{name, content}, …]
+    const files: FilePayload[] = rawFiles.map((f: any) => ({
+      name: f.name,
+      content: f.content,
+    }));
+
+    this.evalSvc.publishToGerrit(language, files).subscribe({
       next: (res) => {
         console.log('Submitted files', res);
         // Navigate to review after a short delay or immediately

@@ -3,7 +3,6 @@ package ic.ac.uk.db_pcr_backend.controller;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;

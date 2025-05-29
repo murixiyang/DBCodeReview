@@ -1,11 +1,9 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
 import java.io.IOException;
-import java.security.Principal;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -21,14 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.gerrit.extensions.api.changes.ChangeApi;
-import com.google.gerrit.extensions.common.ChangeInfo;
-import com.google.gerrit.extensions.common.ChangeInput;
-
+import ic.ac.uk.db_pcr_backend.dto.eval.FilePayload;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
-import ic.ac.uk.db_pcr_backend.model.eval.FilePayload;
-import ic.ac.uk.db_pcr_backend.repository.UserRepo;
-import ic.ac.uk.db_pcr_backend.service.EvaluationService;
+import ic.ac.uk.db_pcr_backend.entity.eval.AuthorCodeEntity;
+import ic.ac.uk.db_pcr_backend.repository.eval.AuthorCodeRepo;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.UserService;
 
@@ -37,13 +31,13 @@ import ic.ac.uk.db_pcr_backend.service.UserService;
 public class EvaluationController {
 
     @Autowired
-    private EvaluationService evalSvc;
-
-    @Autowired
     private GerritService gerritSvc;
 
     @Autowired
     private UserService userSvc;
+
+    @Autowired
+    private AuthorCodeRepo authorCodeRepo;
 
     /**
      * Download the ZIP template for a given project/language.
@@ -52,6 +46,8 @@ public class EvaluationController {
     @GetMapping("/get-template")
     public ResponseEntity<Resource> getTemplateDownloaded(
             @RequestParam("language") String language) throws IOException {
+
+        System.out.println("DBLOG: EvaluationController.getTemplateDownloaded");
 
         // Map the language to a resource name
         String key = language.toLowerCase();
@@ -78,26 +74,37 @@ public class EvaluationController {
 
     /**
      * Publish user-uploaded files to Gerrit.
-     * Expects JSON: { "language": "...", "files": [ { "path": "...", "content":
+     * Expects JSON: { "files": [ { "path": "...", "content":
      * "base64..." }, ... ] }
      */
     @PostMapping("/publish-to-gerrit")
-    public ResponseEntity<?> publishToGerrit(
+    public ResponseEntity<String> publishToGerrit(
             @RequestParam("language") String language,
             @RequestBody List<FilePayload> files,
             @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
+        System.out.println("STAGE: EvaluationController.publishToGerrit");
+
+        Long gitlabUserId = Long.valueOf(oauth2User.getAttribute("id").toString());
         String username = oauth2User.getAttribute("username").toString();
 
         // Find user
-        UserEntity user = userSvc.getOrCreateUserByName(username);
+        UserEntity user = userSvc.getOrCreateUserByName(gitlabUserId, username);
+
+        // Find existed author code entry
+        List<AuthorCodeEntity> existingEntry = authorCodeRepo.findByAuthor(user);
+        if (!existingEntry.isEmpty()) {
+            // If an entry exists, return with the existing Change-Id
+            System.out.println("DBLOG: This user already has an author code entry.");
+            return ResponseEntity.ok(existingEntry.get(0).getGerritChangeId());
+        }
 
         String projectPath = username + "/eval-project";
 
-        gerritSvc.publishAuthorCodeToGerrit(user, projectPath, files, language);
+        String gerritChangeId = gerritSvc.publishAuthorCodeToGerrit(user, projectPath, files, language);
 
         // 6. Return the Gerrit Change-Id so the front-end can reference it
-        return ResponseEntity.ok(ChangeInfo.builder().changeId(changeId).build());
+        return ResponseEntity.ok(gerritChangeId);
     }
 
 }

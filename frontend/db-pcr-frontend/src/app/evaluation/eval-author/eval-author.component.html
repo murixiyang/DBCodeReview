@@ -101,6 +101,17 @@
             download the {{ fileForm.get("language")?.value }} template</button
           >, fill in the TODOs, or start from scratch.
         </p>
+
+        <p>After finishing, upload your code files here.</p>
+        <p
+          *ngIf="
+            fileForm.get('language')?.value === 'Java' ||
+            fileForm.get('language')?.value === 'Python'
+          "
+        >
+          (If using templates, upload the Book and Member classes even you
+          didn't change them.)
+        </p>
       </div>
 
       <!-- File Upload / Editor -->
