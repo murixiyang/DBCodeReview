@@ -10,6 +10,7 @@ import { AuthorReviewDetailComponent } from './author-commit/author-review-detai
 import { EvalListComponent } from './evaluation/eval-list/eval-list.component';
 import { EvalIntroComponent } from './evaluation/eval-intro/eval-intro.component';
 import { EvalAuthorComponent } from './evaluation/eval-author/eval-author.component';
+import { EvalReviewComponent } from './evaluation/eval-review/eval-review.component';
 
 export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
@@ -27,5 +28,6 @@ export const routes: Routes = [
   { path: 'maintain/project-list', component: MaintainListComponent },
   { path: 'eval/intro', component: EvalIntroComponent },
   { path: 'eval/author', component: EvalAuthorComponent },
+  { path: 'eval/review', component: EvalReviewComponent },
   { path: '', redirectTo: '/eval/intro', pathMatch: 'full' },
 ];

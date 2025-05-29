@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -17,9 +18,9 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -38,6 +39,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.util.ChangeIdUtil;
 
 import com.google.gerrit.extensions.api.GerritApi;
+import com.google.gerrit.extensions.api.changes.ChangeApi;
 import com.google.gerrit.extensions.api.changes.DraftInput;
 import com.google.gerrit.extensions.api.changes.ReviewInput;
 import com.google.gerrit.extensions.api.changes.ReviewResult;
@@ -45,6 +47,7 @@ import com.google.gerrit.extensions.api.changes.RevisionApi;
 import com.google.gerrit.extensions.api.projects.ProjectInput;
 import com.google.gerrit.extensions.client.Side;
 import com.google.gerrit.extensions.common.ChangeInfo;
+import com.google.gerrit.extensions.common.ChangeInput;
 import com.google.gerrit.extensions.common.CommentInfo;
 import com.google.gerrit.extensions.common.FileInfo;
 import com.google.gerrit.extensions.restapi.BinaryResult;
@@ -59,9 +62,13 @@ import ic.ac.uk.db_pcr_backend.dto.gerritdto.SelectiveReviewInput;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
+import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.entity.eval.AuthorCodeEntity;
+import ic.ac.uk.db_pcr_backend.model.eval.FilePayload;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepo;
+import ic.ac.uk.db_pcr_backend.repository.eval.AuthorCodeRepo;
 
 @Service
 public class GerritService {
@@ -87,6 +94,9 @@ public class GerritService {
 
     @Autowired
     private SubmissionTrackerRepo submissionTrackerRepo;
+
+    @Autowired
+    private AuthorCodeRepo authorCodeRepo;
 
     private final String gerritAuthUrl;
     private final String gerritUsername;
@@ -472,6 +482,71 @@ public class GerritService {
         changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);
 
         return changeId;
+    }
+
+    /*
+     * Publish Gerrit change for eval (a new project with 1 commit, files provided)
+     */
+    @Transactional
+    public ResponseEntity<?> publishAuthorCodeToGerrit(UserEntity currentUser, String projectPath,
+            List<FilePayload> files, String language) throws Exception {
+
+        // Create project
+        ensureGerritProjectExists(gerritApi, projectPath);
+
+        // Clone the Gerrit repo
+        Path tmp = Files.createTempDirectory("author-");
+        CredentialsProvider creds = new UsernamePasswordCredentialsProvider(gerritUsername, gerritHttpPassword);
+        Git git = cloneGerritRepo(tmp, projectPath, creds);
+
+        // Checkout review branch (or main)
+        git.checkout()
+                .setName("refs/heads/" + gerritBranch)
+                .call();
+
+        // Write each FilePayload into the work tree
+        for (FilePayload f : files) {
+            Path target = tmp.resolve(f.name);
+            Files.createDirectories(target.getParent());
+            Files.writeString(target, f.content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        }
+
+        // Stage all changes
+        git.add().addFilepattern(".").call();
+
+        // Compute a Change-Id
+        // Use HEAD as “source” so we can compute a new one
+        RevCommit head = parseCommit(git, "HEAD");
+        String changeId = computeChangeId(head);
+
+        // Commit
+        commitWithChangeId(git, changeId, "Implementation for Library System");
+
+        // Push to Gerrit for review
+        PushResult pr = pushToGerrit(git, creds);
+
+        // Add to DB
+        AuthorCodeEntity authorCode = new AuthorCodeEntity();
+
+
+
+
+    AuthorSubmission sub = new AuthorSubmission();
+    sub.setAuthor(userService.getByUsername(username));
+    sub.setLanguage(...);
+    sub.setGerritChangeId(changeId);
+    authorSubmissionRepo.save(sub);
+
+
+        // 5. Save to our database
+        AuthorSubmission submission = new AuthorSubmission();
+        submission.setAuthor(currentUser);
+        submission.setGerritChangeId(changeId);
+        submission.setLanguage(request.language);
+        repo.save(submission);
+
+        // 6. Return the Gerrit Change-Id so the front-end can reference it
+        return ResponseEntity.ok(ChangeInfo.builder().changeId(changeId).build());
     }
 
     private void ensureGerritProjectExists(GerritApi api, String path) throws RestApiException {

@@ -13,7 +13,6 @@ import ic.ac.uk.db_pcr_backend.entity.GitlabGroupEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
-import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 
 @Service
 public class ProjectService {
@@ -22,7 +21,7 @@ public class ProjectService {
     private GitLabService gitLabSvc;
 
     @Autowired
-    private UserRepo userRepo;
+    private UserService userSvc;
 
     @Autowired
     private ProjectRepo projectRepo;
@@ -99,17 +98,9 @@ public class ProjectService {
             // Upsert the owner (it may be the “template” project’s creator)
             Long gitlabOwnerId = project.getCreatorId();
 
-            UserEntity owner = userRepo.findByGitlabUserId(gitlabOwnerId)
-                    .orElseGet(() -> {
-                        try {
-                            User user = gitLabSvc.getUserById(gitlabOwnerId, oauthToken);
+            User user = gitLabSvc.getUserById(gitlabOwnerId, oauthToken);
 
-                            return userRepo.save(new UserEntity(gitlabOwnerId, user.getUsername(),
-                                    null));
-                        } catch (GitLabApiException e) {
-                            throw new RuntimeException("Failed to fetch user from GitLab", e);
-                        }
-                    });
+            UserEntity owner = userSvc.getOrCreateUserByGitlabId(gitlabOwnerId, user.getUsername());
 
             // Upsert the Project
             ProjectEntity p = projectRepo.findByGitlabProjectId(project.getId())

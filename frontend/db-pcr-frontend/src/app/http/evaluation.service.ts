@@ -13,7 +13,7 @@ export class EvaluationService {
 
   /** Get project commits with CommitStatus */
   getTemplateDownloaded(language: String): Observable<any> {
-    return this.http.get(`${this.baseUrl}/get-template?projectId=${language}`, {
+    return this.http.get(`${this.baseUrl}/get-template?language=${language}`, {
       responseType: 'blob',
     });
   }

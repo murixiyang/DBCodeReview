@@ -47,13 +47,13 @@ import ic.ac.uk.db_pcr_backend.repository.GerritCommentRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
-import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.CommentService;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.NotificationService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
 import ic.ac.uk.db_pcr_backend.service.RedactionService;
 import ic.ac.uk.db_pcr_backend.service.ReviewStatusService;
+import ic.ac.uk.db_pcr_backend.service.UserService;
 
 @RestController
 @RequestMapping("/api/review")
@@ -78,7 +78,7 @@ public class ReviewController {
     private RedactionService redactSvc;
 
     @Autowired
-    private UserRepo userRepo;
+    private UserService userSvc;
 
     @Autowired
     private ProjectRepo projectRepo;
@@ -113,8 +113,7 @@ public class ReviewController {
         Long gitlabUserId = Long.valueOf(oauth2User.getAttribute("id").toString());
         String username = oauth2User.getAttribute("username").toString();
 
-        UserEntity reviewer = userRepo.findByUsername(username)
-                .orElseGet(() -> userRepo.save(new UserEntity(gitlabUserId, username, null)));
+        UserEntity reviewer = userSvc.getOrCreateUserByName(gitlabUserId, username);
 
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByReviewer(reviewer);
 
@@ -177,9 +176,7 @@ public class ReviewController {
 
         ProjectEntity groupProject = personalProejct.getParentProject();
 
-        UserEntity author = userRepo.findByUsername(oauth2User.getAttribute("username"))
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Reviewer not found: " + oauth2User.getAttribute("username")));
+        UserEntity author = userSvc.getOrExceptionUserByName(oauth2User.getAttribute("username"));
 
         // Find the review assignment
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
@@ -212,9 +209,7 @@ public class ReviewController {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Project not found: " + groupProjectId));
 
-        UserEntity reviewer = userRepo.findByUsername(oauth2User.getAttribute("username"))
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Reviewer not found: " + oauth2User.getAttribute("username")));
+        UserEntity reviewer = userSvc.getOrExceptionUserByName(oauth2User.getAttribute("username"));
 
         // Find the review assignment
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo

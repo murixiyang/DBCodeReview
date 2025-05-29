@@ -12,13 +12,12 @@ import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepo;
-import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 
 @Service
 public class SubmissionTrackerService {
 
     @Autowired
-    private UserRepo userRepo;
+    private UserService userSvc;
 
     @Autowired
     private ProjectRepo projectRepo;
@@ -43,8 +42,7 @@ public class SubmissionTrackerService {
         System.out.println("Service: SubmissionTrackerService.recordSubmission");
 
         // Find User
-        UserEntity user = userRepo.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        UserEntity user = userSvc.getOrExceptionUserByName(username);
 
         // Find project
         ProjectEntity project = projectRepo.findByGitlabProjectId(gitlabProjectId)
@@ -64,8 +62,8 @@ public class SubmissionTrackerService {
             Long gitlabProjectId) {
         System.out.println("Service: SubmissionTrackerService.getPreviousSubmission");
 
-        UserEntity author = userRepo.findByUsername(gitlabUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown user: " + gitlabUsername));
+        UserEntity author = userSvc.getOrExceptionUserByName(gitlabUsername);
+
         ProjectEntity project = projectRepo.findByGitlabProjectId(gitlabProjectId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown project: " + gitlabProjectId));
 
@@ -78,8 +76,7 @@ public class SubmissionTrackerService {
     public Instant getLastSubmittedTimestamp(Long authorId, Long projectId) {
         System.out.println("Service: SubmissionTrackerService.getLastSubmittedTimestamp");
 
-        UserEntity author = userRepo.findById(authorId)
-                .orElseThrow(() -> new IllegalArgumentException("Unknown user id: " + authorId));
+        UserEntity author = userSvc.getOrExceptionUserById(authorId);
         ProjectEntity project = projectRepo.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown project id: " + projectId));
 

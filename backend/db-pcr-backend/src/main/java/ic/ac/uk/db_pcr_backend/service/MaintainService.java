@@ -13,7 +13,6 @@ import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
-import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,7 +29,7 @@ public class MaintainService {
     private ProjectRepo projectRepo;
 
     @Autowired
-    private UserRepo userRepo;
+    private UserService userSvc;
 
     @Autowired
     private ReviewAssignmentRepo reviewAssignmentRepo;
@@ -55,10 +54,7 @@ public class MaintainService {
         ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
                 .orElseThrow();
         List<UserEntity> users = students.stream()
-                .map(student -> userRepo
-                        .findByGitlabUserId(student.getId())
-                        .orElseGet(() -> userRepo.save(
-                                new UserEntity(student.getId(), student.getUsername(), null))))
+                .map(student -> userSvc.getOrCreateUserByGitlabId(student.getId(), student.getUsername()))
                 .toList();
 
         // Clear any existing assignments for this project
