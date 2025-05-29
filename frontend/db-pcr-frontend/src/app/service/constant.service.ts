@@ -5,6 +5,7 @@ export const SPRING_URL_GITLAB = '/api/gitlab';
 export const SPRING_URL_REVIEW = '/api/review';
 export const SPRING_URL_MAINTAIN = '/api/maintain';
 export const SPRING_URL_NOTIFICATION = '/api/notifications';
+export const SPRING_URL_EVALUATION = '/api/eval';
 
 @Injectable({
   providedIn: 'root',

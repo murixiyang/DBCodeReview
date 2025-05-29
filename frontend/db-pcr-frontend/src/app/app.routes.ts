@@ -7,6 +7,9 @@ import { CommitDetailComponent } from './author-commit/commit-details/commit-det
 import { ReviewListComponent } from './review/review-list/review-list.component';
 import { ReviewDetailComponent } from './review/review-detail/review-detail.component';
 import { AuthorReviewDetailComponent } from './author-commit/author-review-detail/author-review-detail.component';
+import { EvalListComponent } from './evaluation/eval-list/eval-list.component';
+import { EvalIntroComponent } from './evaluation/eval-intro/eval-intro.component';
+import { EvalAuthorComponent } from './evaluation/eval-author/eval-author.component';
 
 export const routes: Routes = [
   { path: 'project-list', component: ProjectListComponent },
@@ -22,5 +25,7 @@ export const routes: Routes = [
     component: ReviewDetailComponent,
   },
   { path: 'maintain/project-list', component: MaintainListComponent },
-  { path: '', redirectTo: '/project-list', pathMatch: 'full' },
+  { path: 'eval/intro', component: EvalIntroComponent },
+  { path: 'eval/author', component: EvalAuthorComponent },
+  { path: '', redirectTo: '/eval/intro', pathMatch: 'full' },
 ];
