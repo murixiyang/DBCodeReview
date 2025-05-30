@@ -10,4 +10,6 @@ import ic.ac.uk.db_pcr_backend.entity.eval.AuthorCodeEntity;
 public interface AuthorCodeRepo extends JpaRepository<AuthorCodeEntity, Long> {
     // optional custom queries
     List<AuthorCodeEntity> findByAuthor(UserEntity author);
+
+    List<AuthorCodeEntity> findByAuthorNot(UserEntity author);
 }

@@ -284,7 +284,7 @@ public class ReviewController {
 
         System.out.println("STAGE: ReviewController.getChangedFilesContent");
 
-        Map<String, String[]> changedFileMap = gerritSvc.getChangedFileContent(gerritChangeId);
+        Map<String, String[]> changedFileMap = gerritSvc.getChangedFileContentForEval(gerritChangeId);
 
         // Get the redaction list
         String username = oauth2User.getAttribute("username").toString();
@@ -615,9 +615,6 @@ public class ReviewController {
             @RequestParam("thumbState") ReactState thumbState) throws Exception {
 
         System.out.println("STAGE: ReviewController.postThumbStateForComment");
-
-        System.out.println("DBLOG: Marking comment reaction for changeId: "
-                + gerritChangeId + ", commentId: " + gerritCommentId + ", thumbState: " + thumbState);
 
         commentSvc.markCommentReaction(gerritChangeId, gerritCommentId, thumbState);
 

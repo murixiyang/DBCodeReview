@@ -6,6 +6,14 @@
     Your feedback will help us understand how different review conditions affect
     reviewer behavior and the author experience.
   </p>
+  <h2>Before Starting</h2>
+  <p>
+    You will need to register an account to participate in this study.
+    <br />
+    We are using a self-hosted Gitlab so the normal gitlab account you hold
+    won't work. Please register a new one.
+  </p>
+
   <h2>Overview of Activities</h2>
   <ol>
     <li>
@@ -34,7 +42,7 @@
 
   <div class="start-container">
     <button id="start-button" class="btn-start" (click)="onStart()">
-      Start
+      {{ getStartText() }}
     </button>
   </div>
 </div>

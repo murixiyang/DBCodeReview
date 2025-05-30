@@ -69,8 +69,7 @@ public class ProjectService {
                 // Set project parent
                 if (project.getForkedFromProject() != null) {
                     Project projectParent = project.getForkedFromProject();
-                    System.out.println("DBLOG: Found parent project: " + projectParent.getId());
-                    System.out.println("DBLOG: Parent project name: " + projectParent.getName());
+
                     ProjectEntity parent = projectRepo.findByGitlabProjectId(projectParent.getId())
                             .orElseThrow(() -> new RuntimeException("Parent project not found"));
                     p.setParentProject(parent);

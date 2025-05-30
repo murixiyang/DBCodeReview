@@ -28,6 +28,6 @@ export const routes: Routes = [
   { path: 'maintain/project-list', component: MaintainListComponent },
   { path: 'eval/intro', component: EvalIntroComponent },
   { path: 'eval/author', component: EvalAuthorComponent },
-  { path: 'eval/review', component: EvalReviewComponent },
+  { path: 'eval/review/:round', component: EvalReviewComponent },
   { path: '', redirectTo: '/eval/intro', pathMatch: 'full' },
 ];

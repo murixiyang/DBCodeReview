@@ -94,7 +94,7 @@ export class EvalAuthorComponent {
       next: (res) => {
         console.log('Submitted files', res);
         // Navigate to review after a short delay or immediately
-        this.router.navigate(['/eval/review-round']);
+        this.router.navigate(['/eval/review', 1]);
       },
       error: (err) => {
         console.error('Submission failed', err);
@@ -133,6 +133,6 @@ export class EvalAuthorComponent {
   skipAuthor(): void {
     // navigate to review step
     console.log('Authoring skipped');
-    this.router.navigate(['/eval/review-round']);
+    this.router.navigate(['/eval/review', 1]);
   }
 }

@@ -23,7 +23,7 @@
 
   <ng-container *ngIf="!viewed">
     <!-- Old Pane -->
-    <div class="pane old-pane">
+    <div *ngIf="viewOldPane" class="pane old-pane">
       <table class="diff-table">
         <ng-container *ngFor="let line of lines; let i = index">
           <!-- code row -->

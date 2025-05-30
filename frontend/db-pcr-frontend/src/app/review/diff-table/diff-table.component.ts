@@ -40,6 +40,8 @@ export class DiffTableComponent implements OnChanges {
   @Input() oldText!: string;
   @Input() newText!: string;
   @Input() file!: string;
+  @Input() viewOldPane = true; // Show old pane by default
+  @Input() isAnonymous = true; // Show anonymous comments by default
 
   existedComments: NameCommentInfo[] = [];
   overallComments: NameCommentInfo[] = [];

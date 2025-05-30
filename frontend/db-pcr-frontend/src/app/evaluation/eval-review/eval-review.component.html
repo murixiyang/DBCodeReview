@@ -1,1 +1,96 @@
-<p>eval-review works!</p>
+<div class="page-container">
+  <!-- TWO COLUMNS -->
+  <div class="columns">
+    <!-- LEFT: Task Description (reuse markup) -->
+    <section class="task-desc">
+      <h2>Task Overview</h2>
+      <p>
+        Build a simple in-memory library system that tracks books and member
+        loans.
+      </p>
+      <h3>Requirements</h3>
+      <ol>
+        <li>
+          <strong>Models</strong>
+          <ul>
+            <li>
+              Book: id (String), title (String), author (String), available
+              (boolean)
+            </li>
+            <li>
+              Member: id (String), name (String), list of currently borrowed
+              Books
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>Core API</strong>
+          <ul>
+            <li>Add a new book to the catalog.</li>
+            <li>Register a new member.</li>
+            <li>
+              Borrow a book: mark it unavailable and add it to the member’s
+              list.
+            </li>
+            <li>
+              Return a book: mark it available and remove it from the member’s
+              list.
+            </li>
+            <li>List all books (with availability).</li>
+            <li>List books currently borrowed by a member.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Constraints &amp; Edge Cases</strong>
+          <ul>
+            <li>Max 5 books per member.</li>
+            <li>One copy per book.</li>
+            <li>
+              Borrowing an already‐loaned book fails with a clear message.
+            </li>
+            <li>Returning a book not held by that member fails gracefully.</li>
+            <li>Invalid IDs (book or member) are handled.</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <!-- RIGHT: Commit & Diff + Comments -->
+    <section class="review-panel">
+      <!-- Header with commit info & anonymity notice -->
+      <div class="review-header">
+        <div class="author-time">
+          <span class="author">
+            Submitted by <strong>{{ authorCodeData.displayName }}</strong>
+          </span>
+        </div>
+
+        <div class="review-mode">
+          <strong>{{ getHeaderLabel() }}</strong>
+        </div>
+      </div>
+
+      <!-- Action button to publish review -->
+      <div class="header-actions">
+        <button class="btn-primary" (click)="onOpenPublishDialog()">
+          Submit Review
+        </button>
+        <!-- <app-publish-dialog
+          [count]="getAllDraftCount()"
+          (confirm)="onPublishConfirmed($event)"
+        ></app-publish-dialog> -->
+      </div>
+
+      <!-- For each file, render the diff table (new-only) -->
+      <div *ngFor="let f of fileKeys" class="diff-container">
+        <app-diff-table
+          [file]="f"
+          [oldText]="fileContents.get(f)?.[0]!"
+          [newText]="fileContents.get(f)?.[1]!"
+          [viewOldPane]="false"
+          [isAnonymous]="isAnonymous"
+        ></app-diff-table>
+      </div>
+    </section>
+  </div>
+</div>

@@ -262,6 +262,43 @@ public class GerritService {
         return fileContentMap;
     }
 
+    // * Get Before and After file content for evaluation, Before is empty */
+    public Map<String, String[]> getChangedFileContentForEval(String changeId) throws Exception {
+        System.out.println("Service: GerritService.getChangedFileContentForEval");
+
+        List<String> fileNames = getChangedFileNames(changeId);
+
+        Map<String, String[]> fileContentMap = new HashMap<String, String[]>();
+
+        for (String fileName : fileNames) {
+            BinaryResult oldFile = null;
+
+            String[] content = new String[2];
+            content[0] = ""; // old file is empty, only focus on new file
+            content[1] = "";
+
+            try {
+                // Get new file
+                BinaryResult newFile = gerritApi.changes()
+                        .id(changeId)
+                        .revision("current")
+                        .file(fileName).content();
+
+                content[1] = new String(
+                        Base64.getDecoder().decode(newFile.asString()),
+                        StandardCharsets.UTF_8);
+
+            } catch (RestApiException e) {
+                // Handle the case where the file does not exist in the current change
+                System.out.println("File " + fileName + " does not exist in current change " + changeId);
+            }
+
+            fileContentMap.put(fileName, content);
+        }
+
+        return fileContentMap;
+    }
+
     public String fetchRawPatch(String changeId, String revisionId) {
         System.out.println("Service: GerritService.fetchRawPatch");
 
