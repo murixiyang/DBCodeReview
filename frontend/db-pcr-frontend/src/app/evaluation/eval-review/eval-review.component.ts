@@ -8,17 +8,23 @@ import { PseudonymGitlabCommitDto } from '../../interface/database/pseudonym-git
 import { PublishAction } from '../../interface/publish-action';
 import { ReviewService } from '../../http/review.service';
 import { NamedAuthorCodeDto } from '../../interface/eval/named-author-code-dto';
+import { EvalTableComponent } from '../eval-table/eval-table.component';
+import { AuthService } from '../../service/auth.service';
 
 @Component({
   selector: 'app-eval-review',
-  imports: [DiffTableComponent, PublishDialogComponent, NgFor],
+  imports: [
+    DiffTableComponent,
+    PublishDialogComponent,
+    NgFor,
+    EvalTableComponent,
+  ],
   templateUrl: './eval-review.component.html',
   styleUrl: './eval-review.component.css',
 })
 export class EvalReviewComponent {
   // loaded from the backend
   pseudoCommit!: PseudonymGitlabCommitDto;
-  fileKeys: string[] = [];
   fileContents = new Map<string, [string, string]>();
 
   authorCodeData!: NamedAuthorCodeDto;
@@ -27,18 +33,23 @@ export class EvalReviewComponent {
   authorCodeId!: number;
   isAnonymous!: boolean;
   username!: string;
-  pseudonym!: string;
+  commenterDisplayName!: string;
 
-  @ViewChildren(DiffTableComponent) diffTables!: QueryList<DiffTableComponent>;
+  @ViewChildren(EvalTableComponent) diffTables!: QueryList<EvalTableComponent>;
 
   constructor(
     private evalSvc: EvaluationService,
     private reviewSvc: ReviewService,
+    private authSvc: AuthService,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
     this.round = +this.route.snapshot.paramMap.get('round')!;
+
+    this.authSvc.getUser().subscribe((username) => {
+      this.username = username!;
+    });
 
     // 1) load the assignment
     this.evalSvc.getEvalReviewAssignment().subscribe((evalReview) => {
@@ -49,7 +60,10 @@ export class EvalReviewComponent {
         this.round === 1
           ? evalReview.round1Anonymous
           : evalReview.round2Anonymous;
-      this.pseudonym = evalReview.pseudonym;
+
+      this.commenterDisplayName = this.isAnonymous
+        ? evalReview.pseudonym
+        : this.username;
 
       // Load author code detail
       this.evalSvc.getNamedAuthorCode(this.round).subscribe((authorCode) => {
@@ -73,6 +87,10 @@ export class EvalReviewComponent {
     } else {
       return `You are signed in as ${this.username}`;
     }
+  }
+
+  get fileKeys(): string[] {
+    return Array.from(this.fileContents.keys());
   }
 
   getAllDraftCount(): number {

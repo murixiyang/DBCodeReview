@@ -53,6 +53,19 @@
           </ul>
         </li>
       </ol>
+      <h3>Tips</h3>
+      <ul>
+        <li>
+          If author is built upon the template, the CLI part and Book, Member
+          classes are provided.
+          <br />
+          You can focus on the function defined in LibraryService.
+        </li>
+        <li>
+          You can comment on the logic, code structure, edge cases
+          consideration, code style etc...
+        </li>
+      </ul>
     </section>
 
     <!-- RIGHT: Commit & Diff + Comments -->
@@ -83,13 +96,14 @@
 
       <!-- For each file, render the diff table (new-only) -->
       <div *ngFor="let f of fileKeys" class="diff-container">
-        <app-diff-table
+        <app-eval-table
           [file]="f"
           [oldText]="fileContents.get(f)?.[0]!"
           [newText]="fileContents.get(f)?.[1]!"
-          [viewOldPane]="false"
-          [isAnonymous]="isAnonymous"
-        ></app-diff-table>
+          [isAuthor]="false"
+          [displayName]="commenterDisplayName"
+          [language]="authorCodeData.language"
+        ></app-eval-table>
       </div>
     </section>
   </div>

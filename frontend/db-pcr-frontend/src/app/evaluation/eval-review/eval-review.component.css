@@ -1,5 +1,5 @@
 .page-container {
-  max-width: 1000px;
+  max-width: 100%;
   margin: 0 auto;
   font-family: Arial, sans-serif;
 }
@@ -7,6 +7,7 @@
 .columns {
   display: flex;
   gap: 2%;
+  margin-top: 1.5em;
 }
 
 /* Left */

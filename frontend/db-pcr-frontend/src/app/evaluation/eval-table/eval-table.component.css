@@ -1,0 +1,201 @@
+.hljs {
+  background: none !important; /* no theme background */
+  font-family: inherit !important; /* use your app’s font */
+  font-size: inherit !important; /* use your app’s size */
+  padding: 0 !important; /* drop any padding */
+  display: block !important; /* preserve block behavior */
+  overflow: visible !important; /* allow scrolling */
+}
+
+/* 2) Make sure no spans introduce new backgrounds or fonts */
+.hljs span {
+  background: transparent !important;
+  font-family: inherit !important;
+}
+
+.diff-grid {
+  display: grid;
+  /* new: only num + code on the left */
+  grid-template-columns: 32px 1fr;
+  grid-template-rows: auto 1fr;
+  width: 100%;
+}
+
+.diff-header {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  background: #f7f7f7;
+  border: 1px solid #dfdfdf;
+  border-bottom: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.diff-header-file {
+  grid-column: 2 / 3;
+  padding: 8px 12px;
+  font-family: "Consolas", Courier, monospace;
+  font-size: 14.4px;
+}
+
+.diff-header-stats {
+  grid-column: 4 / 5;
+  padding: 8px 12px;
+  text-align: right;
+  font-family: "Consolas", Courier, monospace;
+  font-size: 14.4px;
+
+  .insertions {
+    color: color-mix(in srgb, green, #000 20%);
+    margin-right: 10px;
+  }
+  .deletions {
+    color: color-mix(in srgb, red, #000 20%);
+  }
+}
+
+.diff-header-controls {
+  grid-column: 5 / 6;
+  padding-right: 12px;
+  font-family: "Consolas", Courier, monospace;
+  font-size: 14.4px;
+}
+
+.view-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+
+  input[type="checkbox"] {
+    margin: 3px 3px 3px 4px;
+    appearance: auto;
+    background-color: initial;
+    border: initial;
+    padding: initial;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+
+  .label-text {
+    font-size: 0.9rem;
+    line-height: 1;
+    margin-left: 2px;
+  }
+
+  &.pressed {
+    background: #e3f2fd;
+    border-color: #1976d2;
+  }
+
+  &:hover {
+    background: #f0f0f0;
+  }
+}
+
+/* code pane */
+.new-pane {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #dfdfdf;
+  border-left: none;
+}
+
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.num-col {
+  width: 32px;
+  padding: 0;
+  text-align: center;
+  color: #aaaaaa;
+  background-color: #f7f7f7;
+  font-family: "Consolas", Courier, monospace;
+  vertical-align: top;
+}
+
+.num-col:hover {
+  cursor: pointer;
+  color: black;
+}
+
+.code-col {
+  width: calc((100% - 80px) / 2);
+  padding: 0;
+  vertical-align: top;
+}
+
+.code-col pre {
+  margin: 0;
+  padding: 0 0 0 16px;
+  line-height: 1.2;
+  white-space: pre;
+  font-size: 14.4px;
+  font-family: "Consolas", Courier, monospace;
+  display: block;
+  min-width: 100%;
+}
+
+.diff-insert {
+  background-color: #d6ffd6;
+}
+.diff-delete {
+  background-color: #ffd6d6;
+}
+
+.diff-selected {
+  background-color: #d6d6ff;
+}
+
+.placeholder-row td {
+  visibility: hidden;
+  padding: 0;
+  border: none;
+}
+
+.reply-container {
+  margin-left: 20px;
+}
+
+/* make the wrapper a positioning context */
+.num-col-wrapper {
+  position: relative;
+  display: inline-block; /* shrink-to-fit, so 100% width of the number text */
+}
+
+/* hide by default */
+.new-pane .diff-table .add-comment-btn {
+  display: none;
+  position: absolute; /* remove from normal flow */
+  top: 50%; /* middle of the wrapper */
+  left: 100%; /* just outside the wrapper’s right edge */
+  transform: translateY(-50%); /* vertically center exactly */
+  margin-left: 4px; /* a little breathing room */
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  line-height: 16px;
+  font-size: 14px;
+  cursor: pointer;
+  z-index: 1; /* float above any backgrounds */
+}
+
+/* show it on row hover */
+.new-pane .diff-table tr:hover .add-comment-btn {
+  display: inline-block;
+}
