@@ -22,9 +22,9 @@ import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.repository.GitlabGroupRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
-import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.GitLabService;
 import ic.ac.uk.db_pcr_backend.service.ProjectService;
+import ic.ac.uk.db_pcr_backend.service.UserService;
 
 @Controller
 @RequestMapping("/api")
@@ -39,7 +39,7 @@ public class ProjectController {
     private ProjectRepo projectRepo;
 
     @Autowired
-    private UserRepo userRepo;
+    private UserService userSvc;
 
     @Autowired
     private GitlabGroupRepo groupRepo;
@@ -61,8 +61,7 @@ public class ProjectController {
         String username = oauth2User.getAttribute("username").toString();
 
         // Ensure the User record exists
-        UserEntity user = userRepo.findByGitlabUserId(gitlabUserId)
-                .orElseGet(() -> userRepo.save(new UserEntity(gitlabUserId, username, null)));
+        UserEntity user = userSvc.getOrCreateUserByGitlabId(gitlabUserId, username);
 
         // Then sync personal projects
         projectSvc.syncPersonalProjects(user, accessToken);

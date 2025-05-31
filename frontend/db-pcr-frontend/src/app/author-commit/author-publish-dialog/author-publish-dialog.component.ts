@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-author-publish-dialog',
-  imports: [FormsModule, NgIf],
+  imports: [FormsModule],
   templateUrl: './author-publish-dialog.component.html',
   styleUrl: './author-publish-dialog.component.css',
 })

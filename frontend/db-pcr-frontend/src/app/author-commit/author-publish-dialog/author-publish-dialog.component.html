@@ -1,14 +1,5 @@
 <div class="overlay" (click)="onCancel()">
-  <div *ngIf="count == 0" class="dialog" (click)="$event.stopPropagation()">
-    <h2>Publish Comments</h2>
-    <p>You currently have no comments to publish.</p>
-
-    <div class="buttons">
-      <button (click)="onCancel()">Close</button>
-    </div>
-  </div>
-
-  <div *ngIf="count > 0" class="dialog" (click)="$event.stopPropagation()">
+  <div class="dialog" (click)="$event.stopPropagation()">
     <h2>Publish Comments</h2>
     <p>
       You are about to publish <strong>{{ count }}</strong> comment{{

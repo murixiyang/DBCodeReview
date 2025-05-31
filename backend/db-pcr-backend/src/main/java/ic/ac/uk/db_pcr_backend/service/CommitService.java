@@ -18,7 +18,6 @@ import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepo;
-import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 
 @Service
 public class CommitService {
@@ -27,7 +26,7 @@ public class CommitService {
     private GitLabService gitLabSvc;
 
     @Autowired
-    private UserRepo userRepo;
+    private UserService userSvc;
 
     @Autowired
     private ChangeRequestRepo changeRequestRepo;
@@ -55,9 +54,7 @@ public class CommitService {
         String projectIdStr = String.valueOf(project.getGitlabProjectId());
 
         // Find the user related to the project
-        UserEntity author = userRepo.findById(project.getOwner().getId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "User not found, User ID: " + project.getOwner().getId()));
+        UserEntity author = userSvc.getOrExceptionUserById(project.getOwner().getId());
 
         List<Commit> gitlabCommits = gitLabSvc.getProjectCommits(projectIdStr, oauthToken);
 

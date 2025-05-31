@@ -1,0 +1,64 @@
+.page-container {
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+}
+
+.columns {
+  display: flex;
+  gap: 2%;
+  margin-top: 1.5em;
+}
+
+/* Left */
+.task-desc {
+  flex: 1 1 40%;
+  background: #f9f9f9;
+  padding: 1em;
+  border-radius: 4px;
+}
+
+/* Right */
+.review-panel {
+  flex: 1 1 58%;
+}
+
+.review-header {
+  background: #eef6ff;
+  padding: 1em;
+  border-radius: 4px;
+  margin-bottom: 1em;
+}
+
+.author-time {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5em;
+}
+
+.commit-msg {
+  margin-bottom: 0.5em;
+}
+
+.review-mode {
+  color: #555;
+  font-weight: bold;
+}
+
+.header-actions {
+  margin-bottom: 1em;
+}
+
+.btn-primary {
+  background: #007acc;
+  color: white;
+  padding: 0.6em 1em;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+/* diff-container simply wraps your existing diff-grid */
+.diff-container {
+  margin-bottom: 2em;
+}

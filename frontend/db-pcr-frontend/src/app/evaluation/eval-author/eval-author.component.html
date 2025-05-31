@@ -1,0 +1,167 @@
+<!-- library-system-author.component.html -->
+<div class="author-page">
+  <!-- Top Notice -->
+  <div class="notice">
+    <p>
+      <strong>Optional:</strong> You may skip authoring and go straight to code
+      review.
+    </p>
+    <p>
+      If you write and publish code here, you agree that other participants can
+      review it (signed with your username).
+      <br />
+      You’ll receive their comments in a few days and can then give feedback on
+      those comments.
+    </p>
+  </div>
+
+  <div class="columns">
+    <!-- Left column: Task Description -->
+    <section class="task-desc">
+      <h2>Task Overview</h2>
+      <p>
+        Build a simple in-memory library system that tracks books and member
+        loans.
+      </p>
+      <h3>Requirements</h3>
+      <ol>
+        <li>
+          <strong>Models</strong>
+          <ul>
+            <li>
+              Book: id (String), title (String), author (String), available
+              (boolean)
+            </li>
+            <li>
+              Member: id (String), name (String), list of currently borrowed
+              Books
+            </li>
+          </ul>
+        </li>
+        <li>
+          <strong>Core API</strong>
+          <ul>
+            <li>Add a new book to the catalog.</li>
+            <li>Register a new member.</li>
+            <li>
+              Borrow a book: mark it unavailable and add it to the member’s
+              list.
+            </li>
+            <li>
+              Return a book: mark it available and remove it from the member’s
+              list.
+            </li>
+            <li>List all books (with availability).</li>
+            <li>List books currently borrowed by a member.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Constraints &amp; Edge Cases</strong>
+          <ul>
+            <li>Max 5 books per member.</li>
+            <li>One copy per book.</li>
+            <li>
+              Borrowing an already‐loaned book fails with a clear message.
+            </li>
+            <li>Returning a book not held by that member fails gracefully.</li>
+            <li>Invalid IDs (book or member) are handled.</li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Right column: Authoring Controls -->
+    <section class="author-controls" [formGroup]="fileForm">
+      <!-- Language Selection -->
+      <div class="form-group">
+        <label for="language"><strong>Language:</strong></label>
+        <select id="language" formControlName="language">
+          <option value="" disabled>Select language</option>
+          <option *ngFor="let lang of languages" [value]="lang">
+            {{ lang }}
+          </option>
+        </select>
+        <div *ngIf="fileForm.get('language')?.value === 'Other'">
+          <input
+            id="otherLang"
+            formControlName="otherLang"
+            placeholder="Specify other language"
+          />
+        </div>
+      </div>
+
+      <!-- Template Download -->
+      <div
+        *ngIf="['Java', 'Python'].includes(fileForm.get('language')?.value)"
+        class="form-group"
+      >
+        <p>
+          You can
+          <button type="button" (click)="downloadTemplate()">
+            download the {{ fileForm.get("language")?.value }} template</button
+          >, fill in the TODOs, or start from scratch.
+        </p>
+
+        <p>After finishing, upload your code files here.</p>
+        <p
+          *ngIf="
+            fileForm.get('language')?.value === 'Java' ||
+            fileForm.get('language')?.value === 'Python'
+          "
+        >
+          (If using templates, upload the Book and Member classes even you
+          didn't change them.)
+        </p>
+      </div>
+
+      <!-- File Upload / Editor -->
+      <div formArrayName="files" class="files-list">
+        <div
+          *ngFor="let fileCtrl of files.controls; let i = index"
+          [formGroupName]="i"
+          class="file-entry"
+        >
+          <input
+            formControlName="name"
+            placeholder="Filename (e.g. LibrarySystem.java)"
+          />
+          <button type="button" (click)="removeFile(i)" [disabled]="locked">
+            Remove
+          </button>
+          <textarea
+            formControlName="content"
+            rows="8"
+            placeholder="Paste your code here..."
+            [readonly]="locked"
+          ></textarea>
+          <input
+            type="file"
+            (change)="onFileSelect($event, i)"
+            [disabled]="locked"
+          />
+        </div>
+        <button type="button" (click)="addFile()" [disabled]="locked">
+          + Add File
+        </button>
+      </div>
+
+      <!-- Publish / Skip Button -->
+      <div class="actions">
+        <button
+          type="button"
+          class="btn-publish"
+          (click)="onPublish()"
+          [disabled]="locked || files.length === 0"
+        >
+          Publish Code
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <div class="actions">
+    <button type="button" class="btn-skip" (click)="skipAuthor()">
+      Skip Authoring
+    </button>
+  </div>
+</div>

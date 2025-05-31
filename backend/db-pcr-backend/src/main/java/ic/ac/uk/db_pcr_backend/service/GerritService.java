@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
@@ -17,9 +18,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -53,15 +53,19 @@ import com.urswolfer.gerrit.client.rest.GerritAuthData;
 import com.urswolfer.gerrit.client.rest.GerritRestApiFactory;
 import com.urswolfer.gerrit.client.rest.http.HttpStatusException;
 
+import ic.ac.uk.db_pcr_backend.dto.eval.FilePayload;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.dto.gerritdto.SelectiveReviewInput;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.SubmissionTrackerEntity;
+import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.entity.eval.AuthorCodeEntity;
 import ic.ac.uk.db_pcr_backend.repository.ChangeRequestRepo;
 import ic.ac.uk.db_pcr_backend.repository.GitlabCommitRepo;
 import ic.ac.uk.db_pcr_backend.repository.SubmissionTrackerRepo;
+import ic.ac.uk.db_pcr_backend.repository.eval.AuthorCodeRepo;
 
 @Service
 public class GerritService {
@@ -87,6 +91,9 @@ public class GerritService {
 
     @Autowired
     private SubmissionTrackerRepo submissionTrackerRepo;
+
+    @Autowired
+    private AuthorCodeRepo authorCodeRepo;
 
     private final String gerritAuthUrl;
     private final String gerritUsername;
@@ -232,6 +239,43 @@ public class GerritService {
                     System.out.println("File " + fileName + " does not exist in previous change " + previousChangeId);
                 }
             }
+
+            try {
+                // Get new file
+                BinaryResult newFile = gerritApi.changes()
+                        .id(changeId)
+                        .revision("current")
+                        .file(fileName).content();
+
+                content[1] = new String(
+                        Base64.getDecoder().decode(newFile.asString()),
+                        StandardCharsets.UTF_8);
+
+            } catch (RestApiException e) {
+                // Handle the case where the file does not exist in the current change
+                System.out.println("File " + fileName + " does not exist in current change " + changeId);
+            }
+
+            fileContentMap.put(fileName, content);
+        }
+
+        return fileContentMap;
+    }
+
+    // * Get Before and After file content for evaluation, Before is empty */
+    public Map<String, String[]> getChangedFileContentForEval(String changeId) throws Exception {
+        System.out.println("Service: GerritService.getChangedFileContentForEval");
+
+        List<String> fileNames = getChangedFileNames(changeId);
+
+        Map<String, String[]> fileContentMap = new HashMap<String, String[]>();
+
+        for (String fileName : fileNames) {
+            BinaryResult oldFile = null;
+
+            String[] content = new String[2];
+            content[0] = ""; // old file is empty, only focus on new file
+            content[1] = "";
 
             try {
                 // Get new file
@@ -470,6 +514,57 @@ public class GerritService {
 
         // --- Record the change request
         changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);
+
+        return changeId;
+    }
+
+    /*
+     * Publish Gerrit change for eval (a new project with 1 commit, files provided),
+     * return change id
+     */
+    @Transactional
+    public String publishAuthorCodeToGerrit(UserEntity currentUser, String projectPath,
+            List<FilePayload> files, String language) throws Exception {
+
+        System.out.println("Service: GerritService.publishAuthorCodeToGerrit");
+
+        // Create project
+        ensureGerritProjectExists(gerritApi, projectPath);
+
+        // Clone the Gerrit repo
+        Path tmp = Files.createTempDirectory("author-");
+        CredentialsProvider creds = new UsernamePasswordCredentialsProvider(gerritUsername, gerritHttpPassword);
+        Git git = cloneGerritRepo(tmp, projectPath, creds);
+
+        // Checkout review branch (or main)
+        git.checkout()
+                .setName("refs/heads/" + gerritBranch)
+                .call();
+
+        // Write each FilePayload into the work tree
+        for (FilePayload f : files) {
+            Path target = tmp.resolve(f.getName());
+            Files.createDirectories(target.getParent());
+            Files.writeString(target, f.getContent(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        }
+
+        // Stage all changes
+        git.add().addFilepattern(".").call();
+
+        // Compute a Change-Id
+        // Use HEAD as “source” so we can compute a new one
+        RevCommit head = parseCommit(git, "HEAD");
+        String changeId = computeChangeId(head);
+
+        // Commit
+        commitWithChangeId(git, changeId, "Implementation for Library System");
+
+        // Push to Gerrit for review
+        pushToGerrit(git, creds);
+
+        // Add to DB
+        AuthorCodeEntity authorCode = new AuthorCodeEntity(currentUser, changeId, language);
+        authorCodeRepo.save(authorCode);
 
         return changeId;
     }

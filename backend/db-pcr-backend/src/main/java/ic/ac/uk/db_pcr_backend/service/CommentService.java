@@ -16,6 +16,7 @@ import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
+import ic.ac.uk.db_pcr_backend.entity.eval.EvalCommentEntity;
 import ic.ac.uk.db_pcr_backend.model.CommentType;
 import ic.ac.uk.db_pcr_backend.model.ReactState;
 import ic.ac.uk.db_pcr_backend.model.RoleType;

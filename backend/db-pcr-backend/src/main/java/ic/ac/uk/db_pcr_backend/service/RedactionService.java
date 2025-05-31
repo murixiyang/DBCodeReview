@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
-import org.hibernate.annotations.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -26,6 +25,9 @@ public class RedactionService {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private UserService userSvc;
 
     @Autowired
     private ProjectRepo projectRepo;
@@ -57,8 +59,7 @@ public class RedactionService {
         System.out.println("Service: RedactionService.buildByGitlabGroupProjectId");
 
         // Find User
-        UserEntity currentUser = userRepo.findByUsername(currentUsername)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUsername));
+        UserEntity currentUser = userSvc.getOrExceptionUserByName(currentUsername);
 
         // Find the group project
         ProjectEntity groupProject = projectRepo
@@ -89,8 +90,7 @@ public class RedactionService {
         System.out.println("Service: RedactionService.buildByGerritChangeId");
 
         // Find User
-        UserEntity currentUser = userRepo.findByUsername(currentUsername)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + currentUsername));
+        UserEntity currentUser = userSvc.getOrExceptionUserByName(currentUsername);
 
         // Find change requests as author
         List<ChangeRequestEntity> changeRequests = changeRequestRepo.findByGerritChangeId(gerritChangeId);

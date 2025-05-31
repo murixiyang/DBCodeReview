@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ic.ac.uk.db_pcr_backend.dto.datadto.NotificationDto;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
-import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 import ic.ac.uk.db_pcr_backend.service.NotificationService;
+import ic.ac.uk.db_pcr_backend.service.UserService;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -25,14 +25,13 @@ public class NotificationController {
     private NotificationService notifSvc;
 
     @Autowired
-    private UserRepo userRepo;
+    private UserService userSvc;
 
     @GetMapping("/unread-count")
     public ResponseEntity<Long> unreadCount(@AuthenticationPrincipal OAuth2User oauth2User) {
         // Find user
         String username = oauth2User.getAttribute("username").toString();
-        UserEntity currentUser = userRepo.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        UserEntity currentUser = userSvc.getOrExceptionUserByName(username);
 
         long cnt = notifSvc.countUnread(currentUser);
         return ResponseEntity.ok(cnt);
@@ -42,8 +41,7 @@ public class NotificationController {
     public List<NotificationDto> list(@AuthenticationPrincipal OAuth2User oauth2User) {
         // Find user
         String username = oauth2User.getAttribute("username").toString();
-        UserEntity currentUser = userRepo.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        UserEntity currentUser = userSvc.getOrExceptionUserByName(username);
 
         return notifSvc.listAll(currentUser);
     }
@@ -54,8 +52,7 @@ public class NotificationController {
             @AuthenticationPrincipal OAuth2User oauth2User) {
         // Find user
         String username = oauth2User.getAttribute("username").toString();
-        UserEntity currentUser = userRepo.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+        UserEntity currentUser = userSvc.getOrExceptionUserByName(username);
 
         notifSvc.markRead(currentUser, Long.valueOf(id));
         return ResponseEntity.noContent().build();

@@ -1,0 +1,147 @@
+<div class="diff-grid">
+  <div class="diff-header">
+    <!-- Header items -->
+    <div class="diff-header-file">
+      <strong>{{ file }}</strong>
+    </div>
+    <div class="diff-header-stats">
+      <span class="insertions">+++ {{ insertedCount }}</span>
+      <span class="deletions">--- {{ deletedCount }}</span>
+    </div>
+
+    <div class="diff-header-controls">
+      <label class="view-toggle" [class.pressed]="viewed">
+        <input
+          type="checkbox"
+          [(ngModel)]="viewed"
+          aria-label="Mark diff as viewed"
+        />
+        <span class="label-text">Viewed</span>
+      </label>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!viewed">
+    <!-- New Pane -->
+    <div class="pane new-pane">
+      <table class="diff-table">
+        <ng-container *ngFor="let line of lines; let i = index">
+          <!-- code row -->
+          <tr
+            [ngClass]="{
+              'diff-selected': selectedIndex === i
+            }"
+          >
+            <td class="num-col">
+              <div class="num-col-wrapper">
+                {{ line.newNumber || "-" }}
+
+                <div *ngIf="!isAuthor">
+                  <!-- the hover-only plus-button -->
+                  <button
+                    class="add-comment-btn"
+                    aria-label="Add comment"
+                    (click)="selectLine(i); $event.stopPropagation()"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </td>
+
+            <td class="code-col">
+              <pre><code
+                [highlight]="line.newText"
+                language="{{language.toLowerCase()}}"
+                ></code></pre>
+            </td>
+          </tr>
+
+          <!-- real comments on REVISION side -->
+          <tr
+            [attr.data-line]="i"
+            *ngIf="hasComments(line.newNumber, 'REVISION')"
+            class="comment-cell"
+          >
+            <td colspan="2">
+              <ng-container
+                *ngFor="
+                  let c of publishedFor(file, line.newNumber!, 'REVISION')
+                "
+              >
+                <!-- 1) the published comment -->
+                <div [ngClass]="{ 'reply-container': c.commentInfo.inReplyTo }">
+                  <app-comment-box
+                    variant="published"
+                    [commenterName]="getDisplayName(c)"
+                    [comment]="c.commentInfo"
+                    [isAuthor]="isAuthor"
+                    [ownComment]="isAuthorOwnComment(c)"
+                    (reply)="onReply(c.commentInfo, 'REVISION')"
+                    (react)="onReact($event)"
+                  ></app-comment-box>
+                </div>
+
+                <!-- 2) the inline reply‐box, only for that comment -->
+                <div class="reply-container">
+                  <app-comment-box
+                    *ngIf="replyingTo?.id === c.commentInfo.id"
+                    variant="new"
+                    [comment]="replyDraft!"
+                    [commenterName]="displayName"
+                    (saved)="onSaveReply($event)"
+                    (canceled)="onCancelReply()"
+                  ></app-comment-box>
+                </div>
+              </ng-container>
+
+              <ng-container
+                *ngFor="let d of draftFor(file, line.newNumber!, 'REVISION')"
+              >
+                <div [ngClass]="{ 'reply-container': d.inReplyTo }">
+                  <!-- If this is the one being edited… -->
+                  <app-comment-box
+                    *ngIf="editingDraft?.id === d.id; else showDraft"
+                    variant="update"
+                    [comment]="editingDraft!"
+                    [commenterName]="displayName"
+                    (saved)="onUpdateDraft($event)"
+                    (canceled)="onCancelUpdate()"
+                  ></app-comment-box>
+
+                  <!-- Otherwise, show the normal draft view -->
+                  <ng-template #showDraft>
+                    <app-comment-box
+                      variant="draft"
+                      [comment]="d"
+                      [commenterName]="displayName"
+                      (edited)="onEditDraft($event)"
+                      (deleted)="onDeleteDraft($event)"
+                    ></app-comment-box>
+                  </ng-template>
+                </div>
+              </ng-container>
+            </td>
+          </tr>
+
+          <!-- new‐comment box when that line is selected -->
+          <tr
+            [attr.data-line]="i"
+            *ngIf="selectedIndex === i"
+            class="comment-cell new-comment"
+          >
+            <td colspan="2">
+              <app-comment-box
+                variant="new"
+                [comment]="newDraft!"
+                [commenterName]="displayName"
+                (saved)="onSaveDraft($event, 'REVISION')"
+                (canceled)="onCancelDraft()"
+              ></app-comment-box>
+            </td>
+          </tr>
+        </ng-container>
+      </table>
+    </div>
+  </ng-container>
+</div>

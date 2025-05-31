@@ -102,6 +102,13 @@ export class CommentBoxComponent {
     textarea.style.height = textarea.scrollHeight + 'px'; // expand to fit all text
   }
 
+  getDraftCommenterName(): string {
+    if (!this.commenterName) {
+      return 'Me';
+    }
+    return this.commenterName;
+  }
+
   onSave() {
     if (this.comment && 'message' in this.comment) {
       this.saved.emit(this.comment as GerritCommentInput);

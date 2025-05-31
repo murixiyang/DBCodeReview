@@ -1,0 +1,48 @@
+<div>
+  <h1>Welcome to the DB Code Review Study</h1>
+  <p>
+    Thank you for volunteering to participate in our code-review evaluation.
+    <br />
+    Your feedback will help us understand how different review conditions affect
+    reviewer behavior and the author experience.
+  </p>
+  <h2>Before Starting</h2>
+  <p>
+    You will need to register an account to participate in this study.
+    <br />
+    We are using a self-hosted Gitlab so the normal gitlab account you hold
+    won't work. Please register a new one.
+  </p>
+
+  <h2>Overview of Activities</h2>
+  <ol>
+    <li>
+      <strong>Optional Authoring Phase</strong> (≈15 min)<br />
+      If you choose, you may write a short real-world coding snippet. Your code
+      might be reviewed by other participants in the next phase and you’ll
+      receive the comments from the reviewers.
+    </li>
+
+    <li>
+      <strong>Peer-Review Rounds</strong> (2 × 5~10 min)<br />
+      You will review two different code snippets, giving comments to them.
+    </li>
+    <li>
+      <strong>Reviewer Survey</strong> (≈5 min)<br />
+      After both review rounds, you will complete a short questionnaire about
+      your experience. Your identity can be omitted from reports or
+      presentations upon request — just let us know.
+    </li>
+  </ol>
+  <h2>What We will Do with Your Responses</h2>
+  <p>
+    We will collect your written code, review comments and survey responses for
+    research purposes.
+  </p>
+
+  <div class="start-container">
+    <button id="start-button" class="btn-start" (click)="onStart()">
+      {{ getStartText() }}
+    </button>
+  </div>
+</div>

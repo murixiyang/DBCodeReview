@@ -83,7 +83,7 @@ public class PseudoNameService {
      * Generate a pseudonym by combining adjective + animal,
      * adding a numeric suffix if needed to avoid collisions.
      */
-    private String generateUniqueName(Set<String> used) {
+    public String generateUniqueName(Set<String> used) {
 
         System.out.println("Service: PseudoNameService.generateUniqueName");
 
@@ -93,6 +93,12 @@ public class PseudoNameService {
                     + " "
                     + NOUNS.get(rand.nextInt(NOUNS.size()));
             String candidate = base;
+
+            // If not specified used, just return any candidate
+            if (used == null || used.isEmpty()) {
+                return candidate;
+            }
+
             if (used.contains(candidate)) {
                 // add suffix
                 candidate = base + (attempt + 1);
@@ -108,6 +114,16 @@ public class PseudoNameService {
         return nameAssignmentRepo
                 .findByGroupProjectAndUserAndRole(assignment.getGroupProject(), assignment.getAuthor(), role)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown pseudonym for " + role + ": " + assignment));
+    }
+
+    public void savePseudonym(PseudonymEntity pseudoNym) {
+        System.out.println("Service: PseudoNameService.savePseudonym");
+        nameRepo.save(pseudoNym);
+    }
+
+    public String generateUniqueNumberName(String prefix) {
+        int num = rand.nextInt(900) + 100; // from 100–999
+        return prefix + " #" + num;
     }
 
 }
