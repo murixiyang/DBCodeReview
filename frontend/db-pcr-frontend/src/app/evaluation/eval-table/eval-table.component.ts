@@ -5,11 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { HighlightModule } from 'ngx-highlightjs';
 import { NameCommentInfo } from '../../interface/gerrit/name-comment-info';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
-import { ReviewService } from '../../http/review.service';
 import { DiffMatchPatch, DiffOp } from 'diff-match-patch-ts';
 import { DiffLine } from '../../interface/gerrit/diff-line';
 import { GerritCommentInfo } from '../../interface/gerrit/gerrit-comment-info';
 import { ReactState } from '../../interface/react-state';
+import { EvaluationService } from '../../http/evaluation.service';
 
 @Component({
   selector: 'app-eval-table',
@@ -31,16 +31,12 @@ export class EvalTableComponent {
   @Input() oldText!: string;
   @Input() newText!: string;
   @Input() file!: string;
-  @Input() viewOldPane = true;
 
   @Input() displayName!: string;
   @Input() language!: string;
 
   existedComments: NameCommentInfo[] = [];
-  overallComments: NameCommentInfo[] = [];
   draftComments: GerritCommentInput[] = [];
-
-  selectedAssignmentId = '';
 
   lines: DiffLine[] = [];
 
@@ -58,7 +54,7 @@ export class EvalTableComponent {
 
   showPublishDialog = false;
 
-  constructor(private reviewSvc: ReviewService) {}
+  constructor(private evalSvc: EvaluationService) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['oldText'] || changes['newText']) {
@@ -70,36 +66,36 @@ export class EvalTableComponent {
   }
 
   ngOnInit() {
-    // this.fetchExistedComments();
-    // this.fetchDraftComments();
+    this.fetchExistedComments();
+    this.fetchDraftComments();
   }
 
   fetchExistedComments() {
-    this.reviewSvc
-      .getExistedCommentsWithPseudonym(this.gerritChangeId)
-      .subscribe((c) => {
-        // Overall comments are always at line 0
-        this.overallComments = c.filter(
-          (c) =>
-            c.commentInfo.line === 0 || c.commentInfo.path === '/PATCHSET_LEVEL'
-        );
-
-        // filter and sort
-        const filtered = c.filter(
-          (comment) => comment.commentInfo.path === this.file
-        );
-        this.existedComments = filtered.sort((a, b) => {
-          const ta = new Date(a.commentInfo.updated ?? Date.now()).getTime();
-          const tb = new Date(b.commentInfo.updated ?? Date.now()).getTime();
-          return ta - tb;
-        });
-
-        console.log('existed comments: ', c);
+    this.evalSvc.getExistedComments(this.gerritChangeId).subscribe((c) => {
+      const commentWithName: NameCommentInfo[] = c.map((comment) => {
+        return {
+          commentInfo: comment,
+          isAuthor: false,
+          displayName: this.displayName,
+        } as NameCommentInfo;
       });
+
+      // filter and sort
+      const filtered = commentWithName.filter(
+        (comment) => comment.commentInfo.path === this.file
+      );
+      this.existedComments = filtered.sort((a, b) => {
+        const ta = new Date(a.commentInfo.updated ?? Date.now()).getTime();
+        const tb = new Date(b.commentInfo.updated ?? Date.now()).getTime();
+        return ta - tb;
+      });
+
+      console.log('existed comments: ', c);
+    });
   }
 
   fetchDraftComments() {
-    this.reviewSvc.getUserDraftComments(this.gerritChangeId).subscribe((d) => {
+    this.evalSvc.getUserDraftComments(this.gerritChangeId).subscribe((d) => {
       const filtered = d.filter((draft) => draft.path === this.file);
       this.draftComments = filtered.sort((a, b) => {
         const ta = new Date(a.updated ?? Date.now()).getTime();
@@ -225,12 +221,8 @@ export class EvalTableComponent {
 
     // If reviewer
     if (!this.isAuthor) {
-      this.reviewSvc
-        .postReviewerDraftComment(
-          this.gerritChangeId,
-          this.selectedAssignmentId,
-          draft
-        )
+      this.evalSvc
+        .postDraftComment(this.gerritChangeId, draft)
         .subscribe((savedDraft: GerritCommentInput) => {
           this.selectedIndex = null;
           this.newDraft = undefined;
@@ -254,7 +246,7 @@ export class EvalTableComponent {
   onUpdateDraft(updated: GerritCommentInput) {
     console.log('Update draft: ', updated);
 
-    this.reviewSvc
+    this.evalSvc
       .updateDraftComment(this.gerritChangeId, updated)
       .subscribe(() => {
         this.fetchDraftComments();
@@ -267,12 +259,10 @@ export class EvalTableComponent {
   }
 
   onDeleteDraft(d: GerritCommentInput) {
-    this.reviewSvc
-      .deleteDraftComment(this.gerritChangeId, this.selectedAssignmentId, d)
-      .subscribe(() => {
-        console.log('Delete draft: ', d);
-        this.fetchDraftComments();
-      });
+    this.evalSvc.deleteDraftComment(this.gerritChangeId, d).subscribe(() => {
+      console.log('Delete draft: ', d);
+      this.fetchDraftComments();
+    });
   }
 
   onReply(c: GerritCommentInfo, side: 'PARENT' | 'REVISION') {
@@ -288,29 +278,10 @@ export class EvalTableComponent {
   }
 
   onSaveReply(draft: GerritCommentInput) {
-    if (this.isAuthor) {
-      this.reviewSvc
-        .postAuthorDraftComment(
-          this.gerritChangeId,
-          this.selectedAssignmentId,
-          draft
-        )
-        .subscribe(() => {
-          this.onCancelReply();
-          this.fetchDraftComments();
-        });
-    } else {
-      this.reviewSvc
-        .postReviewerDraftComment(
-          this.gerritChangeId,
-          this.selectedAssignmentId,
-          draft
-        )
-        .subscribe(() => {
-          this.onCancelReply();
-          this.fetchDraftComments();
-        });
-    }
+    this.evalSvc.postDraftComment(this.gerritChangeId, draft).subscribe(() => {
+      this.onCancelReply();
+      this.fetchDraftComments();
+    });
   }
 
   onCancelReply() {
@@ -325,7 +296,7 @@ export class EvalTableComponent {
   onReact(event: { id: string; type: ReactState }) {
     console.log('Comment id: ', event.id, ' reaction: ', event.type);
 
-    this.reviewSvc
+    this.evalSvc
       .postThumbStateForComment(this.gerritChangeId, event.id, event.type)
       .subscribe(() => {
         console.log('Reaction posted successfully');

@@ -442,7 +442,6 @@ public class ReviewController {
 
         System.out.println("STAGE: ReviewController.postGerritDraftComment");
 
-        ;
         String username = oauth2User.getAttribute("username").toString();
 
         CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username);
@@ -620,5 +619,7 @@ public class ReviewController {
 
         return ResponseEntity.noContent().build();
     }
+
+
 
 }

@@ -36,6 +36,9 @@ public class EvalReviewerEntity {
     @Column(nullable = false)
     private String pseudonym;
 
+    @Column(nullable = false)
+    private boolean finished = false;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -109,6 +112,14 @@ public class EvalReviewerEntity {
 
     public void setPseudonym(String pseudonym) {
         this.pseudonym = pseudonym;
+    }
+
+    public boolean isFinished() {
+        return finished;
+    }
+
+    public void setFinished(boolean finished) {
+        this.finished = finished;
     }
 
     public Instant getCreatedAt() {

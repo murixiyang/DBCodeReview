@@ -1,24 +1,18 @@
 import { Component, QueryList, ViewChildren } from '@angular/core';
-import { DiffTableComponent } from '../../review/diff-table/diff-table.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EvaluationService } from '../../http/evaluation.service';
-import { PublishDialogComponent } from '../../review/publish-dialog/publish-dialog.component';
-import { DatePipe, NgFor } from '@angular/common';
+import { NgFor, NgIf } from '@angular/common';
 import { PseudonymGitlabCommitDto } from '../../interface/database/pseudonym-gitlab-commit-dto';
-import { PublishAction } from '../../interface/publish-action';
 import { ReviewService } from '../../http/review.service';
 import { NamedAuthorCodeDto } from '../../interface/eval/named-author-code-dto';
 import { EvalTableComponent } from '../eval-table/eval-table.component';
 import { AuthService } from '../../service/auth.service';
+import { AuthorPublishDialogComponent } from '../../author-commit/author-publish-dialog/author-publish-dialog.component';
+import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 
 @Component({
   selector: 'app-eval-review',
-  imports: [
-    DiffTableComponent,
-    PublishDialogComponent,
-    NgFor,
-    EvalTableComponent,
-  ],
+  imports: [AuthorPublishDialogComponent, NgFor, EvalTableComponent, NgIf],
   templateUrl: './eval-review.component.html',
   styleUrl: './eval-review.component.css',
 })
@@ -35,46 +29,50 @@ export class EvalReviewComponent {
   username!: string;
   commenterDisplayName!: string;
 
+  showPublishDialog = false;
+
   @ViewChildren(EvalTableComponent) diffTables!: QueryList<EvalTableComponent>;
 
   constructor(
     private evalSvc: EvaluationService,
     private reviewSvc: ReviewService,
     private authSvc: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) {}
 
   ngOnInit() {
-    this.round = +this.route.snapshot.paramMap.get('round')!;
+    // listen for any change to the "round" param
+    this.route.paramMap.subscribe((params) => {
+      this.round = +params.get('round')!;
 
+      // now re-run all of your data-loading logic
+      this.loadAssignment();
+    });
+
+    // (optional) load the current user once
     this.authSvc.getUser().subscribe((username) => {
       this.username = username!;
     });
+  }
 
-    // 1) load the assignment
+  private loadAssignment() {
     this.evalSvc.getEvalReviewAssignment().subscribe((evalReview) => {
-      // pick the correct submission and anon‐flag:
       this.authorCodeId =
         this.round === 1 ? evalReview.round1Id : evalReview.round2Id;
       this.isAnonymous =
         this.round === 1
           ? evalReview.round1Anonymous
           : evalReview.round2Anonymous;
-
       this.commenterDisplayName = this.isAnonymous
         ? evalReview.pseudonym
         : this.username;
 
-      // Load author code detail
       this.evalSvc.getNamedAuthorCode(this.round).subscribe((authorCode) => {
         this.authorCodeData = authorCode;
-
-        // Load file diff
         this.reviewSvc
           .getChangedFileContents(authorCode.gerritChangeId)
           .subscribe((f) => {
-            console.log('changed file contents: ', f);
-
             this.fileContents = new Map(Object.entries(f));
           });
       });
@@ -94,25 +92,34 @@ export class EvalReviewComponent {
   }
 
   getAllDraftCount(): number {
-    // asks each diffTable for its draft count
-    // return this.diffTables
-    //   .toArray()
-    //   .reduce((sum, dt) => sum + dt.getDraftCount(), 0);
-    return 0; // Placeholder, replace with actual logic
+    return this.diffTables
+      .toArray()
+      .reduce((acc, table) => acc + table.draftComments.length, 0);
   }
 
+  // open the single parent dialog
   onOpenPublishDialog() {
-    // this.diffTables.forEach((dt) => dt.prepareToPublish());
+    this.showPublishDialog = true;
   }
 
-  onPublishConfirmed(yes: { action: PublishAction }) {
-    // if (!yes) return;
-    // // collect all drafts from each diffTable
-    // const allDrafts = this.diffTables
-    //   .toArray()
-    //   .flatMap((dt) => dt.collectDrafts());
-    // this.evalSvc.submitReview(allDrafts, this.isAnonymous).subscribe(() => {
-    //   alert('Review submitted! Thank you.');
-    // });
+  onPublishConfirmed() {
+    this.showPublishDialog = false;
+
+    // gather *all* drafts from every child table
+    const allDrafts: GerritCommentInput[] = this.diffTables
+      .toArray()
+      .flatMap((table) => table.draftComments);
+
+    // call your service once, with the union of every draft
+    this.evalSvc
+      .publishDraftComments(this.authorCodeData.gerritChangeId, allDrafts)
+      .subscribe(() => {
+        // Go to next round
+        if (this.round === 1) {
+          this.router.navigate(['/eval/review', 2]);
+        } else {
+          this.router.navigate(['/eval/survey']);
+        }
+      });
   }
 }

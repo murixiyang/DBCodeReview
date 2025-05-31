@@ -121,9 +121,9 @@ public class PseudoNameService {
         nameRepo.save(pseudoNym);
     }
 
-    public String generateUniqueNumberName() {
+    public String generateUniqueNumberName(String prefix) {
         int num = rand.nextInt(900) + 100; // from 100–999
-        return "Anonymous Reviewer #" + num;
+        return prefix + " #" + num;
     }
 
 }

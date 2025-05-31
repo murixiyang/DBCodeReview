@@ -2,7 +2,9 @@ package ic.ac.uk.db_pcr_backend.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.gitlab4j.api.GitLabApiException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -12,20 +14,30 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.google.gerrit.extensions.restapi.RestApiException;
+
 import ic.ac.uk.db_pcr_backend.dto.eval.EvalReviewDto;
 import ic.ac.uk.db_pcr_backend.dto.eval.FilePayload;
 import ic.ac.uk.db_pcr_backend.dto.eval.NamedAuthorCodeDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInfoDto;
+import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.entity.eval.AuthorCodeEntity;
+import ic.ac.uk.db_pcr_backend.entity.eval.EvalCommentEntity;
 import ic.ac.uk.db_pcr_backend.entity.eval.EvalReviewerEntity;
+import ic.ac.uk.db_pcr_backend.model.ReactState;
 import ic.ac.uk.db_pcr_backend.repository.eval.AuthorCodeRepo;
+import ic.ac.uk.db_pcr_backend.repository.eval.EvalCommentRepo;
 import ic.ac.uk.db_pcr_backend.service.EvaluationService;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
@@ -49,6 +61,9 @@ public class EvaluationController {
 
     @Autowired
     private AuthorCodeRepo authorCodeRepo;
+
+    @Autowired
+    private EvalCommentRepo evalCommentRepo;
 
     /**
      * Download the ZIP template for a given project/language.
@@ -190,6 +205,147 @@ public class EvaluationController {
 
         // 6. Return the Gerrit Change-Id so the front-end can reference it
         return ResponseEntity.ok(gerritChangeId);
+    }
+
+    /* ---------- COMMENTING -------------- */
+
+    // * Get unnamed gerrit change comment */
+    @GetMapping("/get-gerrit-change-comments")
+    public ResponseEntity<List<CommentInfoDto>> getGerritChangeComments(
+            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException, GitLabApiException {
+
+        System.out.println("STAGE: EvaluationController.getGerritChangeComments");
+        ;
+        String username = oauth2User.getAttribute("username").toString();
+
+        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username);
+
+        return ResponseEntity.ok(comments);
+    }
+
+    /** Fetch draft comment for specific user only (should not see other's draft) */
+    @GetMapping("/get-user-gerrit-change-draft-comments")
+    public ResponseEntity<List<CommentInfoDto>> getGerritChangeDraftCommentsForUser(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @AuthenticationPrincipal OAuth2User oauth2User) throws RestApiException {
+
+        System.out.println("STAGE: EvaluationController.getGerritChangeDraftCommentsForUser");
+
+        String username = oauth2User.getAttribute("username").toString();
+
+        List<CommentInfoDto> drafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username);
+
+        List<CommentInfoDto> filtered = drafts.stream()
+                .filter(dto -> {
+                    return evalCommentRepo
+                            .findByGerritChangeIdAndGerritCommentId(gerritChangeId, dto.getId())
+                            .map(entity -> entity.getCommentUser().getUsername().equals(username))
+                            .orElse(false);
+                })
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(filtered);
+    }
+
+    /** Post a reviewer's draft comment to gerrit and record in database */
+    @PostMapping("/post-reviewer-gerrit-draft-comment")
+    public ResponseEntity<CommentInfoDto> postReviewerGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException, GitLabApiException {
+
+        System.out.println("STAGE: EvaluationController.postGerritDraftComment");
+
+        String username = oauth2User.getAttribute("username").toString();
+        UserEntity commentUser = userSvc.getOrExceptionUserByName(username);
+
+        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username);
+
+        EvalCommentEntity evalCommentEntity = new EvalCommentEntity(gerritChangeId, savedDraft.getId(), commentUser);
+
+        // Save commentEntity to database
+        evalCommentRepo.save(evalCommentEntity);
+
+        return ResponseEntity.ok(savedDraft);
+    }
+
+    @PutMapping("/update-gerrit-draft-comment")
+    public ResponseEntity<CommentInfoDto> updateGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException {
+
+        System.out.println("STAGE: EvaluationController.updateGerritDraftComment");
+
+        String username = oauth2User.getAttribute("username").toString();
+
+        return ResponseEntity.ok(gerritSvc.updateGerritDraft(
+                gerritChangeId, commentInput, username));
+    }
+
+    @DeleteMapping("/delete-gerrit-draft-comment")
+    public ResponseEntity<Void> deleteGerritDraftComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            throws RestApiException, GitLabApiException {
+
+        System.out.println("STAGE: EvaluationController.deleteGerritDraftComment");
+
+        gerritSvc.deleteGerritDraft(gerritChangeId, commentInput);
+
+        EvalCommentEntity commentToDelete = evalCommentRepo
+                .findByGerritChangeIdAndGerritCommentId(gerritChangeId, commentInput.getId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No comment found for changeId " + gerritChangeId + " and draftId " + commentInput.getId()));
+
+        evalCommentRepo.delete(commentToDelete);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    /*
+     * Publish reviewer draft comments, mark them as published in the database,
+     * and update the review status to NEED_RESOLVE or APPROVED.
+     */
+    @Transactional
+    @PostMapping("/publish-reviewer-gerrit-draft-comments")
+    public ResponseEntity<Void> publishReviewerDraftComments(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestBody List<CommentInputDto> drafts) throws Exception {
+
+        System.out.println("STAGE: EvaluationController.publishReviewerDraftComments");
+
+        // Convert CommentInputDto to List<String> draftIds
+        List<String> draftIds = drafts.stream()
+                .map(CommentInputDto::getId)
+                .collect(Collectors.toList());
+
+        gerritSvc.publishDrafts(gerritChangeId, draftIds);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @Transactional
+    @PostMapping("/post-thumb-state-for-comment")
+    public ResponseEntity<Void> postThumbStateForComment(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestParam("gerritCommentId") String gerritCommentId,
+            @RequestParam("thumbState") ReactState thumbState) throws Exception {
+
+        System.out.println("STAGE: EvaluationController.postThumbStateForComment");
+
+        // Load comment
+        EvalCommentEntity c = evalCommentRepo
+                .findByGerritChangeIdAndGerritCommentId(gerritChangeId, gerritCommentId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "No comment found for changeId " + gerritChangeId + " and commentId " + gerritCommentId));
+
+        // Set and save
+        c.setThumbState(thumbState);
+        evalCommentRepo.save(c);
+
+        return ResponseEntity.noContent().build();
     }
 
 }

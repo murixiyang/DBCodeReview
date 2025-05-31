@@ -5,6 +5,9 @@ import { Observable } from 'rxjs';
 import { FilePayload } from '../interface/eval/file-paylod';
 import { EvalReviewDto } from '../interface/eval/eval-review-dto';
 import { NamedAuthorCodeDto } from '../interface/eval/named-author-code-dto';
+import { GerritCommentInput } from '../interface/gerrit/gerrit-comment-input';
+import { GerritCommentInfo } from '../interface/gerrit/gerrit-comment-info';
+import { ReactState } from '../interface/react-state';
 
 @Injectable({
   providedIn: 'root',
@@ -50,5 +53,115 @@ export class EvaluationService {
       params,
       responseType: 'text',
     });
+  }
+
+  /** ------ COMMENTING -------- */
+
+  /** Post a reviewer draft comment on a Gerrit Change */
+  postDraftComment(
+    gerritChangeId: string,
+    commentInput: GerritCommentInput
+  ): Observable<GerritCommentInfo> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    return this.http.post<GerritCommentInfo>(
+      `${this.baseUrl}/post-reviewer-gerrit-draft-comment`,
+      commentInput,
+      {
+        params,
+      }
+    );
+  }
+
+  /* Get published Comments with no name */
+  getExistedComments(gerritChangeId: string): Observable<GerritCommentInfo[]> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get<GerritCommentInfo[]>(
+      `${this.baseUrl}/get-gerrit-change-comments`,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Get Existed draft comment on a Gerrit Change for current user */
+  getUserDraftComments(
+    gerritChangeId: string
+  ): Observable<GerritCommentInfo[]> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.get<GerritCommentInfo[]>(
+      `${this.baseUrl}/get-user-gerrit-change-draft-comments`,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Update a draft comment on a Gerrit Change */
+  updateDraftComment(
+    gerritChangeId: string,
+    commentInput: GerritCommentInput
+  ): Observable<GerritCommentInfo> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    return this.http.put<GerritCommentInfo>(
+      `${this.baseUrl}/update-gerrit-draft-comment`,
+      commentInput,
+      { params }
+    );
+  }
+
+  /** Publish reviewer draft comments as a review */
+  publishDraftComments(
+    gerritChangeId: string,
+    draftInputs: GerritCommentInput[]
+  ): Observable<void> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+
+    return this.http.post<void>(
+      `${this.baseUrl}/publish-reviewer-gerrit-draft-comments`,
+      draftInputs,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Post thumb up or thumb down or cancel thumb for a comment */
+
+  postThumbStateForComment(
+    gerritChangeId: string,
+    gerritCommentId: string,
+    thumbState: ReactState
+  ): Observable<void> {
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('gerritCommentId', gerritCommentId)
+      .set('thumbState', thumbState.toString().toUpperCase());
+
+    return this.http.post<void>(
+      `${this.baseUrl}/post-thumb-state-for-comment`,
+      null,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Delete a draft comment on a Gerrit Change */
+  deleteDraftComment(
+    gerritChangeId: string,
+    commentInput: GerritCommentInput
+  ): Observable<void> {
+    const params = new HttpParams().set('gerritChangeId', gerritChangeId);
+    // HttpClient.delete() doesn’t accept a body, so we use the generic request() form:
+    return this.http.request<void>(
+      'DELETE',
+      `${this.baseUrl}/delete-gerrit-draft-comment`,
+      {
+        params,
+        body: commentInput,
+      }
+    );
   }
 }

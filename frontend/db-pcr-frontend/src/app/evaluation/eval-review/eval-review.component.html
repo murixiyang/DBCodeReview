@@ -88,10 +88,13 @@
         <button class="btn-primary" (click)="onOpenPublishDialog()">
           Submit Review
         </button>
-        <!-- <app-publish-dialog
+        <app-author-publish-dialog
+          *ngIf="showPublishDialog"
           [count]="getAllDraftCount()"
-          (confirm)="onPublishConfirmed($event)"
-        ></app-publish-dialog> -->
+          [count]="getAllDraftCount()"
+          (confirm)="onPublishConfirmed()"
+          (cancel)="showPublishDialog = false"
+        ></app-author-publish-dialog>
       </div>
 
       <!-- For each file, render the diff table (new-only) -->
@@ -101,6 +104,7 @@
           [oldText]="fileContents.get(f)?.[0]!"
           [newText]="fileContents.get(f)?.[1]!"
           [isAuthor]="false"
+          [gerritChangeId]="authorCodeData.gerritChangeId"
           [displayName]="commenterDisplayName"
           [language]="authorCodeData.language"
         ></app-eval-table>
