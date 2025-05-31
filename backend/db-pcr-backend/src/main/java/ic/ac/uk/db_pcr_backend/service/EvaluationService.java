@@ -60,7 +60,7 @@ public class EvaluationService {
 
         // 6. Persist the assignment
         EvalReviewerEntity evalReview = new EvalReviewerEntity(reviewer, firstCode, round1Anon, secondCode, round2Anon,
-                pseudoNameSvc.generateUniqueNumberName());
+                pseudoNameSvc.generateUniqueNumberName("Anonymous Reviewer"));
 
         return evalReviewerRepo.save(evalReview);
     }

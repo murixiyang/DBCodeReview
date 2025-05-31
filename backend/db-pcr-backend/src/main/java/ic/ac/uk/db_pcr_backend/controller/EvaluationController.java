@@ -160,7 +160,7 @@ public class EvaluationController {
 
         // 4) Determine display name
         String displayName = isAnonymous
-                ? pseudoNameSvc.generateUniqueNumberName()
+                ? pseudoNameSvc.generateUniqueNumberName("Anonymous Author")
                 : authorCode.getAuthor().getUsername();
 
         // 5) Build and return DTO
