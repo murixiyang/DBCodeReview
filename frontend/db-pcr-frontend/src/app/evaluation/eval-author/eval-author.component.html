@@ -109,8 +109,8 @@
             fileForm.get('language')?.value === 'Python'
           "
         >
-          (If using templates, upload the Book and Member classes even you
-          didn't change them.)
+          You should submit all code files that helps the reviewer to understand
+          the code. (exclude the task description)
         </p>
       </div>
 
@@ -160,7 +160,12 @@
   </div>
 
   <div class="actions">
-    <button type="button" class="btn-skip" (click)="skipAuthor()">
+    <button
+      type="button"
+      class="btn-skip"
+      (click)="skipAuthor()"
+      [disabled]="locked"
+    >
       Skip Authoring
     </button>
   </div>
