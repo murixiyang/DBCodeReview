@@ -31,5 +31,5 @@ export const routes: Routes = [
   { path: 'eval/author', component: EvalAuthorComponent },
   { path: 'eval/review/:round', component: EvalReviewComponent },
   { path: 'eval/survey', component: EvalSurveyComponent },
-  { path: '', redirectTo: '/eval/intro', pathMatch: 'full' },
+  { path: '', redirectTo: '/project-list', pathMatch: 'full' },
 ];
