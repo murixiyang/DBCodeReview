@@ -35,14 +35,20 @@ public class MaintainService {
     private ReviewAssignmentRepo reviewAssignmentRepo;
 
     @Transactional
-    public List<ReviewAssignmentEntity> assignReviewers(String gitlabGroupId, String projectId,
+    public List<ReviewAssignmentEntity> assignReviewers(String projectId,
             int reviewersPerStudent,
             String oauthToken) throws Exception {
 
         System.out.println("Service: MaintainService.assignReviewers");
 
+        // Get the associated project and users
+        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
+                .orElseThrow();
+
+        Long gitlabGroupId = project.getGroup().getGitlabGroupId();
+
         // Fetch all “developer” members (students)
-        List<Member> students = gitlabSvc.getDevInGroup(gitlabGroupId, oauthToken);
+        List<Member> students = gitlabSvc.getDevInGroup(gitlabGroupId.toString(), oauthToken);
 
         // Check assignment number is valid
         int studentNum = students.size();
@@ -50,9 +56,6 @@ public class MaintainService {
             throw new IllegalArgumentException("n must be between 1 and number of students–1");
         }
 
-        // Get the associated project and users
-        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
-                .orElseThrow();
         List<UserEntity> users = students.stream()
                 .map(student -> userSvc.getOrCreateUserByGitlabId(student.getId(), student.getUsername()))
                 .toList();

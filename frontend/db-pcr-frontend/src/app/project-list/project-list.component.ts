@@ -25,6 +25,9 @@ export class ProjectListComponent implements OnInit {
       this.projects = projects;
     });
 
+    // Fetch group projects to build the database
+    this.projectSvc.getGroupProjects().subscribe(() => {});
+
     this.reviewSvc.getProjectsToReview().subscribe((projects) => {
       this.projectsToReview = projects;
     });

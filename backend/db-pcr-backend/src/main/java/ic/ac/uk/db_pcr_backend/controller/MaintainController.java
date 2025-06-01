@@ -26,9 +26,6 @@ public class MaintainController {
     @Autowired
     private MaintainService maintainSvc;
 
-    @Value("${gitlab.eval.group.id}")
-    private String gitlabGroupId;
-
     @GetMapping("/get-assigned-list")
     public ResponseEntity<List<ReviewAssignmentUsernameDto>> getAssignedList(
             @RequestParam("groupProjectId") String groupProjectId) throws Exception {
@@ -56,7 +53,7 @@ public class MaintainController {
 
         String accessToken = client.getAccessToken().getTokenValue();
 
-        List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(gitlabGroupId, groupProjectId,
+        List<ReviewAssignmentEntity> assignments = maintainSvc.assignReviewers(groupProjectId,
                 reviewerNum,
                 accessToken);
 

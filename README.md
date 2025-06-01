@@ -8,6 +8,8 @@ ssh murixiyang@20.77.48.174
 username: murixiyang
 password: uVb@9aNsZdPdx3m
 
+docker-compose logs -f backend
+
 # Docker
 
 docker-compose down
