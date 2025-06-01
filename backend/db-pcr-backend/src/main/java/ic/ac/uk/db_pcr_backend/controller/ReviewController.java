@@ -280,7 +280,7 @@ public class ReviewController {
 
         System.out.println("STAGE: ReviewController.getChangedFilesContent");
 
-        Map<String, String[]> changedFileMap = gerritSvc.getChangedFileContentForEval(gerritChangeId);
+        Map<String, String[]> changedFileMap = gerritSvc.getChangedFileContent(gerritChangeId);
 
         // Get the redaction list
         String username = oauth2User.getAttribute("username").toString();
