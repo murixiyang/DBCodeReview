@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -93,9 +92,6 @@ public class ReviewController {
 
     @Autowired
     private GerritCommentRepo gerritCommentRepo;
-
-    @Value("${gitlab.eval.group.id}")
-    private String groupId;
 
     /**
      * Return all the Projects this username is a reviewer *for*,
@@ -619,7 +615,5 @@ public class ReviewController {
 
         return ResponseEntity.noContent().build();
     }
-
-
 
 }
