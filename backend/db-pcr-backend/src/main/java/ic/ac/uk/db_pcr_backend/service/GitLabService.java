@@ -44,8 +44,7 @@ public class GitLabService {
         System.out.println("Service: GitLabService.getPersonalProject");
 
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
-            // return gitLabApi.getProjectApi().getOwnedProjects();
-            return gitLabApi.getProjectApi().getProjects();
+            return gitLabApi.getProjectApi().getOwnedProjects();
         }
     }
 
