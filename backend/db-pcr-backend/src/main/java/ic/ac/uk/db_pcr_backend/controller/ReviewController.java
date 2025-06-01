@@ -262,6 +262,22 @@ public class ReviewController {
         return ResponseEntity.ok(commitDto);
     }
 
+    /** Get group project id by assignment id */
+    @GetMapping("/get-group-project-id-by-assignment")
+    public ResponseEntity<Long> getGroupProjectIdByAssignment(
+            @RequestParam("assignmentId") String assignmentId) throws Exception {
+
+        System.out.println("STAGE: ReviewController.getGroupProjectIdByAssignment");
+
+        // Find the review assignment
+        ReviewAssignmentEntity assignment = reviewAssignmentRepo.findById(Long.valueOf(assignmentId))
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Assignment not found: " + assignmentId));
+
+        // Return the group project id
+        return ResponseEntity.ok(assignment.getGroupProject().getId());
+    }
+
     /** Get list of changed file names in a gerrit change */
     @GetMapping("/get-changed-files")
     public ResponseEntity<List<String>> getChangedFiles(

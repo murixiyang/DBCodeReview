@@ -32,10 +32,12 @@ export class AuthorReviewDetailComponent {
   diffTables!: QueryList<DiffTableComponent>;
 
   showPublishDialog = false;
+  isLeavingPage = false;
 
   constructor(
     private route: ActivatedRoute,
-    private reviewSvc: ReviewService
+    private reviewSvc: ReviewService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -63,6 +65,7 @@ export class AuthorReviewDetailComponent {
 
   // open the single parent dialog
   onOpenPublishDialog() {
+    this.isLeavingPage = false;
     this.showPublishDialog = true;
   }
 
@@ -88,11 +91,21 @@ export class AuthorReviewDetailComponent {
         allDrafts
       )
       .subscribe(() => {
-        // tell each child to re-fetch its drafts & published comments
+        // 4a) Refresh every child table exactly as before:
         this.diffTables.forEach((table) => {
           table.fetchDraftComments();
           table.fetchExistedComments();
         });
+
+        // 4b) If we opened this dialog because “Back to Commit List” was clicked
+        //     (i.e. isDialogLeaving === true), then navigate now:
+        if (this.isLeavingPage) {
+          this.router.navigate([
+            '/commit-list',
+            this.pseudoCommitDto.commit.projectId,
+          ]);
+        }
+        // If isDialogLeaving is false, we do nothing else and remain on this page.
       });
   }
 
@@ -100,5 +113,20 @@ export class AuthorReviewDetailComponent {
     return this.diffTables
       .toArray()
       .reduce((acc, table) => acc + table.draftComments.length, 0);
+  }
+
+  navigateToCommitList() {
+    const drafts = this.getAllDraftCount();
+    if (drafts > 0) {
+      // Open dialog in “leaving” variant
+      this.isLeavingPage = true;
+      this.showPublishDialog = true;
+    } else {
+      // No drafts → go straight back
+      this.router.navigate([
+        '/commit-list',
+        this.pseudoCommitDto.commit.projectId,
+      ]);
+    }
   }
 }

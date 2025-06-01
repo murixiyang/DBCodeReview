@@ -40,6 +40,18 @@ export class ReviewService {
     );
   }
 
+  /** Get group project Id for given assignment */
+  getGroupProjectIdByAssignmentId(assignmentId: string): Observable<string> {
+    const params = new HttpParams().set('assignmentId', assignmentId);
+    return this.http.get(
+      `${this.baseUrl}/get-group-project-id-by-assignment`,
+      {
+        params,
+        responseType: 'text',
+      }
+    );
+  }
+
   /** Get Author Assignment Pseudunym Dto by assignment id, getting in from author side */
   getAuthorAssignmentPseudonymDtoList(
     personalProjectId: string

@@ -4,12 +4,14 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-author-publish-dialog',
-  imports: [FormsModule],
+  imports: [FormsModule, NgIf],
   templateUrl: './author-publish-dialog.component.html',
   styleUrl: './author-publish-dialog.component.css',
 })
 export class AuthorPublishDialogComponent {
   @Input() count = 0;
+
+  @Input() isLeaving = false;
 
   /** emits the chosen action + message */
   @Output() confirm = new EventEmitter<void>();

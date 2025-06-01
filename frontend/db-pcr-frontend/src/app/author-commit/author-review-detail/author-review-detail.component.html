@@ -1,6 +1,9 @@
 <!-- review-detail.component.html -->
 <div class="page-container">
   <div class="diff-header">
+    <button class="btn-primary" (click)="navigateToCommitList()">
+      Back to Commit List
+    </button>
     <div class="header-info">
       <div class="author-time">
         <span class="author"> Submitted by You </span>
@@ -22,6 +25,7 @@
       <app-author-publish-dialog
         *ngIf="showPublishDialog"
         [count]="getAllDraftCount()"
+        [isLeaving]="isLeavingPage"
         (confirm)="onPublishConfirmed()"
         (cancel)="showPublishDialog = false"
       ></app-author-publish-dialog>

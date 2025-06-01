@@ -33,10 +33,13 @@ export class ReviewDetailComponent {
 
   assignmentId!: string;
 
+  projectId!: string;
+
   @ViewChildren(DiffTableComponent)
   diffTables!: QueryList<DiffTableComponent>;
 
   showPublishDialog = false;
+  isLeavingPage = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -61,6 +64,12 @@ export class ReviewDetailComponent {
       .subscribe((p) => {
         this.pseudoCommitDto = p;
       });
+
+    this.reviewSvc
+      .getGroupProjectIdByAssignmentId(this.assignmentId)
+      .subscribe((projectId) => {
+        this.projectId = projectId;
+      });
   }
 
   get fileKeys(): string[] {
@@ -70,6 +79,7 @@ export class ReviewDetailComponent {
   // open the single parent dialog
   onOpenPublishDialog() {
     this.showPublishDialog = true;
+    this.isLeavingPage = false;
   }
 
   // when the user confirms in that dialog...
@@ -103,6 +113,13 @@ export class ReviewDetailComponent {
           table.fetchDraftComments();
           table.fetchExistedComments();
         });
+
+        if (this.isLeavingPage) {
+          this.router.navigate([
+            '/review',
+            this.pseudoCommitDto.commit.projectId,
+          ]);
+        }
       });
   }
 
@@ -110,5 +127,19 @@ export class ReviewDetailComponent {
     return this.diffTables
       .toArray()
       .reduce((acc, table) => acc + table.draftComments.length, 0);
+  }
+
+  navigateToReviewCommitList() {
+    const drafts = this.getAllDraftCount();
+    console.log(`Drafts count: ${drafts}`);
+    if (drafts > 0) {
+      console.log('Drafts exist, opening publish dialog...');
+      // Open dialog in “leaving” variant
+      this.isLeavingPage = true;
+      this.showPublishDialog = true;
+    } else {
+      // No drafts → go straight back
+      this.router.navigate(['/review', this.projectId]);
+    }
   }
 }

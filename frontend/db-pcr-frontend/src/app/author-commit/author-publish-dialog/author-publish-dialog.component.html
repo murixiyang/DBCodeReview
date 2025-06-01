@@ -1,15 +1,32 @@
 <div class="overlay" (click)="onCancel()">
   <div class="dialog" (click)="$event.stopPropagation()">
-    <h2>Publish Comments</h2>
-    <p>
-      You are about to publish <strong>{{ count }}</strong> comment{{
-        count > 1 ? "" : "s"
-      }}.
-      <br />
-      <br />
-      Once published they cannot be edited or deleted, and will appear
-      anonymously.
-    </p>
+    <!-- Normal “Publish Comments” variant -->
+    <ng-container *ngIf="!isLeaving; else leavingTpl">
+      <h2>Publish Comments</h2>
+      <p>
+        You are about to publish
+        <strong>{{ count }}</strong>
+        comment{{ count > 1 ? "s" : "" }}. <br /><br />
+        Once published they cannot be edited or deleted, and will appear
+        anonymously.
+      </p>
+    </ng-container>
+
+    <!-- “Leaving page with unpublished drafts” variant -->
+    <ng-template #leavingTpl>
+      <h2>Unpublished Comments</h2>
+      <p>
+        You have
+        <strong>{{ count }}</strong>
+        comment{{ count > 1 ? "s" : "" }} not published, so that the author
+        cannot see {{ count > 1 ? "them" : "it" }}. <br />
+        Do you want to publish {{ count > 1 ? "them" : "it" }} now?
+      </p>
+      <p>
+        Once published, the comments cannot be edited or deleted, and will
+        appear anonymously.
+      </p>
+    </ng-template>
 
     <div class="buttons">
       <button (click)="onCancel()">Cancel</button>

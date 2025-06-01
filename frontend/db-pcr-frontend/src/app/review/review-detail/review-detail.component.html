@@ -1,5 +1,8 @@
 <div class="page-container">
   <div class="diff-header">
+    <button class="btn-primary" (click)="navigateToReviewCommitList()">
+      Back to Commit List
+    </button>
     <div class="header-info">
       <div class="author-time">
         <span class="author">
@@ -23,6 +26,7 @@
       <app-publish-dialog
         *ngIf="showPublishDialog"
         [count]="getAllDraftCount()"
+        [isLeaving]="isLeavingPage"
         (confirm)="onPublishConfirmed($event)"
         (cancel)="showPublishDialog = false"
       ></app-publish-dialog>
