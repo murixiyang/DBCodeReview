@@ -39,7 +39,12 @@
     <td mat-cell *matCellDef="let e">
       <!-- If NOT_SUBMITTED, show Request Review -->
       <ng-container *ngIf="e.status === 'NOT_SUBMITTED'; else revertTpl">
-        <button mat-button color="primary" (click)="requestReview(e)">
+        <button
+          mat-button
+          color="primary"
+          (click)="requestReview(e)"
+          [disabled]="isRequestInFlight"
+        >
           Request Review
         </button>
       </ng-container>
@@ -50,7 +55,7 @@
           mat-button
           color="warn"
           (click)="checkReviewPage(e)"
-          [disabled]="e.status === 'SUPPRESSED_SUBMITTED'"
+          [disabled]="e.status === 'SUPPRESSED_SUBMITTED' || isRequestInFlight"
         >
           Check Review
         </button>

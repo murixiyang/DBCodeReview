@@ -9,6 +9,7 @@ import { GitlabCommitDto } from '../../interface/database/gitlab-commit-dto';
 import { ShortIdPipe } from '../../pipe/short-id.pipe';
 import { CommitService } from '../../http/commit.service';
 import { ReviewService } from '../../http/review.service';
+import { finalize } from 'rxjs';
 
 @Component({
   imports: [
@@ -31,6 +32,9 @@ export class CommitListComponent implements OnInit {
 
   username: string | null = null;
 
+  // This flag is true whenever any requestReview() call is still pending.
+  isRequestInFlight = false;
+
   constructor(
     private commitSvc: CommitService,
     private reviewSvc: ReviewService,
@@ -49,8 +53,20 @@ export class CommitListComponent implements OnInit {
   }
 
   requestReview(commit: CommitWithStatusDto) {
+    // If some other row is already in flight, do nothing.
+    if (this.isRequestInFlight) {
+      return;
+    }
+
+    this.isRequestInFlight = true;
+
     this.reviewSvc
       .postRequestReview(this.projectId, commit.commit.gitlabCommitId)
+      .pipe(
+        finalize(() => {
+          this.isRequestInFlight = false;
+        })
+      )
       .subscribe({
         next: (response) => {
           // Update the review status in the database
@@ -62,11 +78,16 @@ export class CommitListComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error requesting review:', error);
+          // (the finalize() above will flip isRequestInFlight back to false)
         },
       });
   }
 
   checkReviewPage(commit: CommitWithStatusDto) {
+    if (this.isRequestInFlight) {
+      return;
+    }
+
     // Find assignmentId
     this.reviewSvc
       .getAuthorAssignmentPseudonymDtoList(this.projectId)
