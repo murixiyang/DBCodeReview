@@ -148,6 +148,9 @@ export class DiffTableComponent implements OnChanges {
   buildLines(oldText: string, newText: string): DiffLine[] {
     const dmp = new DiffMatchPatch();
 
+    // Configure diff-match-patch for line-level diffs
+    dmp.Diff_EditCost = 4;
+
     // Convert texts to chars, mapping each unique line to a placeholder char
     const helpers = dmp as any;
     const { chars1, chars2, lineArray } = helpers.diff_linesToChars_(
@@ -157,8 +160,10 @@ export class DiffTableComponent implements OnChanges {
 
     // Compute diff on the char sequences (line-level)
     const ops = dmp.diff_main(chars1, chars2, false);
-    // Optionally tidy up
-    dmp.diff_cleanupSemantic(ops);
+
+    // Optionally tidy up -- Now found better to use edit-cost 4
+    // dmp.diff_cleanupSemantic(ops);
+
     // Rehydrate the lines from placeholders
     helpers.diff_charsToLines_(ops, lineArray);
 
