@@ -33,6 +33,13 @@
     </div>
   </div>
 
+  <app-version-selector
+    [assignmentId]="assignmentId"
+    [gerritChangeId]="gerritChangeId"
+    (versionSelected)="onVersionSelected($event)"
+  >
+  </app-version-selector>
+
   <div *ngFor="let f of fileKeys" class="diff-container">
     <app-diff-table
       #diffTable

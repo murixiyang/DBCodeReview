@@ -9,6 +9,7 @@ import { DiffTableComponent } from '../diff-table/diff-table.component.js';
 import { PseudonymGitlabCommitDto } from '../../interface/database/pseudonym-gitlab-commit-dto.js';
 import { PublishDialogComponent } from '../publish-dialog/publish-dialog.component.js';
 import { PublishAction } from '../../interface/publish-action.js';
+import { VersionSelectorComponent } from '../version-selector/version-selector.component.js';
 
 @Component({
   standalone: true,
@@ -20,6 +21,7 @@ import { PublishAction } from '../../interface/publish-action.js';
     DatePipe,
     PublishDialogComponent,
     NgIf,
+    VersionSelectorComponent,
   ],
   templateUrl: './review-detail.component.html',
   styleUrl: './review-detail.component.css',
@@ -52,14 +54,6 @@ export class ReviewDetailComponent {
     this.assignmentId = this.route.snapshot.paramMap.get('assignmentId')!;
 
     this.reviewSvc
-      .getChangedFileContents(this.gerritChangeId)
-      .subscribe((f) => {
-        console.log('changed file contents: ', f);
-
-        this.fileContents = new Map(Object.entries(f));
-      });
-
-    this.reviewSvc
       .getAuthorPseudonymCommit(this.gerritChangeId)
       .subscribe((p) => {
         this.pseudoCommitDto = p;
@@ -74,6 +68,14 @@ export class ReviewDetailComponent {
 
   get fileKeys(): string[] {
     return Array.from(this.fileContents.keys());
+  }
+
+  onVersionSelected(previousChangeId: string) {
+    this.reviewSvc
+      .getChangedFileContentsCompareTo(this.gerritChangeId, previousChangeId)
+      .subscribe((f) => {
+        this.fileContents = new Map(Object.entries(f));
+      });
   }
 
   // open the single parent dialog

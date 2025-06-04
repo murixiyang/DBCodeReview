@@ -1,0 +1,20 @@
+<div class="version-selector" *ngIf="previousChangeRequests.length > 0">
+  <label for="versionSelect">
+    Compare
+    <select
+      id="versionSelect"
+      [(ngModel)]="selectedPreviousChangeId"
+      (change)="onVersionSelected()"
+    >
+      <option [value]="null" disabled selected>Select a version</option>
+      <option
+        *ngFor="let cr of previousChangeRequests"
+        [value]="cr.gerritChangeId"
+      >
+        Version {{ cr.versionNumber }} -
+        {{ cr.submittedAt | date : "MM-dd HH:mm" }}
+      </option>
+    </select>
+    with the current version
+  </label>
+</div>

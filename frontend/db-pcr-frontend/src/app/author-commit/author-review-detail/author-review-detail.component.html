@@ -4,7 +4,7 @@
     <button class="btn-primary" (click)="navigateToCommitList()">
       Back to Commit List
     </button>
-    <div class="header-info">
+    <div *ngIf="pseudoCommitDto?.commit" class="header-info">
       <div class="author-time">
         <span class="author"> Submitted by You </span>
         <span class="time">
@@ -31,6 +31,13 @@
       ></app-author-publish-dialog>
     </div>
   </div>
+
+  <app-version-selector
+    [assignmentId]="assignmentId"
+    [gerritChangeId]="gerritChangeId"
+    (versionSelected)="onVersionSelected($event)"
+  >
+  </app-version-selector>
 
   <div *ngFor="let f of fileKeys" class="diff-container">
     <app-diff-table

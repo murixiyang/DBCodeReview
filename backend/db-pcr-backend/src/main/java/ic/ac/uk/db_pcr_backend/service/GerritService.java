@@ -262,6 +262,62 @@ public class GerritService {
         return fileContentMap;
     }
 
+    // * Get Before and After file content */
+    public Map<String, String[]> getChangedFileContentCompareTo(String changeId, String compareToId) throws Exception {
+        System.out.println("Service: GerritService.getChangedFileContentCompareTo");
+
+        List<String> fileNames = getChangedFileNames(changeId);
+
+        Map<String, String[]> fileContentMap = new HashMap<String, String[]>();
+
+        for (String fileName : fileNames) {
+            BinaryResult oldFile = null;
+
+            String[] content = new String[2];
+            content[0] = "";
+            content[1] = "";
+
+            // If provided a compareToId, get the old file
+            if (compareToId != null && !compareToId.isEmpty()) {
+                // Get old file
+                try {
+                    oldFile = gerritApi.changes()
+                            .id(compareToId)
+                            .revision("current")
+                            .file(fileName).content();
+
+                    content[0] = oldFile != null ? new String(
+                            Base64.getDecoder().decode(oldFile.asString()),
+                            StandardCharsets.UTF_8) : "";
+
+                } catch (RestApiException e) {
+                    // Handle the case where the file does not exist in the previous change
+                    System.out.println("File " + fileName + " does not exist in previous change " + compareToId);
+                }
+            }
+
+            try {
+                // Get new file
+                BinaryResult newFile = gerritApi.changes()
+                        .id(changeId)
+                        .revision("current")
+                        .file(fileName).content();
+
+                content[1] = new String(
+                        Base64.getDecoder().decode(newFile.asString()),
+                        StandardCharsets.UTF_8);
+
+            } catch (RestApiException e) {
+                // Handle the case where the file does not exist in the current change
+                System.out.println("File " + fileName + " does not exist in current change " + changeId);
+            }
+
+            fileContentMap.put(fileName, content);
+        }
+
+        return fileContentMap;
+    }
+
     // * Get Before and After file content for evaluation, Before is empty */
     public Map<String, String[]> getChangedFileContentForEval(String changeId) throws Exception {
         System.out.println("Service: GerritService.getChangedFileContentForEval");

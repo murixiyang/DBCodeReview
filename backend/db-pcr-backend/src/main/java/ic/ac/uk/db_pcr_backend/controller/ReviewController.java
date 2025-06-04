@@ -310,6 +310,31 @@ public class ReviewController {
         return ResponseEntity.ok(changedFileMap);
     }
 
+    /** Get changed files content compared to a specific version */
+    @GetMapping("/get-changed-files-content-compare-to")
+    public ResponseEntity<Map<String, String[]>> getChangedFilesContentCompareTo(
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RequestParam("compareToChangeId") String compareToChangeId,
+            @AuthenticationPrincipal OAuth2User oauth2User)
+            throws Exception {
+
+        System.out.println("STAGE: ReviewController.getChangedFilesContentCompareTo");
+
+        Map<String, String[]> changedFileMap = gerritSvc.getChangedFileContentCompareTo(gerritChangeId,
+                compareToChangeId);
+
+        // Get the redaction list
+        String username = oauth2User.getAttribute("username").toString();
+        List<String> blockNames = redactSvc.buildAllUsernames(username);
+
+        changedFileMap.replaceAll((file, pair) -> new String[] {
+                Redactor.redact(pair[0], blockNames),
+                Redactor.redact(pair[1], blockNames)
+        });
+
+        return ResponseEntity.ok(changedFileMap);
+    }
+
     /** Get Gerrit ChangeDiff via Uuid and ChangeId */
     @GetMapping("/get-change-diff")
     public String getChangeDiff(@RequestParam("gerritChangeId") String gerritChangeId,

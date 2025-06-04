@@ -6,6 +6,10 @@ import { DatePipe, NgFor, NgIf } from '@angular/common';
 import { AuthorPublishDialogComponent } from '../author-publish-dialog/author-publish-dialog.component';
 import { GerritCommentInput } from '../../interface/gerrit/gerrit-comment-input';
 import { DiffTableComponent } from '../../review/diff-table/diff-table.component';
+import { ChangeRequestDto } from '../../interface/database/change-request-dto';
+import { FormsModule } from '@angular/forms';
+import { ShortIdPipe } from '../../pipe/short-id.pipe';
+import { VersionSelectorComponent } from '../../review/version-selector/version-selector.component';
 
 @Component({
   selector: 'app-author-review-detail',
@@ -15,6 +19,7 @@ import { DiffTableComponent } from '../../review/diff-table/diff-table.component
     AuthorPublishDialogComponent,
     NgIf,
     DiffTableComponent,
+    VersionSelectorComponent,
   ],
   templateUrl: './author-review-detail.component.html',
   styleUrl: './author-review-detail.component.css',
@@ -44,13 +49,7 @@ export class AuthorReviewDetailComponent {
     this.gerritChangeId = this.route.snapshot.paramMap.get('gerritChangeId')!;
     this.assignmentId = this.route.snapshot.paramMap.get('assignmentId')!;
 
-    this.reviewSvc
-      .getChangedFileContents(this.gerritChangeId)
-      .subscribe((f) => {
-        console.log('changed file contents: ', f);
-
-        this.fileContents = new Map(Object.entries(f));
-      });
+    // view selector will fire output to fetch file contents
 
     this.reviewSvc
       .getAuthorPseudonymCommit(this.gerritChangeId)
@@ -61,6 +60,14 @@ export class AuthorReviewDetailComponent {
 
   get fileKeys(): string[] {
     return Array.from(this.fileContents.keys());
+  }
+
+  onVersionSelected(previousChangeId: string) {
+    this.reviewSvc
+      .getChangedFileContentsCompareTo(this.gerritChangeId, previousChangeId)
+      .subscribe((f) => {
+        this.fileContents = new Map(Object.entries(f));
+      });
   }
 
   // open the single parent dialog

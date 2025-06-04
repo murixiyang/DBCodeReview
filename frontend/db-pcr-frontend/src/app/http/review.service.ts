@@ -43,13 +43,10 @@ export class ReviewService {
   /** Get group project Id for given assignment */
   getGroupProjectIdByAssignmentId(assignmentId: string): Observable<string> {
     const params = new HttpParams().set('assignmentId', assignmentId);
-    return this.http.get(
-      `${this.baseUrl}/get-group-project-id-by-assignment`,
-      {
-        params,
-        responseType: 'text',
-      }
-    );
+    return this.http.get(`${this.baseUrl}/get-group-project-id-by-assignment`, {
+      params,
+      responseType: 'text',
+    });
   }
 
   /** Get Author Assignment Pseudunym Dto by assignment id, getting in from author side */
@@ -130,6 +127,23 @@ export class ReviewService {
 
     return this.http.get<Map<string, string[]>>(
       `${this.baseUrl}/get-changed-files-content`,
+      {
+        params,
+      }
+    );
+  }
+
+  /** Get changed file contents for a gerrit change providing a compare to changeId */
+  getChangedFileContentsCompareTo(
+    gerritChangeId: string,
+    compareToChangeId: string
+  ): Observable<Map<string, string[]>> {
+    const params = new HttpParams()
+      .set('gerritChangeId', gerritChangeId)
+      .set('compareToChangeId', compareToChangeId);
+
+    return this.http.get<Map<string, string[]>>(
+      `${this.baseUrl}/get-changed-files-content-compare-to`,
       {
         params,
       }
