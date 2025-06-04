@@ -3,7 +3,7 @@
     <button class="btn-primary" (click)="navigateToReviewCommitList()">
       Back to Commit List
     </button>
-    <div class="header-info">
+    <div *ngIf="pseudoCommitDto && pseudoCommitDto.commit" class="header-info">
       <div class="author-time">
         <span class="author">
           Submitted by <strong>{{ pseudoCommitDto.authorPseudonym }}</strong>

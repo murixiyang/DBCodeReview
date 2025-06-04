@@ -8,25 +8,23 @@ ssh murixiyang@20.77.48.174
 username: murixiyang
 password: uVb@9aNsZdPdx3m
 
-docker-compose logs -f backend
-
 # Docker
 
-docker-compose down
-docker-compose build
-docker-compose up -d
+docker compose down
+docker compose build
+docker compose up -d
 
-docker-compose logs backend
+docker compose logs backend
 
 ## Live log
 
-docker-compose logs --tail=100 -f backend
+docker compose logs --tail=100 -f backend
 
 ## only rebuild this stage
 
-docker-compose up -d --build backend
+docker compose up -d --build backend
 
-docker-compose restart frontend
+docker compose restart frontend
 
 # Frontend(Angular)
 

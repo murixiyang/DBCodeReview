@@ -51,6 +51,8 @@ export class VersionSelectorComponent {
           this.selectedPreviousChangeId =
             this.previousChangeRequests[0].gerritChangeId;
           this.versionSelected.emit(this.selectedPreviousChangeId);
+        } else {
+          this.versionSelected.emit('');
         }
       });
   }
