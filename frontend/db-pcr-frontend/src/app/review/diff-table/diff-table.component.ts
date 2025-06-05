@@ -19,6 +19,14 @@ import { FormsModule } from '@angular/forms';
 import { ReactState } from '../../interface/react-state';
 
 import { HighlightModule } from 'ngx-highlightjs';
+
+type DiffBlock = {
+  type: 'line' | 'fold';
+  lines?: DiffLine[]; // for type: 'fold'
+  line?: DiffLine; // for type: 'line'
+  folded?: boolean; // initially true for fold
+};
+
 @Component({
   selector: 'app-diff-table',
   imports: [
@@ -48,8 +56,9 @@ export class DiffTableComponent implements OnChanges {
   draftComments: GerritCommentInput[] = [];
 
   lines: DiffLine[] = [];
+  displayBlocks: DiffBlock[] = [];
 
-  selectedIndex: number | null = null;
+  selectedLineId: number | null = null;
   newDraft?: GerritCommentInput;
   editingDraft?: GerritCommentInput;
 
@@ -74,6 +83,8 @@ export class DiffTableComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['oldText'] || changes['newText']) {
       this.lines = this.buildLines(this.oldText, this.newText);
+      this.displayBlocks = this.buildDisplayBlocks(this.lines);
+      console.log('displayBlocks: ', this.displayBlocks);
       this.updateHeaderInfo();
     }
   }
@@ -129,6 +140,9 @@ export class DiffTableComponent implements OnChanges {
         });
 
         console.log('existed comments: ', c);
+
+        // Build the lines and display blocks after fetching comments
+        this.displayBlocks = this.buildDisplayBlocks(this.lines);
       });
   }
 
@@ -197,6 +211,40 @@ export class DiffTableComponent implements OnChanges {
     return lines;
   }
 
+  buildDisplayBlocks(lines: DiffLine[]): DiffBlock[] {
+    const result: DiffBlock[] = [];
+    let buffer: DiffLine[] = [];
+
+    const flushBuffer = () => {
+      if (
+        buffer.length > 10 &&
+        buffer.every(
+          (l) =>
+            l.type === 'equal' && !this.hasComments(l.newNumber, 'REVISION')
+        )
+      ) {
+        result.push({ type: 'fold', lines: [...buffer], folded: true });
+      } else {
+        for (const line of buffer) result.push({ type: 'line', line });
+      }
+      buffer = [];
+    };
+
+    for (const line of lines) {
+      const hasComment = this.hasComments(line.newNumber, 'REVISION');
+      const isCommon = line.type === 'equal';
+      if (isCommon && !hasComment) {
+        buffer.push(line);
+      } else {
+        flushBuffer();
+        result.push({ type: 'line', line });
+      }
+    }
+
+    flushBuffer(); // process any trailing buffer
+    return result;
+  }
+
   updateHeaderInfo() {
     this.insertedCount = this.lines.filter((l) => l.type === 'insert').length;
     this.deletedCount = this.lines.filter((l) => l.type === 'delete').length;
@@ -236,11 +284,9 @@ export class DiffTableComponent implements OnChanges {
     );
   }
 
-  // called when user clicks a code row
-  selectLine(idx: number) {
-    const line = this.lines[idx];
+  selectLine(line: DiffLine) {
     const ln = line.newNumber ?? line.oldNumber!;
-    this.selectedIndex = idx;
+    this.selectedLineId = ln;
     this.newDraft = { path: this.file, line: ln, message: '' };
   }
 
@@ -271,7 +317,7 @@ export class DiffTableComponent implements OnChanges {
           draft
         )
         .subscribe((savedDraft: GerritCommentInput) => {
-          this.selectedIndex = null;
+          this.selectedLineId = null;
           this.newDraft = undefined;
 
           this.fetchDraftComments();
@@ -280,7 +326,7 @@ export class DiffTableComponent implements OnChanges {
   }
 
   onCancelDraft() {
-    this.selectedIndex = null;
+    this.selectedLineId = null;
     this.newDraft = undefined;
     this.editingDraft = undefined;
   }

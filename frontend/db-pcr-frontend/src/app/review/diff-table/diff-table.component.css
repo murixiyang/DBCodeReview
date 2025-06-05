@@ -127,6 +127,20 @@
   table-layout: fixed;
 }
 
+.fold-row {
+  background: #f6f8fa;
+  cursor: pointer;
+  font-style: italic;
+  text-align: center;
+}
+
+.fold-toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #0366d6;
+}
+
 .num-col {
   width: 32px;
   padding: 0;
