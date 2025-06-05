@@ -87,27 +87,23 @@ public class PseudoNameService {
 
         System.out.println("Service: PseudoNameService.generateUniqueName");
 
-        int maxAttempts = ADJECTIVES.size() * NOUNS.size() * 2;
+        int maxAttempts = 1000; // safety limit
         for (int attempt = 0; attempt < maxAttempts; attempt++) {
-            String base = ADJECTIVES.get(rand.nextInt(ADJECTIVES.size()))
-                    + " "
-                    + NOUNS.get(rand.nextInt(NOUNS.size()));
-            String candidate = base;
-
-            // If not specified used, just return any candidate
-            if (used == null || used.isEmpty()) {
-                return candidate;
+            String base = ADJECTIVES.get(rand.nextInt(ADJECTIVES.size())) + " " +
+                    NOUNS.get(rand.nextInt(NOUNS.size()));
+            if (!used.contains(base)) {
+                return base;
             }
 
-            if (used.contains(candidate)) {
-                // add suffix
-                candidate = base + (attempt + 1);
-            }
+            // Try with numbered suffix
+            String candidate = generateUniqueNumberName(base);
             if (!used.contains(candidate)) {
                 return candidate;
             }
+
         }
-        throw new IllegalStateException("Unable to generate unique pseudonym after " + maxAttempts + " attempts");
+        throw new IllegalStateException("Unable to generate unique pseudonym after many attempts.");
+
     }
 
     public ProjectUserPseudonymEntity getPseudonymInReviewAssignment(ReviewAssignmentEntity assignment, RoleType role) {
@@ -122,7 +118,7 @@ public class PseudoNameService {
     }
 
     public String generateUniqueNumberName(String prefix) {
-        int num = rand.nextInt(900) + 100; // from 100–999
+        int num = rand.nextInt(998) + 2; // from 2 to 999 inclusive
         return prefix + " #" + num;
     }
 

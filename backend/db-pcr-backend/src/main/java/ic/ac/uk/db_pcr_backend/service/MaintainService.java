@@ -3,6 +3,7 @@ package ic.ac.uk.db_pcr_backend.service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.gitlab4j.api.models.Member;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,7 @@ public class MaintainService {
 
         List<UserEntity> users = students.stream()
                 .map(student -> userSvc.getOrCreateUserByGitlabId(student.getId(), student.getUsername()))
-                .toList();
+                .collect(Collectors.toList());
 
         // Clear any existing assignments for this project
         reviewAssignmentRepo.deleteByGroupProject(groupProject);
