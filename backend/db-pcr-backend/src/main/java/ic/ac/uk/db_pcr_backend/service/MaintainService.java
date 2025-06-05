@@ -1,6 +1,7 @@
 package ic.ac.uk.db_pcr_backend.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.gitlab4j.api.models.Member;
@@ -35,17 +36,17 @@ public class MaintainService {
     private ReviewAssignmentRepo reviewAssignmentRepo;
 
     @Transactional
-    public List<ReviewAssignmentEntity> assignReviewers(String projectId,
+    public List<ReviewAssignmentEntity> assignReviewers(String groupProjectId,
             int reviewersPerStudent,
             String oauthToken) throws Exception {
 
         System.out.println("Service: MaintainService.assignReviewers");
 
         // Get the associated project and users
-        ProjectEntity project = projectRepo.findById(Long.valueOf(projectId))
+        ProjectEntity groupProject = projectRepo.findById(Long.valueOf(groupProjectId))
                 .orElseThrow();
 
-        Long gitlabGroupId = project.getGroup().getGitlabGroupId();
+        Long gitlabGroupId = groupProject.getGroup().getGitlabGroupId();
 
         // Fetch all “developer” members (students)
         List<Member> students = gitlabSvc.getDevInGroup(gitlabGroupId.toString(), oauthToken);
@@ -61,9 +62,12 @@ public class MaintainService {
                 .toList();
 
         // Clear any existing assignments for this project
-        reviewAssignmentRepo.deleteByGroupProject(project.getParentProject());
+        reviewAssignmentRepo.deleteByGroupProject(groupProject);
 
         // Create mapping of authors to reviewers
+
+        // Randomly shuffle before assigning
+        Collections.shuffle(users);
         var result = new ArrayList<ReviewAssignmentEntity>();
         int n = users.size();
         for (int i = 0; i < n; i++) {
@@ -72,11 +76,11 @@ public class MaintainService {
                 UserEntity reviewer = users.get((i + k) % n);
 
                 // 1) Create pseudonyms for author and reviewer
-                pseudoNameSvc.getOrCreatePseudoName(project, author, RoleType.AUTHOR);
-                pseudoNameSvc.getOrCreatePseudoName(project, reviewer, RoleType.REVIEWER);
+                pseudoNameSvc.getOrCreatePseudoName(groupProject, author, RoleType.AUTHOR);
+                pseudoNameSvc.getOrCreatePseudoName(groupProject, reviewer, RoleType.REVIEWER);
 
                 // 2) build and collect the assignment
-                ReviewAssignmentEntity ra = new ReviewAssignmentEntity(author, reviewer, project);
+                ReviewAssignmentEntity ra = new ReviewAssignmentEntity(author, reviewer, groupProject);
                 result.add(ra);
             }
         }

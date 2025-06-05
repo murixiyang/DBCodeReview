@@ -66,7 +66,7 @@ public class CommitController {
         commitSvc.syncCommitsForProject(projectIdLong, accessToken);
 
         // Find project
-        ProjectEntity project = projectRepo.findByGitlabProjectId(projectIdLong)
+        ProjectEntity project = projectRepo.findById(projectIdLong)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown project id " + projectId));
 
         // Find commits for the project
