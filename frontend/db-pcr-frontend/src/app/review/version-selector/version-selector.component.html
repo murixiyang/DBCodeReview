@@ -12,6 +12,7 @@
         [value]="cr.gerritChangeId"
       >
         Version {{ cr.versionNumber }} -
+        {{ cr.message}} 
         {{ cr.submittedAt | date : "MM-dd HH:mm" }}
       </option>
     </select>

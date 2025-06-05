@@ -9,11 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import ic.ac.uk.db_pcr_backend.entity.PseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.entity.eval.AuthorCodeEntity;
 import ic.ac.uk.db_pcr_backend.entity.eval.EvalReviewerEntity;
-import ic.ac.uk.db_pcr_backend.model.RoleType;
 import ic.ac.uk.db_pcr_backend.repository.eval.AuthorCodeRepo;
 import ic.ac.uk.db_pcr_backend.repository.eval.EvalReviewerRepo;
 

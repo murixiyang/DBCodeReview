@@ -48,7 +48,12 @@ export class CommitListComponent implements OnInit {
     this.commitSvc
       .getCommitsWithStatus(this.projectId)
       .subscribe((gitlabCommits) => {
-        this.commitList = gitlabCommits;
+        this.commitList = gitlabCommits.sort((a, b) => {
+          return (
+            new Date(b.commit.committedAt).getTime() -
+            new Date(a.commit.committedAt).getTime()
+          );
+        });
       });
   }
 

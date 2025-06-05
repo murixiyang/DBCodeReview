@@ -84,7 +84,6 @@ export class DiffTableComponent implements OnChanges {
     if (changes['oldText'] || changes['newText']) {
       this.lines = this.buildLines(this.oldText, this.newText);
       this.displayBlocks = this.buildDisplayBlocks(this.lines);
-      console.log('displayBlocks: ', this.displayBlocks);
       this.updateHeaderInfo();
     }
   }

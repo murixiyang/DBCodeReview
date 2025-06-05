@@ -31,7 +31,7 @@
 
     <!-- Date Column -->
     <ng-container matColumnDef="date">
-      <th mat-header-cell *matHeaderCellDef>Last Updated</th>
+      <th mat-header-cell *matHeaderCellDef>Submitted At</th>
       <td mat-cell *matCellDef="let e">
         {{ e.submittedAt | date : "medium" }}
       </td>

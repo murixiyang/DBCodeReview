@@ -36,6 +36,8 @@ export class VersionSelectorComponent {
             new Date(b.submittedAt).getTime()
         );
 
+        console.log('sorted change requests:', sorted);
+
         const current = sorted.find(
           (cr) => cr.gerritChangeId === this.gerritChangeId
         );

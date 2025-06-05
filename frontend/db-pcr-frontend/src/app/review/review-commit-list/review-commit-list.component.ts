@@ -45,14 +45,12 @@ export class ReviewCommitListComponent {
     this.reviewSvc
       .getChangeRequestForAssignment(this.selectedAssignment.id.toString())
       .subscribe((list) => {
-        this.commitList = list;
-
-        console.log(
-          'Commit list for assignment',
-          this.selectedAssignment.id,
-          ':',
-          this.commitList
-        );
+        this.commitList = list.sort((a, b) => {
+          return (
+            new Date(b.submittedAt).getTime() -
+            new Date(a.submittedAt).getTime()
+          );
+        });
       });
   }
 

@@ -9,10 +9,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,6 +127,7 @@ public class GerritService {
         this.gerritApiFactory = new GerritRestApiFactory();
 
         this.gerritApi = gerritApiFactory.create(gerritAuthData);
+
     }
 
     public String getGerritChangeIdByCommitId(Long commitId) throws IllegalArgumentException {
@@ -262,11 +266,41 @@ public class GerritService {
         return fileContentMap;
     }
 
+    // * Get changed file names in a gerrit change */
+    public List<String> getChangedFileNamesCompareTo(String changeId, String compareToId) throws Exception {
+        System.out.println("Service: GerritService.getChangedFileNamesCompareTo");
+
+        if (compareToId == null || compareToId.isEmpty()) {
+            // If no compareToId is provided, just return the current change's files
+            return getChangedFileNames(changeId);
+        }
+
+        Map<String, FileInfo> currentFiles = gerritApi.changes()
+                .id(changeId)
+                .revision("current")
+                .files();
+
+        Map<String, FileInfo> baseFiles = gerritApi.changes()
+                .id(compareToId)
+                .revision("current")
+                .files();
+
+        // Union of both file sets (using a Set to remove duplicates)
+        Set<String> fileNames = new HashSet<>();
+        fileNames.addAll(currentFiles.keySet());
+        fileNames.addAll(baseFiles.keySet());
+
+        // Remove the synthetic commit message
+        fileNames.remove("/COMMIT_MSG");
+
+        return new ArrayList<>(fileNames);
+    }
+
     // * Get Before and After file content */
     public Map<String, String[]> getChangedFileContentCompareTo(String changeId, String compareToId) throws Exception {
         System.out.println("Service: GerritService.getChangedFileContentCompareTo");
 
-        List<String> fileNames = getChangedFileNames(changeId);
+        List<String> fileNames = getChangedFileNamesCompareTo(changeId, compareToId);
 
         Map<String, String[]> fileContentMap = new HashMap<String, String[]>();
 
