@@ -795,6 +795,7 @@ public class GerritService {
             patch = out.toByteArray();
         }
 
+        // Apply the patch to the working tree
         try (InputStream in = new ByteArrayInputStream(patch)) {
             git.apply().setPatch(in).call();
         }
