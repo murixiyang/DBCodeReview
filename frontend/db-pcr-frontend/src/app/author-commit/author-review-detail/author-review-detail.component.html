@@ -33,21 +33,24 @@
   </div>
 
   <app-version-selector
+    *ngIf="assignmentId && gerritChangeId"
     [assignmentId]="assignmentId"
     [gerritChangeId]="gerritChangeId"
     (versionSelected)="onVersionSelected($event)"
   >
   </app-version-selector>
 
-  <div *ngFor="let f of fileKeys" class="diff-container">
-    <app-diff-table
-      #diffTable
-      [isAuthor]="true"
-      [selectedAssignmentId]="assignmentId"
-      [gerritChangeId]="gerritChangeId"
-      [oldText]="fileContents.get(f)?.[0]!"
-      [newText]="fileContents.get(f)?.[1]!"
-      [file]="f"
-    ></app-diff-table>
+  <div *ngIf="fileKeys.length > 0">
+    <div *ngFor="let f of fileKeys" class="diff-container">
+      <app-diff-table
+        #diffTable
+        [isAuthor]="true"
+        [selectedAssignmentId]="assignmentId"
+        [gerritChangeId]="gerritChangeId"
+        [oldText]="fileContents.get(f)?.[0]!"
+        [newText]="fileContents.get(f)?.[1]!"
+        [file]="f"
+      ></app-diff-table>
+    </div>
   </div>
 </div>
