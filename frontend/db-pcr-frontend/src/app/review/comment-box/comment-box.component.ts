@@ -75,7 +75,7 @@ export class CommentBoxComponent {
   @ViewChild('autosize') autosizeTextarea!: ElementRef<HTMLTextAreaElement>;
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['comment']) {
+    if (changes['comment'] && this.comment !== undefined) {
       this.setUserReactionFromComment();
     }
   }
@@ -91,9 +91,9 @@ export class CommentBoxComponent {
   }
 
   private isGerritCommentInfo(
-    comment: GerritCommentInput | GerritCommentInfo
+    comment: GerritCommentInput | GerritCommentInfo | undefined
   ): comment is GerritCommentInfo {
-    return 'thumbState' in comment;
+    return !!comment && 'thumbState' in comment;
   }
 
   /** call on each input to let it grow as needed */
