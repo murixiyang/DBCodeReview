@@ -1,10 +1,13 @@
 package ic.ac.uk.db_pcr_backend.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;
+import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Group;
+import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -62,6 +65,7 @@ public class ProjectController {
         // Then sync personal projects
         projectSvc.syncPersonalProjects(user, accessToken);
 
+        // Filter only the personal projects
         List<ProjectEntity> projects = projectRepo.findByOwnerId(user.getId());
 
         List<ProjectDto> dtos = projects.stream()
@@ -112,6 +116,53 @@ public class ProjectController {
                 })
                 .flatMap(List::stream)
                 .collect(Collectors.toList());
+
+        projectRepo.flush();
+
+        // After fetching parent projects, set them for personal projects
+        projectSvc.setParentForPersonalProject(accessToken);
+
+        return ResponseEntity.ok(dtos);
+
+    }
+
+    /** Get project name list in a group */
+    @GetMapping("/group-projects-admin")
+    public ResponseEntity<List<ProjectDto>> getGroupProjectAsMaintainer(
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
+            throws Exception, GitLabApiException {
+
+        System.out.println("STAGE: ProjectController.getGroupProjectAsMaintainer");
+
+        String accessToken = client.getAccessToken().getTokenValue();
+        Long gitlabUserId = Long.valueOf(oauth2User.getAttribute("id").toString());
+
+        // Fetch groups with maintainer access
+        List<Group> maintainerGroups = gitlabSvc.getGroupsWithMaintainerAccess(gitlabUserId, accessToken);
+
+        List<ProjectDto> dtos = new ArrayList<>();
+
+        for (Group group : maintainerGroups) {
+            Long gitlabGroupId = group.getId();
+
+            // Ensure the GitlabGroup record exists
+            GitlabGroupEntity groupEntity = groupRepo.findByGitlabGroupId(gitlabGroupId)
+                    .orElseGet(() -> groupRepo.save(new GitlabGroupEntity(gitlabGroupId, group.getName())));
+
+            // Sync group projects from GitLab
+            projectSvc.syncGroupProjects(groupEntity, accessToken);
+
+            List<ProjectEntity> projects = projectRepo.findByGroupId(groupEntity.getId());
+
+            // Add all projects in the group to DTO list
+            List<ProjectDto> groupProjects = projects.stream()
+                    .filter(project -> project.getParentProject() == null)
+                    .map(ProjectDto::fromEntity)
+                    .collect(Collectors.toList());
+
+            dtos.addAll(groupProjects);
+        }
 
         projectRepo.flush();
 

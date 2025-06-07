@@ -2,8 +2,18 @@
   <mat-card-title class="title">Project Reviewer Assignments</mat-card-title>
 
   <mat-card-content>
+    <!-- Loading State -->
+    <div *ngIf="loadingProjects">
+      <p>Loading group projects...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loadingProjects && groupProjects.length === 0">
+      <p class="no-data">No group projects where you are a maintainer.</p>
+    </div>
+
     <!-- Project selector -->
-    <div class="controls">
+    <div class="controls" *ngIf="!loadingProjects && groupProjects.length > 0">
       <mat-form-field appearance="fill">
         <mat-label>Select project</mat-label>
         <mat-select

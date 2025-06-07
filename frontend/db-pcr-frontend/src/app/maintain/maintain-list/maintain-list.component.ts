@@ -37,6 +37,7 @@ export class MaintainListComponent implements OnInit {
 
   // Once assignment is made, cannot change
   locked = false;
+  loadingProjects = true;
 
   constructor(
     private projectSvc: ProjectService,
@@ -44,15 +45,21 @@ export class MaintainListComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.loadingProjects = true;
     this.projectSvc.getGroupProjects().subscribe({
       next: (projects) => {
+        console.log('Loaded projects:', projects);
         this.groupProjects = projects;
+        this.loadingProjects = false;
         if (projects.length) {
           this.selectedProjectId = projects[0].id;
           this.loadAssignments();
         }
       },
-      error: (err) => console.error('Failed to load projects', err),
+      error: (err) => {
+        console.error('Failed to load projects', err);
+        this.loadingProjects = false;
+      },
     });
   }
 

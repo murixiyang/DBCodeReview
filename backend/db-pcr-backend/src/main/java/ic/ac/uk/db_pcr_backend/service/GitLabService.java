@@ -10,6 +10,7 @@ import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Diff;
 import org.gitlab4j.api.models.Group;
+import org.gitlab4j.api.models.GroupFilter;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.User;
@@ -40,6 +41,15 @@ public class GitLabService {
     }
 
     /** Get the list of projects for a given user. */
+    public List<Project> getProject(String oauthToken) throws GitLabApiException {
+        System.out.println("Service: GitLabService.getProject");
+
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            return gitLabApi.getProjectApi().getProjects();
+        }
+    }
+
+    /** Get the list of personal projects for a given user. */
     public List<Project> getPersonalProject(String oauthToken) throws GitLabApiException {
         System.out.println("Service: GitLabService.getPersonalProject");
 
@@ -142,6 +152,36 @@ public class GitLabService {
                     .filter(m -> m.getAccessLevel().value == AccessLevel.DEVELOPER.value)
                     .collect(Collectors.toList());
         }
+    }
+
+    /** Get group access level */
+    public AccessLevel getGroupAccessLevel(Long groupId, Long userId, String oauthToken) throws GitLabApiException {
+        System.out.println("Service: GitLabService.getGroupAccessLevel");
+
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            Member member = gitLabApi.getGroupApi().getMember(groupId, userId);
+            return member.getAccessLevel();
+        }
+    }
+
+    /** Get groups with maintainer access */
+    public List<Group> getGroupsWithMaintainerAccess(Long userId, String oauthToken) throws GitLabApiException {
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
+            return gitLabApi.getGroupApi().getGroups()
+                    .stream()
+                    .filter(group -> {
+                        try {
+                            Member currentUser = gitLabApi.getGroupApi().getMember(group, userId);
+                            return currentUser.getAccessLevel().value >= AccessLevel.MAINTAINER.value;
+                        } catch (GitLabApiException e) {
+                            e.printStackTrace();
+                            return false;
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+        }
+
     }
 
 }

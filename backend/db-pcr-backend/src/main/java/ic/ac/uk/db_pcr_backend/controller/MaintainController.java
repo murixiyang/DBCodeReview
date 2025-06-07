@@ -19,7 +19,6 @@ import ic.ac.uk.db_pcr_backend.service.MaintainService;
 
 @RestController
 @RequestMapping("/api/maintain")
-@PreAuthorize("hasRole('MAINTAINER')")
 public class MaintainController {
 
     @Autowired

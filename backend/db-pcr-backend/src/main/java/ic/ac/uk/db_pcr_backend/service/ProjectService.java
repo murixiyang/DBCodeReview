@@ -28,6 +28,28 @@ public class ProjectService {
 
     /* ------- Project -------- */
 
+    /* Synchronize the all project list to database */
+    @Transactional
+    public void syncProjects(UserEntity user, String accessToken)
+            throws GitLabApiException {
+
+        System.out.println("Service: ProjectService.syncProjects");
+
+        // Call GitLab’s API for personal projects
+        List<Project> projects = gitLabSvc.getProject(accessToken);
+
+        // Check if project exists in the database
+        for (var project : projects) {
+            ProjectEntity p = projectRepo.findByGitlabProjectId(project.getId())
+                    .orElseGet(() -> new ProjectEntity(project.getId(), project.getName(),
+                            project.getNamespace().getFullPath()));
+
+            p.setOwner(user);
+
+            projectRepo.save(p);
+        }
+    }
+
     /* Synchronize the personal project list to database */
     @Transactional
     public void syncPersonalProjects(UserEntity user, String accessToken)
@@ -70,8 +92,9 @@ public class ProjectService {
                 if (project.getForkedFromProject() != null) {
                     Project projectParent = project.getForkedFromProject();
 
-                    ProjectEntity parent = projectRepo.findByGitlabProjectId(projectParent.getId())
-                            .orElseThrow(() -> new RuntimeException("Parent project not found"));
+                    ProjectEntity parent = projectRepo.findByGitlabProjectId(project.getId())
+                            .orElseGet(() -> new ProjectEntity(projectParent.getId(), projectParent.getName(),
+                                    projectParent.getNamespace().getFullPath()));
                     p.setParentProject(parent);
                     p.setGroup(parent.getGroup());
                 }

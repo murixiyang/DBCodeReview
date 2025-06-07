@@ -21,7 +21,7 @@ export class ProjectService {
 
   /** Get project by group */
   getGroupProjects(): Observable<ProjectDto[]> {
-    return this.http.get<ProjectDto[]>(`${this.baseUrl}/group-projects`, {
+    return this.http.get<ProjectDto[]>(`${this.baseUrl}/group-projects-admin`, {
       withCredentials: true,
     });
   }
