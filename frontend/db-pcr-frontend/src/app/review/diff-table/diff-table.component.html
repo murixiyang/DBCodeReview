@@ -206,7 +206,7 @@
             <!-- new‐comment box when that line is selected -->
             <tr
               #measureRow
-              *ngIf="selectedLineId === block.line!.newNumber"
+              *ngIf="selectedLineId != null && selectedLineId === block.line!.newNumber"
               class="comment-cell new-comment"
             >
               <td colspan="2">
