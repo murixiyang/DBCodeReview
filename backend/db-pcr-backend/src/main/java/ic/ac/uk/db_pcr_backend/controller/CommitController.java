@@ -74,7 +74,9 @@ public class CommitController {
 
         // Find redacted usernames for this project
         String username = oauth2User.getAttribute("username").toString();
-        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
+        List<String> redactedFields = redactionSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                project.getGitlabProjectId(), accessToken);
 
         // Convert to DTOs
         List<GitlabCommitDto> commitDtos = commits.stream()
@@ -104,13 +106,18 @@ public class CommitController {
         // Find project
         ProjectEntity project = projectRepo.findById(projectIdLong)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown project id " + projectId));
+        System.out.println("DBLOG: Found project: " + project.getName());
 
         // Find commits for the project
         List<GitlabCommitEntity> commits = commitRepo.findByProject(project);
+        System.out.println("DBLOG: Found " + commits.size() + " commits for project: " + project.getName());
 
         // Find redacted usernames for this project
         String username = oauth2User.getAttribute("username").toString();
-        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
+        System.out.println("DBLOG: Before redaction, username: " + username + ", gitlabUserId: " + gitlabUserId);
+        List<String> redactedFields = redactionSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                project.getGitlabProjectId(), accessToken);
 
         List<CommitWithStatusDto> result = commits.stream()
                 .map(commit -> {

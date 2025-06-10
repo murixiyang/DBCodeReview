@@ -42,7 +42,8 @@ type DiffBlock = {
 })
 export class DiffTableComponent implements OnChanges {
   // If it is author view of the diff table
-  @Input() isAuthor!: boolean;
+  @Input() isAuthor: boolean = false;
+  @Input() isInstructor: boolean = false;
   @Input() selectedAssignmentId!: string;
   @Input() gerritChangeId!: string;
   @Input() oldText!: string;

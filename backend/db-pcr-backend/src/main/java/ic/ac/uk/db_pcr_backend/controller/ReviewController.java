@@ -34,7 +34,6 @@ import ic.ac.uk.db_pcr_backend.dto.gerritdto.CommentInputDto;
 import ic.ac.uk.db_pcr_backend.entity.ChangeRequestEntity;
 import ic.ac.uk.db_pcr_backend.entity.GitlabCommitEntity;
 import ic.ac.uk.db_pcr_backend.entity.ProjectEntity;
-import ic.ac.uk.db_pcr_backend.entity.ProjectUserPseudonymEntity;
 import ic.ac.uk.db_pcr_backend.entity.ReviewAssignmentEntity;
 import ic.ac.uk.db_pcr_backend.entity.UserEntity;
 import ic.ac.uk.db_pcr_backend.model.ReactState;
@@ -47,6 +46,7 @@ import ic.ac.uk.db_pcr_backend.repository.ProjectRepo;
 import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 import ic.ac.uk.db_pcr_backend.service.CommentService;
 import ic.ac.uk.db_pcr_backend.service.GerritService;
+import ic.ac.uk.db_pcr_backend.service.GitLabService;
 import ic.ac.uk.db_pcr_backend.service.NotificationService;
 import ic.ac.uk.db_pcr_backend.service.PseudoNameService;
 import ic.ac.uk.db_pcr_backend.service.RedactionService;
@@ -59,6 +59,9 @@ public class ReviewController {
 
     @Autowired
     private GerritService gerritSvc;
+
+    @Autowired
+    private GitLabService gitlabSvc;
 
     @Autowired
     private PseudoNameService pseudoNameSvc;
@@ -140,13 +143,16 @@ public class ReviewController {
 
         // Find blockNames for redaction
         String username = oauth2User.getAttribute("username").toString();
-        List<String> blockNames = redactSvc.buildAllUsernames(username);
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
+        String accessToken = client.getAccessToken().getTokenValue();
+        List<String> redactedFields = redactSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                assignment.getGroupProject().getGitlabProjectId(), accessToken);
 
         // Find the change requests
         List<ChangeRequestDto> changeRequests = changeRequestRepo
                 .findByAssignment(assignment)
                 .stream()
-                .map(cr -> ChangeRequestDto.fromEntity(cr, blockNames))
+                .map(cr -> ChangeRequestDto.fromEntity(cr, redactedFields))
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(changeRequests);
@@ -160,6 +166,7 @@ public class ReviewController {
     @GetMapping("/get-author-assignment-pseudonym")
     public ResponseEntity<ReviewAssignmentPseudonymDto[]> getAuthorAssignmentForReviewer(
             @RequestParam("projectId") String projectId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
             @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
         System.out.println("STAGE: ReviewController.getAuthorAssignmentForReviewer");
@@ -177,10 +184,29 @@ public class ReviewController {
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
                 .findByAuthorAndGroupProject(author, groupProject);
 
+        // Check maintainer role
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
+        String accessToken = client.getAccessToken().getTokenValue();
+        boolean isMaintainer = gitlabSvc.hasMaintainerAccess(groupProject.getGitlabProjectId(), gitlabUserId,
+                accessToken);
+
         ReviewAssignmentPseudonymDto[] dtoArray = assignments.stream()
                 .map(asn -> {
-                    var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.AUTHOR);
-                    var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.REVIEWER);
+
+                    String authorMask;
+                    String reviewerMask;
+
+                    if (isMaintainer) {
+                        authorMask = asn.getAuthor().getUsername();
+                        reviewerMask = asn.getReviewer().getUsername();
+                    } else {
+                        // If not maintainer, use pseudonym
+                        authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.AUTHOR).getPseudonym()
+                                .getName();
+                        reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.REVIEWER)
+                                .getPseudonym().getName();
+                    }
+
                     return new ReviewAssignmentPseudonymDto(asn, authorMask, reviewerMask);
                 })
                 .toArray(ReviewAssignmentPseudonymDto[]::new);
@@ -195,6 +221,7 @@ public class ReviewController {
     @GetMapping("/get-review-assignment-pseudonym")
     public ResponseEntity<ReviewAssignmentPseudonymDto[]> getReviewAssignmentForReviewer(
             @RequestParam("groupProjectId") String groupProjectId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
             @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
 
         System.out.println("STAGE: ReviewController.getReviewAssignmentForReviewer");
@@ -210,12 +237,31 @@ public class ReviewController {
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo
                 .findByReviewerAndGroupProject(reviewer, groupProject);
 
+        // Check maintainer role
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
+        String accessToken = client.getAccessToken().getTokenValue();
+        boolean isMaintainer = gitlabSvc.hasMaintainerAccess(groupProject.getGitlabProjectId(), gitlabUserId,
+                accessToken);
+
         ReviewAssignmentPseudonymDto[] dtoArray = assignments.stream()
                 .map(asn -> {
-                    var authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.AUTHOR);
-                    var reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.REVIEWER);
+
+                    String authorMask;
+                    String reviewerMask;
+
+                    if (isMaintainer) {
+                        authorMask = asn.getAuthor().getUsername();
+                        reviewerMask = asn.getReviewer().getUsername();
+                    } else {
+                        // If not maintainer, use pseudonym
+                        authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.AUTHOR).getPseudonym()
+                                .getName();
+                        reviewerMask = pseudoNameSvc.getPseudonymInReviewAssignment(asn, RoleType.REVIEWER)
+                                .getPseudonym().getName();
+                    }
                     return new ReviewAssignmentPseudonymDto(asn, authorMask, reviewerMask);
                 })
+
                 .toArray(ReviewAssignmentPseudonymDto[]::new);
 
         return ResponseEntity.ok(dtoArray);
@@ -228,7 +274,8 @@ public class ReviewController {
     @GetMapping("/get-author-pseudonym-commit")
     public ResponseEntity<PseudonymGitlabCommitDto> getAuthorPseudonymCommitForChangeId(
             @RequestParam("gerritChangeId") String gerritChangeId,
-            @AuthenticationPrincipal OAuth2User oauth2User) throws Exception {
+            @AuthenticationPrincipal OAuth2User oauth2User,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client) throws Exception {
 
         System.out.println("STAGE: ReviewController.getAuthorPseudonymCommitForChangeId");
 
@@ -249,15 +296,21 @@ public class ReviewController {
         // Find the review assignment
         ReviewAssignmentEntity assignment = changeRequest.getAssignment();
 
-        ProjectUserPseudonymEntity authorMask = pseudoNameSvc.getPseudonymInReviewAssignment(assignment,
-                RoleType.AUTHOR);
-
         String username = oauth2User.getAttribute("username").toString();
-        List<String> redactedFields = redactSvc.buildAllUsernames(username);
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
+        String accessToken = client.getAccessToken().getTokenValue();
+        boolean isMaintainer = gitlabSvc.hasMaintainerAccess(
+                assignment.getGroupProject().getGitlabProjectId(), gitlabUserId,
+                accessToken);
+        List<String> redactedFields = redactSvc.buildUsernamesOrEmpty(username, isMaintainer);
+
+        String authorMask = isMaintainer
+                ? assignment.getAuthor().getUsername()
+                : pseudoNameSvc.getPseudonymInReviewAssignment(assignment, RoleType.AUTHOR).getPseudonym().getName();
 
         // Dto
         PseudonymGitlabCommitDto commitDto = new PseudonymGitlabCommitDto(
-                commit, authorMask.getPseudonym().getName(), redactedFields);
+                commit, authorMask, redactedFields);
 
         return ResponseEntity.ok(commitDto);
     }
@@ -291,20 +344,35 @@ public class ReviewController {
     /** Get changed files content */
     @GetMapping("/get-changed-files-content")
     public ResponseEntity<Map<String, String[]>> getChangedFilesContent(
-            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws Exception {
 
         System.out.println("STAGE: ReviewController.getChangedFilesContent");
 
         Map<String, String[]> changedFileMap = gerritSvc.getChangedFileContent(gerritChangeId);
 
+        // Find the review assignment
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
+        // Any one of them will have the same project id
+        if (changeRequests.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+        ChangeRequestEntity changeRequest = changeRequests.get(0);
+        Long gitlabProjectId = changeRequest.getAssignment().getGroupProject().getGitlabProjectId();
+
         // Get the redaction list
         String username = oauth2User.getAttribute("username").toString();
-        List<String> blockNames = redactSvc.buildAllUsernames(username);
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
+        String accessToken = client.getAccessToken().getTokenValue();
+        List<String> redactedFields = redactSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                gitlabProjectId, accessToken);
 
         changedFileMap.replaceAll((file, pair) -> new String[] {
-                Redactor.redact(pair[0], blockNames),
-                Redactor.redact(pair[1], blockNames)
+                Redactor.redact(pair[0], redactedFields),
+                Redactor.redact(pair[1], redactedFields)
         });
 
         return ResponseEntity.ok(changedFileMap);
@@ -315,6 +383,7 @@ public class ReviewController {
     public ResponseEntity<Map<String, String[]>> getChangedFilesContentCompareTo(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("compareToChangeId") String compareToChangeId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
             @AuthenticationPrincipal OAuth2User oauth2User)
             throws Exception {
 
@@ -323,13 +392,26 @@ public class ReviewController {
         Map<String, String[]> changedFileMap = gerritSvc.getChangedFileContentCompareTo(gerritChangeId,
                 compareToChangeId);
 
+        // Find the review assignment
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
+        // Any one of them will have the same project id
+        if (changeRequests.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+        ChangeRequestEntity changeRequest = changeRequests.get(0);
+        Long gitlabProjectId = changeRequest.getAssignment().getGroupProject().getGitlabProjectId();
+
         // Get the redaction list
         String username = oauth2User.getAttribute("username").toString();
-        List<String> blockNames = redactSvc.buildAllUsernames(username);
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
+        String accessToken = client.getAccessToken().getTokenValue();
+        List<String> redactedFields = redactSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                gitlabProjectId, accessToken);
 
         changedFileMap.replaceAll((file, pair) -> new String[] {
-                Redactor.redact(pair[0], blockNames),
-                Redactor.redact(pair[1], blockNames)
+                Redactor.redact(pair[0], redactedFields),
+                Redactor.redact(pair[1], redactedFields)
         });
 
         return ResponseEntity.ok(changedFileMap);
@@ -388,74 +470,88 @@ public class ReviewController {
 
     @GetMapping("/get-gerrit-change-comments")
     public ResponseEntity<List<CommentInfoDto>> getGerritChangeComments(
-            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeComments");
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
-        return ResponseEntity.ok(gerritSvc.getGerritChangeComments(gerritChangeId, username));
+        return ResponseEntity
+                .ok(gerritSvc.getGerritChangeComments(gerritChangeId, username, gitlabUserId, accessToken));
     }
 
     @GetMapping("/get-gerrit-change-comments-with-pseudonym")
     public ResponseEntity<List<NameCommentInfoDto>> getGerritChangeCommentsWithPseudonym(
-            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeCommentsWithPseudonyms");
         ;
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
-        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username);
+        // Find the review assignment
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
+        // Any one of them will have the same project id
+        if (changeRequests.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+        ChangeRequestEntity changeRequest = changeRequests.get(0);
+        Long gitlabProjectId = changeRequest.getAssignment().getGroupProject().getGitlabProjectId();
+        boolean isMaintainer = gitlabSvc.hasMaintainerAccess(gitlabProjectId, gitlabUserId,
+                accessToken);
+
+        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username, gitlabUserId,
+                accessToken);
         List<CommentInfoDto> commentsWithThumb = commentSvc.addThumbStateToDto(gerritChangeId, comments);
-        List<NameCommentInfoDto> pseudonymComments = commentSvc.getCommentsWithPseudonym(gerritChangeId,
-                commentsWithThumb);
+        List<NameCommentInfoDto> pseudonymComments = isMaintainer
+                ? commentSvc.getCommentsWithUsername(gerritChangeId, commentsWithThumb)
+                : commentSvc.getCommentsWithPseudonym(gerritChangeId, commentsWithThumb);
 
         return ResponseEntity.ok(pseudonymComments);
     }
 
-    @GetMapping("/get-gerrit-change-comments-with-username")
-    public ResponseEntity<List<NameCommentInfoDto>> getGerritChangeCommentsWithUsername(
-            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
-            throws RestApiException, GitLabApiException {
-
-        System.out.println("STAGE: ReviewController.getGerritChangeCommentsWithUsername");
-
-        ;
-        String username = oauth2User.getAttribute("username").toString();
-
-        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username);
-        List<CommentInfoDto> commentsWithThumb = commentSvc.addThumbStateToDto(gerritChangeId, comments);
-        List<NameCommentInfoDto> usernameComments = commentSvc.getCommentsWithUsername(gerritChangeId,
-                commentsWithThumb);
-
-        return ResponseEntity.ok(usernameComments);
-    }
-
     @GetMapping("/get-gerrit-change-draft-comments")
     public ResponseEntity<List<CommentInfoDto>> getGerritChangeDraftComments(
-            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeDraftComments");
 
         ;
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
-        return ResponseEntity.ok(gerritSvc.getGerritChangeDraftComments(gerritChangeId, username));
+        return ResponseEntity
+                .ok(gerritSvc.getGerritChangeDraftComments(gerritChangeId, username, gitlabUserId, accessToken));
     }
 
     /** Fetch draft comment for specific user only (should not see other's draft) */
     @GetMapping("/get-user-gerrit-change-draft-comments")
     public ResponseEntity<List<CommentInfoDto>> getGerritChangeDraftCommentsForUser(
             @RequestParam("gerritChangeId") String gerritChangeId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
             @AuthenticationPrincipal OAuth2User oauth2User) throws RestApiException {
 
         System.out.println("STAGE: ReviewController.getGerritChangeDraftCommentsForUser");
 
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
-        List<CommentInfoDto> drafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username);
+        List<CommentInfoDto> drafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username, gitlabUserId,
+                accessToken);
 
         List<CommentInfoDto> filtered = drafts.stream()
                 .filter(dto -> {
@@ -474,14 +570,19 @@ public class ReviewController {
     public ResponseEntity<CommentInfoDto> postReviewerGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestBody CommentInputDto commentInput,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.postGerritDraftComment");
 
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
-        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username);
+        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username, gitlabUserId,
+                accessToken);
 
         // Save commentEntity to database
         commentSvc.recordReviewerDraftComment(gerritChangeId, assignmentId, savedDraft);
@@ -498,14 +599,19 @@ public class ReviewController {
     public ResponseEntity<CommentInfoDto> postAuthorGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestBody CommentInputDto commentInput,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.postGerritDraftComment");
         ;
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
-        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username);
+        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username, gitlabUserId,
+                accessToken);
 
         // Save commentEntity to database
         commentSvc.recordAuthorDraftComment(gerritChangeId, assignmentId, savedDraft);
@@ -520,22 +626,28 @@ public class ReviewController {
     @PutMapping("/update-gerrit-draft-comment")
     public ResponseEntity<CommentInfoDto> updateGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
-            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestBody CommentInputDto commentInput,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException {
 
         System.out.println("STAGE: ReviewController.updateGerritDraftComment");
 
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
         return ResponseEntity.ok(gerritSvc.updateGerritDraft(
-                gerritChangeId, commentInput, username));
+                gerritChangeId, commentInput, username, gitlabUserId, accessToken));
     }
 
     @DeleteMapping("/delete-gerrit-draft-comment")
     public ResponseEntity<Void> deleteGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
             @RequestParam("assignmentId") String assignmentId,
-            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestBody CommentInputDto commentInput,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: ReviewController.deleteGerritDraftComment");
@@ -544,12 +656,13 @@ public class ReviewController {
 
         // Delete the comment from the database
         commentSvc.deleteDraftComment(gerritChangeId, commentInput.getId());
-
-        ;
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
         // If no more draft comments exist for this change, may change to NOT_REVIEWED
-        List<CommentInfoDto> remainingDrafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username);
+        List<CommentInfoDto> remainingDrafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username,
+                gitlabUserId, accessToken);
         if (remainingDrafts.isEmpty()) {
             // Change the review status to NOT_REVIEWED
             Long assignmentIdLong = Long.valueOf(assignmentId);

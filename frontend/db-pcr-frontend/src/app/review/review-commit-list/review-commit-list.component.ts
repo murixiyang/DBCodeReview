@@ -1,4 +1,4 @@
-import { Component, Input, SimpleChanges } from '@angular/core';
+import { Component, Input, Optional, SimpleChanges } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ReviewService } from '../../http/review.service';
 import { MatTableModule } from '@angular/material/table';
@@ -8,6 +8,7 @@ import { DatePipe, NgIf } from '@angular/common';
 import { ChangeRequestDto } from '../../interface/database/change-request-dto';
 import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
 import { ShortIdPipe } from '../../pipe/short-id.pipe';
+import { MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-review-commit-list',
@@ -24,6 +25,7 @@ import { ShortIdPipe } from '../../pipe/short-id.pipe';
 })
 export class ReviewCommitListComponent {
   @Input() selectedAssignment!: ReviewAssignmentPseudonymDto;
+  @Input() isInstructorView = false;
 
   // Metadata
   projectName!: string;
@@ -33,7 +35,11 @@ export class ReviewCommitListComponent {
   displayedColumns = ['status', 'hash', 'message', 'date', 'action'];
   commitList: ChangeRequestDto[] = [];
 
-  constructor(private reviewSvc: ReviewService, private router: Router) {}
+  constructor(
+    private reviewSvc: ReviewService,
+    private router: Router,
+    @Optional() private dialogRef?: MatDialogRef<ReviewCommitListComponent>
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['selectedAssignment'] && this.selectedAssignment) {
@@ -56,10 +62,14 @@ export class ReviewCommitListComponent {
 
   /** Navigate to your diff/review screen */
   startReview(item: ChangeRequestDto) {
-    this.router.navigate([
-      '/review/detail',
-      item.gerritChangeId,
-      this.selectedAssignment.id,
-    ]);
+    const path = this.isInstructorView
+      ? ['/maintain/detail', item.gerritChangeId, this.selectedAssignment.id]
+      : ['/review/detail', item.gerritChangeId, this.selectedAssignment.id];
+
+    if (this.isInstructorView && this.dialogRef) {
+      this.dialogRef.close(); // Close the dialog before navigation
+    }
+
+    this.router.navigate(path);
   }
 }

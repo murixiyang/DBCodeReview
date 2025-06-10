@@ -12,6 +12,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
+import { MaintainCommitListDialogComponent } from './maintain-commit-list-dialog/maintain-commit-list-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { ReviewAssignmentPseudonymDto } from '../../interface/database/review-assignment-dto';
 
 @Component({
   selector: 'app-maintain-list',
@@ -41,7 +44,8 @@ export class MaintainListComponent implements OnInit {
 
   constructor(
     private projectSvc: ProjectService,
-    private maintainSvc: MaintainService
+    private maintainSvc: MaintainService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -76,7 +80,10 @@ export class MaintainListComponent implements OnInit {
     }
     this.maintainSvc.getAssignedList(this.selectedProjectId).subscribe({
       next: (list) => {
-        this.reviewAssignments = list;
+        this.reviewAssignments = list.sort((a, b) =>
+          a.authorName.localeCompare(b.authorName)
+        );
+
         // lock if there are already assignments
         this.locked = this.reviewAssignments.length > 0;
       },
@@ -96,5 +103,25 @@ export class MaintainListComponent implements OnInit {
         },
         error: (err) => console.error('Assignment failed', err),
       });
+  }
+
+  viewCommitList(assignment: ReviewAssignmentUsernameDto) {
+    // Map ReviewAssignmentUsernameDto to ReviewAssignmentPseudonymDto
+    const pseudoAssignment: ReviewAssignmentPseudonymDto = {
+      id: assignment.id,
+      authorPseudonym: assignment.authorName,
+      reviewerPseudonym: assignment.reviewerName,
+      groupProjectId: assignment.projectId,
+      groupProjectName: '',
+      assignedAt: assignment.assignedAt,
+      projectStatus: assignment.projectStatus,
+      projectStatusAt: assignment.projectStatusAt,
+    };
+
+    this.dialog.open(MaintainCommitListDialogComponent, {
+      width: '90vw',
+      maxWidth: '100vw',
+      data: { selectedAssignment: pseudoAssignment },
+    });
   }
 }

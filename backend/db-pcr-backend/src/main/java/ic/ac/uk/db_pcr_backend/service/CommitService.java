@@ -51,15 +51,12 @@ public class CommitService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Project not found, Group ID: " + projectId));
 
-        String projectIdStr = String.valueOf(project.getGitlabProjectId());
-
         // Find the user related to the project
         UserEntity author = userSvc.getOrExceptionUserById(project.getOwner().getId());
 
-        List<Commit> gitlabCommits = gitLabSvc.getProjectCommits(projectIdStr, oauthToken);
+        List<Commit> gitlabCommits = gitLabSvc.getProjectCommits(project.getGitlabProjectId(), oauthToken);
 
         for (Commit c : gitlabCommits) {
-
             // upsert commit
             GitlabCommitEntity entity = commitRepo.findByGitlabCommitId(c.getId())
                     .orElseGet(() -> new GitlabCommitEntity(
@@ -71,6 +68,8 @@ public class CommitService {
 
             commitRepo.save(entity);
         }
+
+        System.out.println("DBLOG: Synced commits for project: " + project.getName());
     }
 
     /*

@@ -419,14 +419,25 @@ public class GerritService {
     }
 
     public List<CommentInfoDto> getGerritChangeComments(String gerritChangeId,
-            String username) throws RestApiException {
+            String username, Long gitlabUserId, String accessToken) throws RestApiException {
         System.out.println("Service: GerritService.getGerritChangeComments");
 
         // 1) fetch the map: filePath → [ CommentInfo, … ]
         Map<String, List<CommentInfo>> commentMap = gerritApi.changes().id(gerritChangeId).comments();
 
+        // Find the review assignment
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
+        // Any one of them will have the same project id
+        if (changeRequests.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+        ChangeRequestEntity changeRequest = changeRequests.get(0);
+        Long gitlabProjectId = changeRequest.getAssignment().getGroupProject().getGitlabProjectId();
+
         // Get redacted fields
-        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
+        List<String> redactedFields = redactionSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                gitlabProjectId, accessToken);
 
         // 2) flatten but carry along the key (filePath)
         List<CommentInfoDto> comments = commentMap.entrySet().stream()
@@ -441,14 +452,25 @@ public class GerritService {
     }
 
     public List<CommentInfoDto> getGerritChangeDraftComments(String gerritChangeId,
-            String username) throws RestApiException {
+            String username, Long gitlabUserId, String accessToken) throws RestApiException {
         System.out.println("Service: GerritService.getGerritChangeDraftComments");
 
         // 1) fetch the map: filePath → [ CommentInfo, … ]
         Map<String, List<CommentInfo>> draftMap = gerritApi.changes().id(gerritChangeId).drafts();
 
+        // Find the review assignment
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
+        // Any one of them will have the same project id
+        if (changeRequests.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+        ChangeRequestEntity changeRequest = changeRequests.get(0);
+        Long gitlabProjectId = changeRequest.getAssignment().getGroupProject().getGitlabProjectId();
+
         // Get redacted fields
-        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
+        List<String> redactedFields = redactionSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                gitlabProjectId, accessToken);
 
         // 2) flatten but carry along the key (filePath)
         List<CommentInfoDto> drafts = draftMap.entrySet().stream()
@@ -463,13 +485,24 @@ public class GerritService {
     }
 
     public CommentInfoDto postGerritDraft(String gerritChangeId, CommentInputDto commentInput,
-            String username) throws RestApiException {
+            String username, Long gitlabUserId, String accessToken) throws RestApiException {
         System.out.println("Service: GerritService.postGerritComment");
 
         DraftInput draft = createDraftInput(commentInput);
 
+        // Find the review assignment
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
+        // Any one of them will have the same project id
+        if (changeRequests.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+        ChangeRequestEntity changeRequest = changeRequests.get(0);
+        Long gitlabProjectId = changeRequest.getAssignment().getGroupProject().getGitlabProjectId();
+
         // Get redacted fields
-        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
+        List<String> redactedFields = redactionSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                gitlabProjectId, accessToken);
 
         CommentInfo created = gerritApi
                 .changes()
@@ -498,12 +531,23 @@ public class GerritService {
     }
 
     public CommentInfoDto updateGerritDraft(String gerritChangeId, CommentInputDto commentInput,
-            String username)
+            String username, Long gitlabUserId, String accessToken)
             throws RestApiException {
         System.out.println("Service: GerritService.updateGerritDraft");
 
+        // Find the review assignment
+        List<ChangeRequestEntity> changeRequests = changeRequestRepo
+                .findByGerritChangeId(gerritChangeId);
+        // Any one of them will have the same project id
+        if (changeRequests.isEmpty()) {
+            throw new IllegalArgumentException("Change request not found: " + gerritChangeId);
+        }
+        ChangeRequestEntity changeRequest = changeRequests.get(0);
+        Long gitlabProjectId = changeRequest.getAssignment().getGroupProject().getGitlabProjectId();
+
         // Get redacted fields
-        List<String> redactedFields = redactionSvc.buildAllUsernames(username);
+        List<String> redactedFields = redactionSvc.buildUsernamesOrEmpty(username, gitlabUserId,
+                gitlabProjectId, accessToken);
 
         CommentInfo updated = gerritApi.changes()
                 .id(gerritChangeId)

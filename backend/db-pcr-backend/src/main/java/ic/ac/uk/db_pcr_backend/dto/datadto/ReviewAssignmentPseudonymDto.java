@@ -22,6 +22,20 @@ public class ReviewAssignmentPseudonymDto {
 
     public ReviewAssignmentPseudonymDto(
             ReviewAssignmentEntity ra,
+            String authorMask,
+            String reviewerMask) {
+        this.id = ra.getId();
+        this.authorPseudonym = authorMask;
+        this.reviewerPseudonym = reviewerMask;
+        this.groupProjectId = ra.getGroupProject().getId();
+        this.groupProjectName = ra.getGroupProject().getName();
+        this.assignedAt = ra.getAssignedAt();
+        this.projectStatus = ra.getProjectStatus();
+        this.projectStatusAt = ra.getProjectStatusAt();
+    }
+
+    public ReviewAssignmentPseudonymDto(
+            ReviewAssignmentEntity ra,
             ProjectUserPseudonymEntity authorMask,
             ProjectUserPseudonymEntity reviewerMask) {
         this.id = ra.getId();

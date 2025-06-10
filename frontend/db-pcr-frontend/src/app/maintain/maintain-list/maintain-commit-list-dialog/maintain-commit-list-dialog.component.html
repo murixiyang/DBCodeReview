@@ -1,0 +1,9 @@
+<h2 mat-dialog-title>
+  Submission List of {{ data.selectedAssignment.authorPseudonym }}
+</h2>
+<mat-dialog-content>
+  <app-review-commit-list
+    [isInstructorView]="true"
+    [selectedAssignment]="data.selectedAssignment"
+  ></app-review-commit-list>
+</mat-dialog-content>

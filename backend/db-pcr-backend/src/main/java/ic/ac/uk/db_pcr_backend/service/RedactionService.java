@@ -21,6 +21,9 @@ import ic.ac.uk.db_pcr_backend.repository.UserRepo;
 public class RedactionService {
 
     @Autowired
+    private GitLabService gitlabSvc;
+
+    @Autowired
     private ReviewAssignmentRepo reviewAssignmentRepo;
 
     @Autowired
@@ -47,6 +50,31 @@ public class RedactionService {
                 .collect(Collectors.toList());
 
         return usernames;
+    }
+
+    @Cacheable("redaction-usernames-or-empty")
+    public List<String> buildUsernamesOrEmpty(String currentUsername, Long gitlabUserId, Long gitlabProjectId,
+            String oauthToken) {
+        System.out.println("Service: RedactionService.usernamesOrEmpty");
+
+        boolean isMaintainer = gitlabSvc.hasMaintainerAccess(gitlabProjectId, gitlabUserId, oauthToken);
+        if (isMaintainer) {
+            return List.of(); // No redaction needed
+        }
+
+        return buildAllUsernames(currentUsername);
+    }
+
+    // Overload version with bool if is maintainer
+    @Cacheable("redaction-usernames-or-empty")
+    public List<String> buildUsernamesOrEmpty(String currentUsername, boolean isMaintainer) {
+        System.out.println("Service: RedactionService.usernamesOrEmpty");
+
+        if (isMaintainer) {
+            return List.of(); // No redaction needed
+        }
+
+        return buildAllUsernames(currentUsername);
     }
 
     /**

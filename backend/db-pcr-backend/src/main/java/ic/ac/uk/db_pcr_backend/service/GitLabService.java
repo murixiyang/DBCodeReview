@@ -77,11 +77,11 @@ public class GitLabService {
     }
 
     /** Get the list of commits for a given project. */
-    public List<Commit> getProjectCommits(String projectId, String oauthToken) throws GitLabApiException {
+    public List<Commit> getProjectCommits(Long gitlabProjectId, String oauthToken) throws GitLabApiException {
         System.out.println("Service: GitLabService.getProjectCommits");
 
         try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, oauthToken)) {
-            List<Commit> commits = gitLabApi.getCommitsApi().getCommits(projectId);
+            List<Commit> commits = gitLabApi.getCommitsApi().getCommits(gitlabProjectId);
             return commits;
         }
     }
@@ -182,6 +182,23 @@ public class GitLabService {
 
         }
 
+    }
+
+    /** Check if the current user has maintainer access to project group */
+    public boolean hasMaintainerAccess(Long gitlabProjectId, Long userId, String accessToken) {
+        System.out.println("Service: GitLabService.hasMaintainerAccess");
+        try (GitLabApi gitLabApi = new GitLabApi(apiUrl, TokenType.OAUTH2_ACCESS, accessToken)) {
+            // Check group level access
+            Project project = gitLabApi.getProjectApi().getProject(gitlabProjectId);
+            if (project.getNamespace() != null && "group".equals(project.getNamespace().getKind())) {
+                Long groupId = project.getNamespace().getId();
+                Member groupMember = gitLabApi.getGroupApi().getMember(groupId, userId);
+                return groupMember != null && groupMember.getAccessLevel().value >= AccessLevel.MAINTAINER.value;
+            }
+        } catch (GitLabApiException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 }

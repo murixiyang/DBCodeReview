@@ -66,8 +66,35 @@
           <td mat-cell *matCellDef="let a">{{ a.reviewerName }}</td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="['author', 'reviewer']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['author', 'reviewer']"></tr>
+        <!-- Review Status Column -->
+        <!-- <ng-container matColumnDef="reviewStatus">
+          <th mat-header-cell *matHeaderCellDef>Status</th>
+          <td mat-cell *matCellDef="let a">
+            {{
+              latestStatusMap[a.authorName + "-" + a.reviewerName] ||
+                "No Review"
+            }}
+          </td>
+        </ng-container> -->
+
+        <!-- Action Column -->
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef>Action</th>
+          <td mat-cell *matCellDef="let a">
+            <button mat-button color="primary" (click)="viewCommitList(a)">
+              View Commit List
+            </button>
+          </td>
+        </ng-container>
+
+        <tr
+          mat-header-row
+          *matHeaderRowDef="['author', 'reviewer', 'action']"
+        ></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: ['author', 'reviewer', 'action']"
+        ></tr>
       </table>
     </div>
     <ng-template #noData>

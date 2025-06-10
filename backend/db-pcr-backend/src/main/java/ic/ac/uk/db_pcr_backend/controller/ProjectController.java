@@ -5,9 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.gitlab4j.api.GitLabApiException;
-import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Group;
-import org.gitlab4j.api.models.Project;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

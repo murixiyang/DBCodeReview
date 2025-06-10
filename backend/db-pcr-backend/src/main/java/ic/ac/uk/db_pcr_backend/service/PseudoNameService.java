@@ -41,6 +41,9 @@ public class PseudoNameService {
     @Autowired
     private ProjectUserPseudonymRepo nameAssignmentRepo;
 
+    @Autowired
+    private GitLabService gitlabSvc;
+
     private final Random rand = new SecureRandom();
 
     /**
@@ -107,6 +110,7 @@ public class PseudoNameService {
     }
 
     public ProjectUserPseudonymEntity getPseudonymInReviewAssignment(ReviewAssignmentEntity assignment, RoleType role) {
+        System.out.println("Service: PseudoNameService.getPseudonymInReviewAssignment");
         return nameAssignmentRepo
                 .findByGroupProjectAndUserAndRole(assignment.getGroupProject(), assignment.getAuthor(), role)
                 .orElseThrow(() -> new IllegalArgumentException("Unknown pseudonym for " + role + ": " + assignment));

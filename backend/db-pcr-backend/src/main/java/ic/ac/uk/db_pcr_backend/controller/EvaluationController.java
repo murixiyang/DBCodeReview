@@ -13,6 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -212,14 +214,19 @@ public class EvaluationController {
     // * Get unnamed gerrit change comment */
     @GetMapping("/get-gerrit-change-comments")
     public ResponseEntity<List<CommentInfoDto>> getGerritChangeComments(
-            @RequestParam("gerritChangeId") String gerritChangeId, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestParam("gerritChangeId") String gerritChangeId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: EvaluationController.getGerritChangeComments");
         ;
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
-        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username);
+        List<CommentInfoDto> comments = gerritSvc.getGerritChangeComments(gerritChangeId, username, gitlabUserId,
+                accessToken);
 
         return ResponseEntity.ok(comments);
     }
@@ -228,13 +235,17 @@ public class EvaluationController {
     @GetMapping("/get-user-gerrit-change-draft-comments")
     public ResponseEntity<List<CommentInfoDto>> getGerritChangeDraftCommentsForUser(
             @RequestParam("gerritChangeId") String gerritChangeId,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
             @AuthenticationPrincipal OAuth2User oauth2User) throws RestApiException {
 
         System.out.println("STAGE: EvaluationController.getGerritChangeDraftCommentsForUser");
 
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
-        List<CommentInfoDto> drafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username);
+        List<CommentInfoDto> drafts = gerritSvc.getGerritChangeDraftComments(gerritChangeId, username, gitlabUserId,
+                accessToken);
 
         List<CommentInfoDto> filtered = drafts.stream()
                 .filter(dto -> {
@@ -252,15 +263,20 @@ public class EvaluationController {
     @PostMapping("/post-reviewer-gerrit-draft-comment")
     public ResponseEntity<CommentInfoDto> postReviewerGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
-            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestBody CommentInputDto commentInput,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException, GitLabApiException {
 
         System.out.println("STAGE: EvaluationController.postGerritDraftComment");
 
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
         UserEntity commentUser = userSvc.getOrExceptionUserByName(username);
 
-        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username);
+        CommentInfoDto savedDraft = gerritSvc.postGerritDraft(gerritChangeId, commentInput, username, gitlabUserId,
+                accessToken);
 
         EvalCommentEntity evalCommentEntity = new EvalCommentEntity(gerritChangeId, savedDraft.getId(), commentUser);
 
@@ -273,15 +289,19 @@ public class EvaluationController {
     @PutMapping("/update-gerrit-draft-comment")
     public ResponseEntity<CommentInfoDto> updateGerritDraftComment(
             @RequestParam("gerritChangeId") String gerritChangeId,
-            @RequestBody CommentInputDto commentInput, @AuthenticationPrincipal OAuth2User oauth2User)
+            @RequestBody CommentInputDto commentInput,
+            @RegisteredOAuth2AuthorizedClient("gitlab") OAuth2AuthorizedClient client,
+            @AuthenticationPrincipal OAuth2User oauth2User)
             throws RestApiException {
 
         System.out.println("STAGE: EvaluationController.updateGerritDraftComment");
 
+        String accessToken = client.getAccessToken().getTokenValue();
         String username = oauth2User.getAttribute("username").toString();
+        Long gitlabUserId = ((Integer) oauth2User.getAttribute("id")).longValue();
 
         return ResponseEntity.ok(gerritSvc.updateGerritDraft(
-                gerritChangeId, commentInput, username));
+                gerritChangeId, commentInput, username, gitlabUserId, accessToken));
     }
 
     @DeleteMapping("/delete-gerrit-draft-comment")

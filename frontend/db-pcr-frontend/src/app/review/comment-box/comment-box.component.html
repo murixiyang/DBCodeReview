@@ -14,13 +14,14 @@
         }}</span>
 
         <!-- If others comment, author can give feedback -->
-        <div *ngIf="isAuthor && !ownComment">
+        <div *ngIf="(isAuthor && !ownComment) || isInstructor">
           <button
             mat-icon-button
             class="reaction-btn"
             [class.up]="userReaction === 'UP'"
             (click)="onReactUp(); $event.stopPropagation()"
             aria-label="Thumbs up"
+            [disabled]="isInstructor"
           >
             <mat-icon>thumb_up</mat-icon>
           </button>
@@ -31,6 +32,7 @@
             [class.down]="userReaction === 'DOWN'"
             (click)="onReactDown(); $event.stopPropagation()"
             aria-label="Thumbs down"
+            [disabled]="isInstructor"
           >
             <mat-icon>thumb_down</mat-icon>
           </button>
@@ -39,7 +41,7 @@
 
       <div class="comment-display" [innerText]="comment.message"></div>
 
-      <div class="buttons">
+      <div *ngIf="!isInstructor" class="buttons">
         <button (click)="onReply()">Reply</button>
       </div>
     </div>

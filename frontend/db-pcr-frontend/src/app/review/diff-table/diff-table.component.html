@@ -107,7 +107,7 @@
                 <div class="num-col-wrapper">
                   {{ block.line!.newNumber || "-" }}
 
-                  <div *ngIf="!isAuthor">
+                  <div *ngIf="!isAuthor && !isInstructor">
                     <!-- the hover-only plus-button -->
                     <button
                       class="add-comment-btn"
@@ -156,6 +156,7 @@
                       [commenterName]="getDisplayName(c)"
                       [comment]="c.commentInfo"
                       [isAuthor]="isAuthor"
+                      [isInstructor]="isInstructor"
                       [ownComment]="isAuthorOwnComment(c)"
                       (reply)="onReply(c.commentInfo, 'REVISION')"
                       (react)="onReact($event)"
@@ -163,14 +164,16 @@
                   </div>
 
                   <!-- 2) the inline reply‐box, only for that comment -->
-                  <div class="reply-container">
-                    <app-comment-box
-                      *ngIf="replyingTo?.id === c.commentInfo.id"
-                      variant="new"
-                      [comment]="replyDraft!"
-                      (saved)="onSaveReply($event)"
-                      (canceled)="onCancelReply()"
-                    ></app-comment-box>
+                  <div *ngIf="!isInstructor">
+                    <div class="reply-container">
+                      <app-comment-box
+                        *ngIf="replyingTo?.id === c.commentInfo.id"
+                        variant="new"
+                        [comment]="replyDraft!"
+                        (saved)="onSaveReply($event)"
+                        (canceled)="onCancelReply()"
+                      ></app-comment-box>
+                    </div>
                   </div>
                 </ng-container>
 
@@ -206,7 +209,10 @@
             <!-- new‐comment box when that line is selected -->
             <tr
               #measureRow
-              *ngIf="selectedLineId != null && selectedLineId === block.line!.newNumber"
+              *ngIf="
+                selectedLineId != null &&
+                selectedLineId === block.line!.newNumber
+              "
               class="comment-cell new-comment"
             >
               <td colspan="2">
@@ -249,7 +255,7 @@
                     <div class="num-col-wrapper">
                       {{ line.newNumber || "-" }}
 
-                      <div *ngIf="!isAuthor">
+                      <div *ngIf="!isAuthor && !isInstructor">
                         <button
                           class="add-comment-btn"
                           aria-label="Add comment"

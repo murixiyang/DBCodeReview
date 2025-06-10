@@ -27,6 +27,9 @@ import ic.ac.uk.db_pcr_backend.repository.ReviewAssignmentRepo;
 public class CommentService {
 
     @Autowired
+    private GitLabService gitlabSvc;
+
+    @Autowired
     private ReviewAssignmentRepo reviewAssignmentRepo;
 
     @Autowired

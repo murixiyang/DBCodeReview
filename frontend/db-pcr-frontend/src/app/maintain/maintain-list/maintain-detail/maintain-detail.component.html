@@ -1,0 +1,50 @@
+<!-- review-detail.component.html -->
+<div class="page-container">
+  <div class="diff-header">
+    <div class="header-left">
+      <button class="btn-primary" (click)="navigateToMaintainerPage()">
+        Back to Maintainer Page
+      </button>
+    </div>
+
+    <div *ngIf="pseudoCommitDto?.commit" class="header-center">
+      <div class="author-time">
+        <span class="author">
+          Submitted by {{ pseudoCommitDto.authorPseudonym }}
+        </span>
+        <span class="time">
+          {{
+            pseudoCommitDto.commit.committedAt
+              | date : "yyyy-MM-dd HH:mm" : "UTC"
+          }}
+        </span>
+      </div>
+      <div class="commit-msg">
+        Commit Message: {{ pseudoCommitDto.commit.message }}
+      </div>
+    </div>
+  </div>
+
+  <app-version-selector
+    *ngIf="assignmentId && gerritChangeId"
+    [assignmentId]="assignmentId"
+    [gerritChangeId]="gerritChangeId"
+    (versionSelected)="onVersionSelected($event)"
+  >
+  </app-version-selector>
+
+  <div *ngIf="fileKeys.length > 0">
+    <div *ngFor="let f of fileKeys" class="diff-container">
+      <app-diff-table
+        #diffTable
+        [isAuthor]="false"
+        [isInstructor]="true"
+        [selectedAssignmentId]="assignmentId"
+        [gerritChangeId]="gerritChangeId"
+        [oldText]="fileContents.get(f)?.[0]!"
+        [newText]="fileContents.get(f)?.[1]!"
+        [file]="f"
+      ></app-diff-table>
+    </div>
+  </div>
+</div>
