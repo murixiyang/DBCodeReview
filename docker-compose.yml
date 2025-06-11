@@ -3,14 +3,14 @@ services:
   gitlab:
     image: gitlab/gitlab-ce:17.11.1-ce.0
     container_name: gitlab-ce
-    hostname: gitlab.vm
+    hostname: gitlab.local
     ports:
       - "8080:80"
       - "8443:443"
       - "2224:22"
     environment:
       GITLAB_OMNIBUS_CONFIG: |
-        external_url 'http://20.77.48.174'
+        external_url 'http://localhost'
         gitlab_rails['gitlab_shell_ssh_port'] = 2224
     volumes:
       - gitlab-config:/etc/gitlab

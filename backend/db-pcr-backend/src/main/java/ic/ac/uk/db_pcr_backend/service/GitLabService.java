@@ -10,7 +10,6 @@ import org.gitlab4j.api.models.AccessLevel;
 import org.gitlab4j.api.models.Commit;
 import org.gitlab4j.api.models.Diff;
 import org.gitlab4j.api.models.Group;
-import org.gitlab4j.api.models.GroupFilter;
 import org.gitlab4j.api.models.Member;
 import org.gitlab4j.api.models.Project;
 import org.gitlab4j.api.models.User;

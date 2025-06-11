@@ -6,7 +6,7 @@ RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:17-jdk
 WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=builder /app/target/*.jar app.jar
 ENV SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/mydb
 ENV SPRING_DATASOURCE_USERNAME=user
 ENV SPRING_DATASOURCE_PASSWORD=password
