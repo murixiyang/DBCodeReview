@@ -2,6 +2,7 @@ package ic.ac.uk.db_pcr_backend.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
@@ -11,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -617,39 +619,55 @@ public class GerritService {
 
         Path tempDir = Files.createTempDirectory("review-");
 
-        // Clone Gerrit
-        Git git = cloneGerritRepo(tempDir, pathWithNamespace, gerritCreds);
-        fetchGerritChanges(git, gerritCreds);
+        try {
 
-        // Clone GitLab
-        fetchGitLabCommits(git, cloneUrl, gitlabCreds);
+            // Clone Gerrit
+            Git git = cloneGerritRepo(tempDir, pathWithNamespace, gerritCreds);
+            fetchGerritChanges(git, gerritCreds);
 
-        // Parse the base & target commits
-        RevCommit baseCommit = (baseSha != null) ? parseCommit(git, baseSha) : null;
-        RevCommit targetCommit = parseCommit(git, targetSha);
+            // Clone GitLab
+            fetchGitLabCommits(git, cloneUrl, gitlabCreds);
 
-        // Checkout to review branch
-        String reviewBranch = "review/" + targetSha;
-        checkoutReviewBranch(git, reviewBranch, baseCommit);
+            // Parse the base & target commits
+            RevCommit baseCommit = (baseSha != null) ? parseCommit(git, baseSha) : null;
+            RevCommit targetCommit = parseCommit(git, targetSha);
 
-        // Compute changeId for target
-        String changeId = computeChangeId(targetCommit);
+            // Checkout to review branch
+            String reviewBranch = "review/" + targetSha;
+            checkoutReviewBranch(git, reviewBranch, baseCommit);
 
-        applyDiffAsPatch(git, baseCommit, targetCommit);
-        commitWithChangeId(git, changeId, targetCommit.getFullMessage());
+            // Compute changeId for target
+            String changeId = computeChangeId(targetCommit);
 
-        // Push to Gerrit
-        PushResult result = pushToGerrit(git, gerritCreds);
-        String newGerritSha = extractNewSha(result);
+            applyDiffAsPatch(git, baseCommit, targetCommit);
+            commitWithChangeId(git, changeId, targetCommit.getFullMessage());
 
-        // --- Record the SHA as the new last submitted
-        submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, previousSubmission, newGerritSha,
-                targetCommitEntity);
+            // Push to Gerrit
+            PushResult result = pushToGerrit(git, gerritCreds);
+            String newGerritSha = extractNewSha(result);
 
-        // --- Record the change request
-        changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);
+            // --- Record the SHA as the new last submitted
+            submissionTrackerSvc.recordSubmission(username, gitlabProjectIdLong, previousSubmission, newGerritSha,
+                    targetCommitEntity);
 
-        return changeId;
+            // --- Record the change request
+            changeRequestSvc.insertNewChangeRequest(gitlabProjectIdLong, targetSha, username, newGerritSha);
+
+            return changeId;
+
+        } finally {
+            // --- Clean up temp directory
+            try {
+                Files.walk(tempDir)
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            } catch (IOException cleanupEx) {
+                System.err.println("Warning: Failed to delete temp directory: " + tempDir);
+                cleanupEx.printStackTrace();
+            }
+        }
+
     }
 
     /*
