@@ -38,7 +38,7 @@ public class ChangeRequestService {
 
     @Transactional
     public void insertNewChangeRequest(Long gitlabProjectId, String targetSha, String username, String changeId) {
-        System.out.println("STAGE: ChangeRequestService.insertNewChangeRequest");
+        System.out.println("Service: ChangeRequestService.insertNewChangeRequest");
 
         // Fetch the GitlabCommitEntity you just pushed
         GitlabCommitEntity commit = commitRepo
@@ -54,6 +54,11 @@ public class ChangeRequestService {
         List<ReviewAssignmentEntity> assignments = reviewAssignmentRepo.findByAuthorAndGroupProject(
                 userRepo.findByUsername(username).get(),
                 project.getParentProject());
+
+        if (assignments.isEmpty()) {
+            throw new IllegalStateException("No review assignments found for author: " + username
+                    + " in group project id: " + project.getParentProject().getId());
+        }
 
         // For each assignment create a ChangeRequestEntity
         List<ChangeRequestEntity> requests = assignments.stream()

@@ -92,7 +92,7 @@ public class ProjectService {
                 if (project.getForkedFromProject() != null) {
                     Project projectParent = project.getForkedFromProject();
 
-                    ProjectEntity parent = projectRepo.findByGitlabProjectId(project.getId())
+                    ProjectEntity parent = projectRepo.findByGitlabProjectId(projectParent.getId())
                             .orElseGet(() -> new ProjectEntity(projectParent.getId(), projectParent.getName(),
                                     projectParent.getNamespace().getFullPath()));
                     p.setParentProject(parent);

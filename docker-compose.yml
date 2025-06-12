@@ -32,37 +32,37 @@ services:
       - gerrit-index-volume:/var/gerrit/index
       - gerrit-cache-volume:/var/gerrit/cache
 
-  db:
-    image: postgres:15
-    container_name: code-review-db
-    environment:
-      POSTGRES_DB: mydb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    volumes:
-      - code-review-db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+  # db:
+  #   image: postgres:15
+  #   container_name: code-review-db
+  #   environment:
+  #     POSTGRES_DB: mydb
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: password
+  #   volumes:
+  #     - code-review-db-data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
 
-  backend:
-    build:
-      context: ./backend/db-pcr-backend
-      dockerfile: Dockerfile
-    depends_on:
-      - db
-      - gitlab
-      - gerrit
-    ports:
-      - "8081:8081"
+  # backend:
+  #   build:
+  #     context: ./backend/db-pcr-backend
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - db
+  #     - gitlab
+  #     - gerrit
+  #   ports:
+  #     - "8081:8081"
 
-  frontend:
-    build:
-      context: ./frontend/db-pcr-frontend
-      dockerfile: Dockerfile
-    depends_on:
-      - backend
-    ports:
-      - "4200:80"
+  # frontend:
+  #   build:
+  #     context: ./frontend/db-pcr-frontend
+  #     dockerfile: Dockerfile
+  #   depends_on:
+  #     - backend
+  #   ports:
+  #     - "4200:80"
 
 volumes:
   gitlab-config:
