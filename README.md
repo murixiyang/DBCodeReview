@@ -5,8 +5,6 @@ Individual Project - Double-blind Code Review
 # Azure
 
 ssh murixiyang@20.77.48.174
-username: murixiyang
-password: uVb@9aNsZdPdx3m
 
 # Docker
 
